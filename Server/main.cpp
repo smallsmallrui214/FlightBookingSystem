@@ -86,3 +86,4 @@ int main(int argc, char *argv[])
 }
 
 #include "main.moc"  // 添加这一行
+//lec到此一游

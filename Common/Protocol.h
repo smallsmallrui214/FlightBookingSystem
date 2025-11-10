@@ -10,6 +10,8 @@ enum MessageType {
     TEST_MESSAGE = 0,          // 测试消息
     LOGIN_REQUEST = 100,       // 登录请求
     LOGIN_RESPONSE = 101,      // 登录响应
+    REGISTER_REQUEST = 102,    // 注册请求
+    REGISTER_RESPONSE = 103,   // 注册响应
     FLIGHT_SEARCH_REQUEST = 200,
     FLIGHT_SEARCH_RESPONSE = 201
 };

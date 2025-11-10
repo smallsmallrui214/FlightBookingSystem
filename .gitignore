@@ -1,15 +1,36 @@
+
 # Qt Creator
 .qtcreator/
-
-# Build directories  
-build/
-*/build/
-
-# Qt project files
 *.pro.user
 *.pro.user.*
+
+# Build directories
+[Bb]uild/
+*/[Bb]uild/
+*/*/[Bb]uild/
+[Bb]uild-*/
+
+# Qt Creator clangd cache
+.qtc_clangd/
 
 # Compiled files
 *.o
 *.moc
 *.obj
+*.exe
+*.dll
+
+# Makefiles
+[Mm]akefile*
+*.Debug
+*.Release
+
+# Executables  
+FlightClient.exe
+FlightServer.exe
+
+# System files
+.DS_Store
+Thumbs.db
+EOF
+

@@ -1,22 +1,70 @@
 #include "testclient.h"
 #include "ui_testclient.h"
 #include "clientnetworkmanager.h"
+#include "registerdialog.h"
 #include "../Common/protocol.h"
 #include <QJsonDocument>
 #include <QDebug>
 #include <QMessageBox>
+#include <QTimer>
+#include <QCloseEvent>
 
 TestClient::TestClient(QWidget *parent)
     : QWidget(parent),
     ui(new Ui::TestClient),
-    networkManager(new ClientNetworkManager(this))
+    networkManager(new ClientNetworkManager(this)),
+    registerDialog(nullptr)
 {
     ui->setupUi(this);
+
+    ui->connectButton->hide();
+    ui->disconnectButton->hide();
+
+    ui->outputLabel->hide();
+    ui->textEditOutput->hide();
+
+    ui->registerGroup->hide();
+
+
+    QPushButton *registerLinkButton = new QPushButton("没有账号？立即注册", this);
+    registerLinkButton->setObjectName("registerLinkButton");
+    registerLinkButton->setStyleSheet("color: blue; text-decoration: underline; border: none; background: transparent;");
+
+
+
+    // 将注册链接按钮添加到登录区域的布局中
+    QHBoxLayout *buttonLayout = new QHBoxLayout();
+    buttonLayout->addWidget(registerLinkButton);
+    buttonLayout->addStretch();  // 添加弹性空间
+    buttonLayout->addWidget(ui->loginButton);  // 原来的登录按钮
+
+
+    // 找到登录区域的布局并添加按钮行
+    QVBoxLayout *loginLayout = qobject_cast<QVBoxLayout*>(ui->loginGroup->layout());
+    if (loginLayout) {
+        loginLayout->addLayout(buttonLayout);
+    }
+
+
+    // 连接注册链接按钮的信号
+    connect(registerLinkButton, &QPushButton::clicked, this, &TestClient::on_registerLinkButton_clicked);
+
+
     setupConnections();
+
+    QTimer::singleShot(100, this, [this]() {
+        autoConnect();
+    });
 }
 
 TestClient::~TestClient()
 {
+    if (networkManager->isConnected()) {
+        ui->textEditOutput->append("自动断开服务器连接...");
+        networkManager->disconnectFromServer();
+    }
+
+    delete registerDialog;
     delete ui;
 }
 
@@ -34,6 +82,12 @@ void TestClient::setupConnections()
                 ui->textEditOutput->append("错误: " + error);
                 QMessageBox::warning(this, "连接错误", error);
             });
+}
+
+void TestClient::autoConnect()
+{
+    ui->textEditOutput->append("正在自动连接服务器...");
+    networkManager->connectToServer("127.0.0.1", 8888);
 }
 
 void TestClient::on_connectButton_clicked()
@@ -70,6 +124,22 @@ void TestClient::on_loginButton_clicked()
     networkManager->sendMessage(msg);
 
     ui->textEditOutput->append(QString("发送登录请求: %1").arg(username));
+}
+
+void TestClient::on_registerLinkButton_clicked()
+{
+    if (!registerDialog) {
+        registerDialog = new RegisterDialog(networkManager, this);
+        connect(registerDialog, &RegisterDialog::registrationSuccess,
+                this, [this]() {
+                    // 注册成功后可以执行一些操作
+                    QMessageBox::information(this, "提示", "注册成功，请登录");
+                });
+    }
+
+    registerDialog->show();
+    registerDialog->raise();
+    registerDialog->activateWindow();
 }
 
 void TestClient::on_registerButton_clicked()
@@ -146,4 +216,15 @@ void TestClient::onConnected()
 void TestClient::onDisconnected()
 {
     ui->textEditOutput->append("=== 与服务器断开连接 ===");
+}
+
+void TestClient::closeEvent(QCloseEvent *event)
+{
+    // 在窗口关闭时断开连接
+    if (networkManager->isConnected()) {
+        ui->textEditOutput->append("程序关闭，断开服务器连接...");
+        networkManager->disconnectFromServer();
+    }
+
+    QWidget::closeEvent(event);
 }

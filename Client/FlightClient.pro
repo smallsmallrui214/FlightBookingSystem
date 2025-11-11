@@ -5,14 +5,17 @@ SOURCES += \
     main.cpp \
     clientnetworkmanager.cpp \
     testclient.cpp \
-    registerdialog.cpp  # 新增注册对话框
+    registerdialog.cpp \
+    mainwindow.cpp  # 新增
 
 HEADERS += \
     clientnetworkmanager.h \
     testclient.h \
-    registerdialog.h \  # 新增注册对话框
+    registerdialog.h \
+    mainwindow.h \  # 新增
     ../Common/protocol.h
 
 FORMS += \
-    testclient.ui
-    # 注意：registerdialog没有.ui文件，因为我们用代码创建UI
+    testclient.ui \
+    mainwindow.ui
+    # 注意：mainwindow 和 registerdialog 都没有.ui文件

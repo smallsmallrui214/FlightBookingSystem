@@ -2,6 +2,7 @@
 #include "ui_testclient.h"
 #include "clientnetworkmanager.h"
 #include "registerdialog.h"
+#include "mainwindow.h"
 #include "../Common/protocol.h"
 #include <QJsonDocument>
 #include <QDebug>
@@ -13,7 +14,8 @@ TestClient::TestClient(QWidget *parent)
     : QWidget(parent),
     ui(new Ui::TestClient),
     networkManager(new ClientNetworkManager(this)),
-    registerDialog(nullptr)
+    registerDialog(nullptr),
+    mainWindow(nullptr)
 {
     ui->setupUi(this);
 
@@ -26,6 +28,7 @@ TestClient::TestClient(QWidget *parent)
     ui->registerGroup->hide();
 
 
+    // 创建注册链接按钮
     QPushButton *registerLinkButton = new QPushButton("没有账号？立即注册", this);
     registerLinkButton->setObjectName("registerLinkButton");
     registerLinkButton->setStyleSheet("color: blue; text-decoration: underline; border: none; background: transparent;");
@@ -65,7 +68,20 @@ TestClient::~TestClient()
     }
 
     delete registerDialog;
+    delete mainWindow;
     delete ui;
+}
+
+
+// 显示主界面的函数
+void TestClient::showMainWindow(const QString &username)
+{
+    // 创建主界面
+    mainWindow = new MainWindow(username);
+    mainWindow->show();
+
+    // 关闭登录界面
+    this->close();
 }
 
 void TestClient::setupConnections()
@@ -109,6 +125,14 @@ void TestClient::on_loginButton_clicked()
 
     if (username.isEmpty() || password.isEmpty()) {
         QMessageBox::warning(this, "输入错误", "请输入用户名和密码");
+        return;
+    }
+
+    // 首先检查是否是内置测试账号
+    if (username == "test" && password == "123456") {
+        // 内置测试账号，直接登录成功，不发送到服务器
+        QMessageBox::information(this, "登录成功", "欢迎测试用户！");
+        showMainWindow(username);
         return;
     }
 
@@ -178,15 +202,7 @@ void TestClient::onMessageReceived(const NetworkMessage &message)
     // 处理登录响应
     if (message.type == LOGIN_RESPONSE) {
 
-        QString username = ui->usernameEdit->text().trimmed();
-        QString password = ui->passwordEdit->text().trimmed();
-
-        // 内置测试账号：用户名 test，密码 123456
-        if (username == "test" && password == "123456") {
-            QMessageBox::information(this, "登录成功", "欢迎测试用户！");
-            return;
-        }
-
+        // 正常处理服务器返回的登录响应
         bool success = message.data["success"].toBool();
         QString resultMsg = message.data["message"].toString();
 
@@ -194,6 +210,8 @@ void TestClient::onMessageReceived(const NetworkMessage &message)
             QString username = message.data["username"].toString();
             QMessageBox::information(this, "登录成功",
                                      QString("欢迎 %1！").arg(username));
+            // 登录成功，跳转到主界面
+            showMainWindow(username);
         } else {
             QMessageBox::warning(this, "登录失败", resultMsg);
         }

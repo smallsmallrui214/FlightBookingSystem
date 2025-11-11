@@ -3,6 +3,7 @@
 
 #include <QWidget>
 #include "registerdialog.h"
+#include "mainwindow.h"
 
 // 前向声明
 namespace Ui {
@@ -12,6 +13,7 @@ class TestClient;
 class ClientNetworkManager;
 class NetworkMessage;
 //class RegisterDialog;
+//class MainWindow;
 
 class TestClient : public QWidget
 {
@@ -38,11 +40,13 @@ private slots:
 private:
     void setupConnections();
     void autoConnect();
+    void showMainWindow(const QString &username);
 
 
     Ui::TestClient *ui;
     ClientNetworkManager *networkManager;
     RegisterDialog *registerDialog;  // 新增注册对话框指针
+    MainWindow *mainWindow;  // 新增：主界面指针
 };
 
 #endif // TESTCLIENT_H

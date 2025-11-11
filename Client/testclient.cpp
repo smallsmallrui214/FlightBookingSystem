@@ -177,6 +177,16 @@ void TestClient::onMessageReceived(const NetworkMessage &message)
 
     // 处理登录响应
     if (message.type == LOGIN_RESPONSE) {
+
+        QString username = ui->usernameEdit->text().trimmed();
+        QString password = ui->passwordEdit->text().trimmed();
+
+        // 内置测试账号：用户名 test，密码 123456
+        if (username == "test" && password == "123456") {
+            QMessageBox::information(this, "登录成功", "欢迎测试用户！");
+            return;
+        }
+
         bool success = message.data["success"].toBool();
         QString resultMsg = message.data["message"].toString();
 

@@ -10,6 +10,31 @@
 #include <QTimer>
 #include <QCloseEvent>
 
+class PlaceholderFilter : public QObject
+{
+public:
+    PlaceholderFilter(QLineEdit *edit, const QString &text)
+        : QObject(edit), lineEdit(edit), placeholder(text) {}
+
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override {
+        if (obj == lineEdit) {
+            if (event->type() == QEvent::FocusIn) {
+                lineEdit->setPlaceholderText(""); // 获得焦点隐藏占位符
+            } else if (event->type() == QEvent::FocusOut) {
+                if (lineEdit->text().isEmpty())
+                    lineEdit->setPlaceholderText(placeholder); // 失去焦点且为空显示占位符
+            }
+        }
+        return false; // 继续处理事件
+    }
+
+private:
+    QLineEdit *lineEdit;
+    QString placeholder;
+};
+
+
 TestClient::TestClient(QWidget *parent)
     : QWidget(parent),
     ui(new Ui::TestClient),
@@ -26,6 +51,36 @@ TestClient::TestClient(QWidget *parent)
     ui->textEditOutput->hide();
 
     ui->registerGroup->hide();
+
+
+    // 清除可能的初始文本
+    ui->usernameEdit->clear();
+    ui->passwordEdit->clear();
+    ui->regUsernameEdit->clear();
+    ui->regPasswordEdit->clear();
+    ui->emailEdit->clear();
+
+
+    // 设置占位符文本（点击时会自动隐藏）
+    // 设置占位符文本，并安装焦点事件过滤器
+    ui->usernameEdit->setPlaceholderText("请输入用户名");
+    ui->usernameEdit->installEventFilter(new PlaceholderFilter(ui->usernameEdit, "请输入用户名"));
+
+    ui->passwordEdit->setPlaceholderText("请输入密码");
+    ui->passwordEdit->installEventFilter(new PlaceholderFilter(ui->passwordEdit, "请输入密码"));
+
+    ui->regUsernameEdit->setPlaceholderText("请输入用户名");
+    ui->regUsernameEdit->installEventFilter(new PlaceholderFilter(ui->regUsernameEdit, "请输入用户名"));
+
+    ui->regPasswordEdit->setPlaceholderText("请输入密码");
+    ui->regPasswordEdit->installEventFilter(new PlaceholderFilter(ui->regPasswordEdit, "请输入密码"));
+
+    ui->emailEdit->setPlaceholderText("请输入邮箱(可选)");
+    ui->emailEdit->installEventFilter(new PlaceholderFilter(ui->emailEdit, "请输入邮箱(可选)"));
+
+
+
+
 
 
     // 创建注册链接按钮

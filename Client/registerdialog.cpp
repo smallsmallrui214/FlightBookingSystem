@@ -8,6 +8,33 @@
 #include <QGroupBox>
 #include <QMessageBox>
 #include <QDebug>
+#include <QEvent>
+
+
+class PlaceholderFilter : public QObject
+{
+public:
+    PlaceholderFilter(QLineEdit *edit, const QString &text)
+        : QObject(edit), lineEdit(edit), placeholder(text) {}
+
+protected:
+    bool eventFilter(QObject *obj, QEvent *event) override {
+        if (obj == lineEdit) {
+            if (event->type() == QEvent::FocusIn) {
+                lineEdit->setPlaceholderText(""); // 获得焦点隐藏占位符
+            } else if (event->type() == QEvent::FocusOut) {
+                if (lineEdit->text().isEmpty())
+                    lineEdit->setPlaceholderText(placeholder); // 失去焦点且为空显示占位符
+            }
+        }
+        return false;
+    }
+
+private:
+    QLineEdit *lineEdit;
+    QString placeholder;
+};
+
 
 RegisterDialog::RegisterDialog(ClientNetworkManager* networkManager, QWidget *parent)
     : QDialog(parent),
@@ -46,6 +73,7 @@ void RegisterDialog::setupUI()
     usernameLayout->addWidget(new QLabel("用户名:", this));
     usernameEdit = new QLineEdit(this);
     usernameEdit->setPlaceholderText("请输入用户名");
+    usernameEdit->installEventFilter(new PlaceholderFilter(usernameEdit, "请输入用户名"));
     usernameLayout->addWidget(usernameEdit);
     groupLayout->addLayout(usernameLayout);
 
@@ -55,6 +83,7 @@ void RegisterDialog::setupUI()
     passwordEdit = new QLineEdit(this);
     passwordEdit->setEchoMode(QLineEdit::Password);
     passwordEdit->setPlaceholderText("请输入密码");
+    passwordEdit->installEventFilter(new PlaceholderFilter(passwordEdit, "请输入密码"));
     passwordLayout->addWidget(passwordEdit);
     groupLayout->addLayout(passwordLayout);
 
@@ -64,6 +93,7 @@ void RegisterDialog::setupUI()
     confirmPasswordEdit = new QLineEdit(this);
     confirmPasswordEdit->setEchoMode(QLineEdit::Password);
     confirmPasswordEdit->setPlaceholderText("请再次输入密码");
+    confirmPasswordEdit->installEventFilter(new PlaceholderFilter(confirmPasswordEdit, "请再次输入密码"));
     confirmLayout->addWidget(confirmPasswordEdit);
     groupLayout->addLayout(confirmLayout);
 
@@ -72,6 +102,7 @@ void RegisterDialog::setupUI()
     emailLayout->addWidget(new QLabel("邮箱:", this));
     emailEdit = new QLineEdit(this);
     emailEdit->setPlaceholderText("请输入邮箱(可选)");
+    emailEdit->installEventFilter(new PlaceholderFilter(emailEdit, "请输入邮箱(可选)"));
     emailLayout->addWidget(emailEdit);
     groupLayout->addLayout(emailLayout);
 

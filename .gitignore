@@ -1,118 +1,33 @@
-# ---- Qt 编译生成文件 ----
-build*/
-*.pro.user
-*.qmake.stash
-*.qmake.cache
+# This file is used to ignore files which are generated
+
+# ----------------------------------------------------------------------------
+
+
+
+*~
+
 *.autosave
+
+*.a
+
+*.core
+
 *.moc
-*.o
 *.obj
-*.qmlc
-*.jsc
-Makefile
-CMakeFiles/
-*.log
-*.tmp
-*.rej
-*.bak
-*.orig
-*.DS_Store
+*.exe
+*.dll
 
-# ---- Qt Creator ----
-*.user
-*.user.*
-*.creator.*
-*.creator
-*.autosave
-.idea/
-.vscode/
-*.directory
+# Makefiles
+[Mm]akefile*
+*.Debug
+*.Release
 
-# ---- 其他临时文件 ----
-*.swp
-*.swo
-*.kate-swp
-Thumbs.db
+# Executables  
+FlightClient.exe
+FlightServer.exe
+
+# System files
 .DS_Store
-# This file is used to ignore files which are generated
-# ----------------------------------------------------------------------------
-
-*~
-*.autosave
-*.a
-*.core
-*.moc
-*.o
-*.obj
-*.orig
-*.rej
-*.so
-*.so.*
-*_pch.h.cpp
-*_resource.rc
-*.qm
-.#*
-*.*#
-core
-!core/
-tags
-.DS_Store
-.directory
-*.debug
-Makefile*
-*.prl
-*.app
-moc_*.cpp
-ui_*.h
-qrc_*.cpp
-Thumbs.db
-*.res
-*.rc
-/.qmake.cache
-/.qmake.stash
-
-# qtcreator generated files
-*.pro.user*
-*.qbs.user*
-CMakeLists.txt.user*
-
-# xemacs temporary files
-*.flc
-
-# Vim temporary files
-.*.swp
-
-# Visual Studio generated files
-*.ib_pdb_index
-*.idb
-*.ilk
-*.pdb
-*.sln
-*.suo
-*.vcproj
-*vcproj.*.*.user
-*.ncb
-*.sdf
-*.opensdf
-*.vcxproj
-*vcxproj.*
-
-# MinGW generated files
-*.Debug
-*.Release
-
-# Python byte code
-*.pyc
-
-# Binaries
-# --------
-*.dll
-*.exe
-
-# Directories with generated files
-.moc/
-.obj/
-.pch/
-.rcc/
-.uic/
-/build*/
+Thumbs.db
+
+

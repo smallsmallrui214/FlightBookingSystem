@@ -6,12 +6,12 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>600</width>
-    <height>500</height>
+    <width>400</width>
+    <height>400</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>航班客户端测试</string>
+   <string>航班客户端</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
@@ -32,41 +32,140 @@
      </item>
     </layout>
    </item>
+
+   <!-- 登录区域 -->
    <item>
-    <widget class="QLabel" name="inputLabel">
-     <property name="text">
-      <string>输入消息:</string>
+    <widget class="QGroupBox" name="loginGroup">
+     <property name="title">
+      <string>用户登录</string>
      </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_2">
+        <item>
+         <widget class="QLabel" name="usernameLabel">
+          <property name="text">
+           <string>用户名:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="usernameEdit">
+          <property name="placeholderText">
+           <string>请输入用户名</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_3">
+        <item>
+         <widget class="QLabel" name="passwordLabel">
+          <property name="text">
+           <string>密码:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="passwordEdit">
+          <property name="echoMode">
+           <enum>QLineEdit::Password</enum>
+          </property>
+          <property name="placeholderText">
+           <string>请输入密码</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QPushButton" name="loginButton">
+        <property name="text">
+         <string>登录</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
+
+   <!-- 注册区域 -->
    <item>
-    <widget class="QTextEdit" name="textEditInput">
-     <property name="maximumHeight">
-      <number>60</number>
+    <widget class="QGroupBox" name="registerGroup">
+     <property name="title">
+      <string>用户注册</string>
      </property>
-     <property name="placeholderText">
-      <string>在这里输入要发送的消息...</string>
-     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_4">
+        <item>
+         <widget class="QLabel" name="regUsernameLabel">
+          <property name="text">
+           <string>用户名:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="regUsernameEdit">
+          <property name="placeholderText">
+           <string>请输入用户名</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_5">
+        <item>
+         <widget class="QLabel" name="regPasswordLabel">
+          <property name="text">
+           <string>密码:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="regPasswordEdit">
+          <property name="echoMode">
+           <enum>QLineEdit::Password</enum>
+          </property>
+          <property name="placeholderText">
+           <string>请输入密码</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="horizontalLayout_6">
+        <item>
+         <widget class="QLabel" name="emailLabel">
+          <property name="text">
+           <string>邮箱:</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="emailEdit">
+          <property name="placeholderText">
+           <string>请输入邮箱(可选)</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QPushButton" name="registerButton">
+        <property name="text">
+         <string>注册</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
     </widget>
    </item>
-   <item>
-    <layout class="QHBoxLayout" name="horizontalLayout_2">
-     <item>
-      <widget class="QPushButton" name="sendButton">
-       <property name="text">
-        <string>发送测试消息</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="loginButton">
-       <property name="text">
-        <string>测试登录</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
+
+   <!-- 消息输出 -->
    <item>
     <widget class="QLabel" name="outputLabel">
      <property name="text">
@@ -78,6 +177,9 @@
     <widget class="QTextEdit" name="textEditOutput">
      <property name="readOnly">
       <bool>true</bool>
+     </property>
+     <property name="maximumHeight">
+      <number>100</number>
      </property>
     </widget>
    </item>

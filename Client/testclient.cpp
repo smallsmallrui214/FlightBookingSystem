@@ -186,8 +186,17 @@ void TestClient::on_loginButton_clicked()
     QString username = ui->usernameEdit->text().trimmed();
     QString password = ui->passwordEdit->text().trimmed();
 
-    if (username.isEmpty() || password.isEmpty()) {
-        QMessageBox::warning(this, "输入错误", "请输入用户名和密码");
+    // 检查用户名是否为空
+    if (username.isEmpty()) {
+        QMessageBox::warning(this, "输入错误", "请输入用户名");
+        ui->usernameEdit->setFocus(); // 聚焦到用户名输入框
+        return;
+    }
+
+    // 检查密码是否为空
+    if (password.isEmpty()) {
+        QMessageBox::warning(this, "输入错误", "请输入密码");
+        ui->passwordEdit->setFocus(); // 聚焦到密码输入框
         return;
     }
 

@@ -9,6 +9,7 @@
 #include <QMessageBox>
 #include <QDebug>
 #include <QEvent>
+#include<QTimer>
 
 
 class PlaceholderFilter : public QObject
@@ -44,7 +45,8 @@ RegisterDialog::RegisterDialog(ClientNetworkManager* networkManager, QWidget *pa
     confirmPasswordEdit(nullptr),
     emailEdit(nullptr),
     registerButton(nullptr),
-    cancelButton(nullptr)
+    cancelButton(nullptr),
+    isUsernameAvailable(false)
 {
     setupUI();
     setWindowTitle("用户注册");
@@ -53,6 +55,8 @@ RegisterDialog::RegisterDialog(ClientNetworkManager* networkManager, QWidget *pa
     // 连接网络消息信号
     connect(networkManager, &ClientNetworkManager::messageReceived,
             this, &RegisterDialog::onMessageReceived);
+
+    connect(usernameEdit, &QLineEdit::textChanged, this, &RegisterDialog::checkUsernameAvailability);
 
     connect(this, &RegisterDialog::finished, this, [this](int result) {
         // 清空所有输入框
@@ -132,6 +136,31 @@ void RegisterDialog::setupUI()
     connect(cancelButton, &QPushButton::clicked, this, &RegisterDialog::onCancelClicked);
 }
 
+void RegisterDialog::checkUsernameAvailability()
+{
+    QString username = usernameEdit->text().trimmed();
+
+    if (username.isEmpty()) {
+        isUsernameAvailable = false;
+        usernameEdit->setStyleSheet(""); // 清除样式
+        return;
+    }
+
+    // 延迟检查，避免频繁请求
+    QTimer::singleShot(500, this, [this, username]() {
+        if (username == usernameEdit->text().trimmed() && !username.isEmpty()) {
+            // 发送检查用户名请求
+            NetworkMessage msg;
+            msg.type = CHECK_USERNAME_REQUEST;
+            msg.data["username"] = username;
+            networkManager->sendMessage(msg);
+
+            pendingUsername = username;
+            qDebug() << "检查用户名是否存在:" << username;
+        }
+    });
+}
+
 void RegisterDialog::onRegisterClicked()
 {
     QString username = usernameEdit->text().trimmed();
@@ -153,10 +182,26 @@ void RegisterDialog::onRegisterClicked()
         return;
     }
 
+    // 检查用户名长度
+    if (username.length() < 3 || username.length() > 20) {
+        QMessageBox::warning(this, "输入错误", "用户名长度应在3-20个字符之间");
+        usernameEdit->setFocus();
+        usernameEdit->selectAll();
+        return;
+    }
+
     // 检查确认密码是否为空
     if (confirmPassword.isEmpty()) {
         QMessageBox::warning(this, "输入错误", "请再次输入密码");
         confirmPasswordEdit->setFocus(); // 聚焦到确认密码输入框
+        return;
+    }
+
+    // 检查密码长度
+    if (password.length() < 6 || password.length() > 20) {
+        QMessageBox::warning(this, "输入错误", "密码长度应在6-20个字符之间");
+        passwordEdit->setFocus();
+        passwordEdit->selectAll();
         return;
     }
 
@@ -165,6 +210,13 @@ void RegisterDialog::onRegisterClicked()
         QMessageBox::warning(this, "输入错误", "两次输入的密码不一致");
         confirmPasswordEdit->setFocus(); // 聚焦到确认密码输入框
         confirmPasswordEdit->selectAll(); // 可选：选中所有文本方便修改
+        return;
+    }
+
+    // 检查用户名是否可用
+    if (!isUsernameAvailable || pendingUsername != username) {
+        QMessageBox::warning(this, "输入错误", "请等待用户名检查完成或用户名不可用");
+        usernameEdit->setFocus();
         return;
     }
 
@@ -193,6 +245,29 @@ void RegisterDialog::onCancelClicked()
 
 void RegisterDialog::onMessageReceived(const NetworkMessage &message)
 {
+    // 处理用户名检查响应
+    if (message.type == CHECK_USERNAME_RESPONSE) {
+        bool exists = message.data["exists"].toBool();  // 服务器返回用户名是否存在
+        QString checkedUsername = message.data["username"].toString();
+
+        // 确保检查的是当前输入框中的用户名
+        if (checkedUsername == usernameEdit->text().trimmed()) {
+            isUsernameAvailable = !exists;  // 如果不存在，就是可用的
+
+            if (exists) {
+                // 用户名已存在，给用户视觉提示
+                usernameEdit->setStyleSheet("border: 1px solid red;");
+                QMessageBox::warning(this, "用户名不可用", "该用户名已被使用，请选择其他用户名");
+                usernameEdit->setFocus();
+                usernameEdit->selectAll();
+            } else {
+                // 用户名可用
+                usernameEdit->setStyleSheet("border: 1px solid green;");
+                qDebug() << "用户名可用:" << checkedUsername;
+            }
+        }
+    }
+
     // 处理注册响应
     if (message.type == REGISTER_RESPONSE) {
         registerButton->setEnabled(true);  // 重新启用注册按钮
@@ -204,10 +279,13 @@ void RegisterDialog::onMessageReceived(const NetworkMessage &message)
             QString username = message.data["username"].toString();
             QMessageBox::information(this, "注册成功",
                                      QString("用户 %1 注册成功").arg(username));
-            emit registrationSuccess();  // 发射注册成功信号
-            accept(); // 关闭对话框
+            emit registrationSuccess();
+            accept();
         } else {
             QMessageBox::warning(this, "注册失败", resultMsg);
+            // 注册失败时重置用户名可用状态
+            isUsernameAvailable = false;
+            usernameEdit->setStyleSheet(""); // 清除样式
         }
     }
 }

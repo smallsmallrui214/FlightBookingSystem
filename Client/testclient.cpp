@@ -34,6 +34,13 @@ private:
     QString placeholder;
 };
 
+void TestClient::showLoginWindow()
+{
+    this->show();
+    this->raise();
+    this->activateWindow();
+}
+
 
 TestClient::TestClient(QWidget *parent)
     : QWidget(parent),
@@ -139,6 +146,7 @@ void TestClient::showMainWindow(const QString &username)
     this->close();
 }
 
+
 void TestClient::setupConnections()
 {
     // 连接网络管理器的信号
@@ -207,18 +215,24 @@ void TestClient::on_loginButton_clicked()
 
 void TestClient::on_registerLinkButton_clicked()
 {
-    if (!registerDialog) {
-        registerDialog = new RegisterDialog(networkManager, this);
-        connect(registerDialog, &RegisterDialog::registrationSuccess,
-                this, [this]() {
-                    // 注册成功后可以执行一些操作
-                    QMessageBox::information(this, "提示", "注册成功，请登录");
-                });
-    }
+    // 隐藏登录界面
+    this->hide();
 
-    registerDialog->show();
-    registerDialog->raise();
-    registerDialog->activateWindow();
+    // 创建注册对话框（模态对话框）
+    RegisterDialog dialog(networkManager, this);
+
+    // 注册成功
+    connect(&dialog, &RegisterDialog::registrationSuccess, this, [this]() {
+        QMessageBox::information(this, "提示", "注册成功，请登录");
+    });
+
+    // 显示模态对话框（会自动阻塞，关闭后继续执行）
+    dialog.exec();
+
+    // 对话框关闭后，显示登录界面
+    this->show();
+    this->raise();
+    this->activateWindow();
 }
 
 void TestClient::on_registerButton_clicked()

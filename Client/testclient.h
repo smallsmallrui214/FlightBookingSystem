@@ -36,6 +36,7 @@ private slots:
     void onMessageReceived(const NetworkMessage &message);
     void onConnected();
     void onDisconnected();
+    void showLoginWindow();  // 新增：显示登录界面
 
 private:
     void setupConnections();

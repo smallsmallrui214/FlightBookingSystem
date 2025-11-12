@@ -53,6 +53,17 @@ RegisterDialog::RegisterDialog(ClientNetworkManager* networkManager, QWidget *pa
     // 连接网络消息信号
     connect(networkManager, &ClientNetworkManager::messageReceived,
             this, &RegisterDialog::onMessageReceived);
+
+    connect(this, &RegisterDialog::finished, this, [this](int result) {
+        // 清空所有输入框
+        usernameEdit->clear();
+        passwordEdit->clear();
+        confirmPasswordEdit->clear();
+        emailEdit->clear();
+
+        // 重新启用注册按钮（如果之前被禁用）
+        registerButton->setEnabled(true);
+    });
 }
 
 RegisterDialog::~RegisterDialog()

@@ -19,6 +19,7 @@ public:
 
 signals:
     void registrationSuccess();
+    void finished(int result);
 
 private slots:
     void onRegisterClicked();

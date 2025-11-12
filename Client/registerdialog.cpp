@@ -139,14 +139,32 @@ void RegisterDialog::onRegisterClicked()
     QString confirmPassword = confirmPasswordEdit->text().trimmed();
     QString email = emailEdit->text().trimmed();
 
-    // 输入验证
-    if (username.isEmpty() || password.isEmpty()) {
-        QMessageBox::warning(this, "输入错误", "请输入用户名和密码");
+    // 检查用户名是否为空
+    if (username.isEmpty()) {
+        QMessageBox::warning(this, "输入错误", "请输入用户名");
+        usernameEdit->setFocus(); // 聚焦到用户名输入框
         return;
     }
 
+    // 检查密码是否为空
+    if (password.isEmpty()) {
+        QMessageBox::warning(this, "输入错误", "请输入密码");
+        passwordEdit->setFocus(); // 聚焦到密码输入框
+        return;
+    }
+
+    // 检查确认密码是否为空
+    if (confirmPassword.isEmpty()) {
+        QMessageBox::warning(this, "输入错误", "请再次输入密码");
+        confirmPasswordEdit->setFocus(); // 聚焦到确认密码输入框
+        return;
+    }
+
+    // 检查两次密码是否一致
     if (password != confirmPassword) {
         QMessageBox::warning(this, "输入错误", "两次输入的密码不一致");
+        confirmPasswordEdit->setFocus(); // 聚焦到确认密码输入框
+        confirmPasswordEdit->selectAll(); // 可选：选中所有文本方便修改
         return;
     }
 

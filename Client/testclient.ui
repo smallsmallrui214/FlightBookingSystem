@@ -6,36 +6,46 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>400</width>
-    <height>400</height>
+    <width>514</width>
+    <height>417</height>
    </rect>
   </property>
   <property name="windowTitle">
-   <string>航班客户端</string>
+   <string>航班管理系统 - 登录</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">/* 主窗口样式 */
+QDialog {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #2c3e50, stop:1 #34495e);
+    border-radius: 15px;
+    border: 2px solid #34495e;
+}</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
    <item>
-    <layout class="QHBoxLayout" name="horizontalLayout">
-     <item>
-      <widget class="QPushButton" name="connectButton">
-       <property name="text">
-        <string>连接服务器</string>
-       </property>
-      </widget>
-     </item>
-     <item>
-      <widget class="QPushButton" name="disconnectButton">
-       <property name="text">
-        <string>断开连接</string>
-       </property>
-      </widget>
-     </item>
-    </layout>
-   </item>
-
-   <!-- 登录区域 -->
-   <item>
     <widget class="QGroupBox" name="loginGroup">
+     <property name="styleSheet">
+      <string notr="true">/* GroupBox样式 - 与RegisterDialog一致 */
+QGroupBox {
+    background-color: rgba(255, 255, 255, 0.95);
+    border-radius: 10px;
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    padding: 20px;
+    margin: 15px;
+    font-size: 14px;
+}
+
+QGroupBox::title {
+    subcontrol-origin: margin;
+    subcontrol-position: top center;
+    padding: 5px 15px;
+    background-color: #3498db;
+    color: white;
+    border-radius: 5px;
+    font-size: 16px;
+    font-weight: bold;
+}</string>
+     </property>
      <property name="title">
       <string>用户登录</string>
      </property>
@@ -44,6 +54,16 @@
        <layout class="QHBoxLayout" name="horizontalLayout_2">
         <item>
          <widget class="QLabel" name="usernameLabel">
+          <property name="styleSheet">
+           <string notr="true">/* 所有标签样式 */
+QLabel {
+    color: #2c3e50;
+    font-size: 14px;
+    font-weight: bold;
+    background: transparent;
+    padding: 5px 0px;
+}</string>
+          </property>
           <property name="text">
            <string>用户名:</string>
           </property>
@@ -51,6 +71,24 @@
         </item>
         <item>
          <widget class="QLineEdit" name="usernameEdit">
+          <property name="styleSheet">
+           <string notr="true">/* 输入框默认样式 */
+QLineEdit {
+    background-color: white;
+    border: 2px solid #bdc3c7;
+    border-radius: 5px;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #2c3e50;
+    max-height: 25px;
+}
+
+/* 输入框获得焦点时的样式 */
+QLineEdit:focus {
+    border-color: #3498db;
+    background-color: #f8f9fa;
+}</string>
+          </property>
           <property name="placeholderText">
            <string>请输入用户名</string>
           </property>
@@ -62,15 +100,43 @@
        <layout class="QHBoxLayout" name="horizontalLayout_3">
         <item>
          <widget class="QLabel" name="passwordLabel">
+          <property name="styleSheet">
+           <string notr="true">/* 所有标签样式 */
+QLabel {
+    color: #2c3e50;
+    font-size: 14px;
+    font-weight: bold;
+    background: transparent;
+    padding: 5px 0px;
+}</string>
+          </property>
           <property name="text">
-           <string>密码:</string>
+           <string>密   码:</string>
           </property>
          </widget>
         </item>
         <item>
          <widget class="QLineEdit" name="passwordEdit">
+          <property name="styleSheet">
+           <string notr="true">/* 输入框默认样式 */
+QLineEdit {
+    background-color: white;
+    border: 2px solid #bdc3c7;
+    border-radius: 5px;
+    padding: 8px 12px;
+    font-size: 14px;
+    color: #2c3e50;
+    max-height: 25px;
+}
+
+/* 输入框获得焦点时的样式 */
+QLineEdit:focus {
+    border-color: #3498db;
+    background-color: #f8f9fa;
+}</string>
+          </property>
           <property name="echoMode">
-           <enum>QLineEdit::Password</enum>
+           <enum>QLineEdit::EchoMode::Password</enum>
           </property>
           <property name="placeholderText">
            <string>请输入密码</string>
@@ -81,6 +147,30 @@
       </item>
       <item>
        <widget class="QPushButton" name="loginButton">
+        <property name="styleSheet">
+         <string notr="true">/* 登录按钮默认样式 */
+QPushButton#loginButton {
+    background-color: #3498db;
+    color: white;
+    border: none;
+    border-radius: 5px;
+    padding: 10px 15px;
+    font-size: 14px;
+    font-weight: bold;
+    max-height: 25px;
+    max-width: 80px;
+}
+
+/* 登录按钮悬停效果 */
+QPushButton#loginButton:hover {
+    background-color: #5dade2;
+}
+
+/* 登录按钮按下效果 */
+QPushButton#loginButton:pressed {
+    background-color: #2e86c1;
+}</string>
+        </property>
         <property name="text">
          <string>登录</string>
         </property>
@@ -89,83 +179,6 @@
      </layout>
     </widget>
    </item>
-
-   <!-- 注册区域 -->
-   <item>
-    <widget class="QGroupBox" name="registerGroup">
-     <property name="title">
-      <string>用户注册</string>
-     </property>
-     <layout class="QVBoxLayout" name="verticalLayout_3">
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_4">
-        <item>
-         <widget class="QLabel" name="regUsernameLabel">
-          <property name="text">
-           <string>用户名:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="regUsernameEdit">
-          <property name="placeholderText">
-           <string>请输入用户名</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_5">
-        <item>
-         <widget class="QLabel" name="regPasswordLabel">
-          <property name="text">
-           <string>密码:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="regPasswordEdit">
-          <property name="echoMode">
-           <enum>QLineEdit::Password</enum>
-          </property>
-          <property name="placeholderText">
-           <string>请输入密码</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <layout class="QHBoxLayout" name="horizontalLayout_6">
-        <item>
-         <widget class="QLabel" name="emailLabel">
-          <property name="text">
-           <string>邮箱:</string>
-          </property>
-         </widget>
-        </item>
-        <item>
-         <widget class="QLineEdit" name="emailEdit">
-          <property name="placeholderText">
-           <string>请输入邮箱(可选)</string>
-          </property>
-         </widget>
-        </item>
-       </layout>
-      </item>
-      <item>
-       <widget class="QPushButton" name="registerButton">
-        <property name="text">
-         <string>注册</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </widget>
-   </item>
-
-   <!-- 消息输出 -->
    <item>
     <widget class="QLabel" name="outputLabel">
      <property name="text">
@@ -174,16 +187,23 @@
     </widget>
    </item>
    <item>
+    <layout class="QHBoxLayout" name="horizontalLayout"/>
+   </item>
+   <item>
     <widget class="QTextEdit" name="textEditOutput">
      <property name="readOnly">
       <bool>true</bool>
      </property>
-     <property name="maximumHeight">
-      <number>100</number>
+     <property name="acceptRichText">
+      <bool>true</bool>
      </property>
     </widget>
    </item>
   </layout>
+  <zorder>textEditOutput</zorder>
+  <zorder>outputLabel</zorder>
+  <zorder>loginGroup</zorder>
+  <zorder></zorder>
  </widget>
  <resources/>
  <connections/>

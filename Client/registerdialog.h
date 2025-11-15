@@ -4,6 +4,7 @@
 #include <QDialog>
 #include "../Common/protocol.h"
 
+
 // 前向声明
 class QLineEdit;
 class QPushButton;
@@ -31,11 +32,13 @@ private:
     void setupUI();
     void validateInputs();  // 输入验证
     void sendRegisterRequest();  // 发送注册请求
+    void applyBeautifyStyles();  //新增美化函数
 
     // UI控件
     QLineEdit *usernameEdit;
     QLineEdit *passwordEdit;
     QLineEdit *confirmPasswordEdit;
+
     QLineEdit *emailEdit;
     QPushButton *registerButton;
     QPushButton *cancelButton;

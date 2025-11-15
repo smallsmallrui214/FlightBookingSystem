@@ -49,6 +49,7 @@ RegisterDialog::RegisterDialog(ClientNetworkManager* networkManager, QWidget *pa
     isUsernameAvailable(false)
 {
     setupUI();
+    applyBeautifyStyles();//新增调用美化函数
     setWindowTitle("用户注册");
     setFixedSize(400, 300);
 
@@ -94,7 +95,7 @@ void RegisterDialog::setupUI()
 
     // 密码行
     QHBoxLayout *passwordLayout = new QHBoxLayout();
-    passwordLayout->addWidget(new QLabel("密码:", this));
+    passwordLayout->addWidget(new QLabel("密 码:", this));
     passwordEdit = new QLineEdit(this);
     passwordEdit->setEchoMode(QLineEdit::Password);
     passwordEdit->setPlaceholderText("请输入密码");
@@ -104,7 +105,7 @@ void RegisterDialog::setupUI()
 
     // 确认密码行
     QHBoxLayout *confirmLayout = new QHBoxLayout();
-    confirmLayout->addWidget(new QLabel("确认密码:", this));
+    confirmLayout->addWidget(new QLabel("确 认:", this));
     confirmPasswordEdit = new QLineEdit(this);
     confirmPasswordEdit->setEchoMode(QLineEdit::Password);
     confirmPasswordEdit->setPlaceholderText("请再次输入密码");
@@ -114,7 +115,7 @@ void RegisterDialog::setupUI()
 
     // 邮箱行
     QHBoxLayout *emailLayout = new QHBoxLayout();
-    emailLayout->addWidget(new QLabel("邮箱:", this));
+    emailLayout->addWidget(new QLabel("邮 箱:", this));
     emailEdit = new QLineEdit(this);
     emailEdit->setPlaceholderText("请输入邮箱(可选)");
     emailEdit->installEventFilter(new PlaceholderFilter(emailEdit, "请输入邮箱(可选)"));
@@ -135,7 +136,136 @@ void RegisterDialog::setupUI()
     connect(registerButton, &QPushButton::clicked, this, &RegisterDialog::onRegisterClicked);
     connect(cancelButton, &QPushButton::clicked, this, &RegisterDialog::onCancelClicked);
 }
+void RegisterDialog::applyBeautifyStyles()
+{
+    // 1. 设置窗口背景
+    this->setStyleSheet(
+        "QDialog {"
+        "  background: qlineargradient(x1:0, y1:0, x2:1, y2:1,"
+        "    stop:0 #2c3e50, stop:1 #34495e);"
+        "  border-radius: 15px;"
+        "  border: 2px solid #34495e;"
+        "}"
+        );
 
+    // 2. 美化GroupBox
+    const QList<QGroupBox*> groupBoxes = findChildren<QGroupBox*>();
+    for (QGroupBox* const &groupBox : groupBoxes) {
+        groupBox->setStyleSheet(
+            "QGroupBox {"
+            "  background-color: rgba(255, 255, 255, 0.95);"
+            "  border-radius: 10px;"
+            "  border: 2px solid rgba(255, 255, 255, 0.5);"
+            "  padding: 20px;"
+            "  margin: 15px;"
+            "  font-size: 14px;"
+            "}"
+            "QGroupBox::title {"
+            "  subcontrol-origin: margin;"
+            "  subcontrol-position: top center;"
+            "  padding: 5px 15px;"
+            "  background-color: #3498db;"
+            "  color: white;"
+            "  border-radius: 5px;"
+            "  font-size: 16px;"
+            "  font-weight: bold;"
+            "}"
+            );
+    }
+
+    // 3. 美化标签 - 设置固定宽度，实现对齐
+    const QList<QLabel*> labels = findChildren<QLabel*>();
+    for (QLabel* const &label : labels) {
+        // 设置标签固定宽度，确保对齐
+        if (label->text().contains("用户名") ||
+            label->text().contains("密 码") ||
+            label->text().contains("确 认") ||
+            label->text().contains("邮 箱")) {
+            label->setFixedWidth(60);  // 标签固定宽度
+        }
+
+        label->setStyleSheet(
+            "QLabel {"
+            "  color: #2c3e50;"           // 深色文字（在白色背景上更清晰）
+            "  font-size: 14px;"
+            "  font-weight: bold;"
+            "  background: transparent;"
+            "  padding: 5px 0px;"         // 垂直内边距
+            "}"
+            );
+    }
+
+    // 4. 美化输入框 - 设置固定宽度，实现对齐
+    const QList<QLineEdit*> lineEdits = findChildren<QLineEdit*>();
+    for (QLineEdit* const &edit : lineEdits) {
+        edit->setFixedHeight(35);  //输入框固定高度
+        edit->setFixedWidth(200);  // 输入框固定宽度
+
+        edit->setStyleSheet(
+            "QLineEdit {"
+            "  background-color: white;"
+            "  border: 2px solid #bdc3c7;"
+            "  border-radius: 5px;"
+            "  padding: 8px 12px;"
+            "  font-size: 14px;"
+            "  color: #2c3e50;"
+            "  min-width: 200px;"         // 最小宽度
+            "}"
+            "QLineEdit:focus {"
+            "  border-color: #3498db;"
+            "  background-color: #f8f9fa;"
+            "}"
+            );
+    }
+
+    // 5. 美化按钮
+    const QList<QPushButton*> buttons = findChildren<QPushButton*>();
+    for (QPushButton* const &btn : buttons) {
+        btn->setFixedHeight(35);
+        btn->setFixedWidth(80);  // 按钮固定宽度
+
+        if (btn->text().contains("注册")) {
+            btn->setStyleSheet(
+                "QPushButton {"
+                "  background-color: #27ae60;"
+                "  color: white;"
+                "  border: none;"
+                "  border-radius: 5px;"
+                "  padding: 10px 15px;"
+                "  font-size: 14px;"
+                "  font-weight: bold;"
+                "  min-width: 80px;"
+                "}"
+                "QPushButton:hover {"
+                "  background-color: #2ecc71;"
+                "}"
+                "QPushButton:pressed {"
+                "  background-color: #229954;"
+                "}"
+                );
+        } else if (btn->text().contains("取消")) {
+            btn->setStyleSheet(
+                "QPushButton {"
+                "  background-color: #e74c3c;"
+                "  color: white;"
+                "  border: none;"
+                "  border-radius: 5px;"
+                "  padding: 10px 15px;"
+                "  font-size: 14px;"
+                "  font-weight: bold;"
+                "  min-width: 80px;"
+                "}"
+                "QPushButton:hover {"
+                "  background-color: #ec7063;"
+                "}"
+                "QPushButton:pressed {"
+                "  background-color: #cb4335;"
+                "}"
+                );
+        }
+    }
+}
+//新增美化函数定义
 void RegisterDialog::checkUsernameAvailability()
 {
     QString username = usernameEdit->text().trimmed();
@@ -288,4 +418,5 @@ void RegisterDialog::onMessageReceived(const NetworkMessage &message)
             usernameEdit->setStyleSheet(""); // 清除样式
         }
     }
+
 }

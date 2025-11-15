@@ -51,21 +51,19 @@ TestClient::TestClient(QWidget *parent)
 {
     ui->setupUi(this);
 
-    ui->connectButton->hide();
-    ui->disconnectButton->hide();
 
     ui->outputLabel->hide();
     ui->textEditOutput->hide();
 
-    ui->registerGroup->hide();
+    //ui->registerGroup->hide();
 
 
     // 清除可能的初始文本
     ui->usernameEdit->clear();
     ui->passwordEdit->clear();
-    ui->regUsernameEdit->clear();
-    ui->regPasswordEdit->clear();
-    ui->emailEdit->clear();
+    //ui->regUsernameEdit->clear();
+    //ui->regPasswordEdit->clear();
+    //ui->emailEdit->clear();
 
 
     // 设置占位符文本（点击时会自动隐藏）
@@ -76,14 +74,14 @@ TestClient::TestClient(QWidget *parent)
     ui->passwordEdit->setPlaceholderText("请输入密码");
     ui->passwordEdit->installEventFilter(new PlaceholderFilter(ui->passwordEdit, "请输入密码"));
 
-    ui->regUsernameEdit->setPlaceholderText("请输入用户名");
-    ui->regUsernameEdit->installEventFilter(new PlaceholderFilter(ui->regUsernameEdit, "请输入用户名"));
+    //ui->regUsernameEdit->setPlaceholderText("请输入用户名");
+    //ui->regUsernameEdit->installEventFilter(new PlaceholderFilter(ui->regUsernameEdit, "请输入用户名"));
 
-    ui->regPasswordEdit->setPlaceholderText("请输入密码");
-    ui->regPasswordEdit->installEventFilter(new PlaceholderFilter(ui->regPasswordEdit, "请输入密码"));
+    //ui->regPasswordEdit->setPlaceholderText("请输入密码");
+    //ui->regPasswordEdit->installEventFilter(new PlaceholderFilter(ui->regPasswordEdit, "请输入密码"));
 
-    ui->emailEdit->setPlaceholderText("请输入邮箱(可选)");
-    ui->emailEdit->installEventFilter(new PlaceholderFilter(ui->emailEdit, "请输入邮箱(可选)"));
+    //ui->emailEdit->setPlaceholderText("请输入邮箱(可选)");
+    //ui->emailEdit->installEventFilter(new PlaceholderFilter(ui->emailEdit, "请输入邮箱(可选)"));
 
 
 
@@ -93,7 +91,7 @@ TestClient::TestClient(QWidget *parent)
     // 创建注册链接按钮
     QPushButton *registerLinkButton = new QPushButton("没有账号？立即注册", this);
     registerLinkButton->setObjectName("registerLinkButton");
-    registerLinkButton->setStyleSheet("color: blue; text-decoration: underline; border: none; background: transparent;");
+    registerLinkButton->setStyleSheet("color: blue; text-decoration: underline; border: none; background: transparent;");//颜色，下划线，透明背景
 
 
 
@@ -244,7 +242,7 @@ void TestClient::on_registerLinkButton_clicked()
     this->activateWindow();
 }
 
-void TestClient::on_registerButton_clicked()
+/*void TestClient::on_registerButton_clicked()
 {
     QString username = ui->regUsernameEdit->text().trimmed();
     QString password = ui->regPasswordEdit->text().trimmed();
@@ -268,7 +266,7 @@ void TestClient::on_registerButton_clicked()
     networkManager->sendMessage(msg);
 
     ui->textEditOutput->append(QString("发送注册请求: %1").arg(username));
-}
+}*/
 
 void TestClient::onMessageReceived(const NetworkMessage &message)
 {
@@ -296,7 +294,7 @@ void TestClient::onMessageReceived(const NetworkMessage &message)
     }
 
     // 处理注册响应
-    if (message.type == REGISTER_RESPONSE) {
+    /*if (message.type == REGISTER_RESPONSE) {
         bool success = message.data["success"].toBool();
         QString resultMsg = message.data["message"].toString();
 
@@ -311,7 +309,7 @@ void TestClient::onMessageReceived(const NetworkMessage &message)
         } else {
             QMessageBox::warning(this, "注册失败", resultMsg);
         }
-    }
+    }*/
 }
 
 void TestClient::onConnected()

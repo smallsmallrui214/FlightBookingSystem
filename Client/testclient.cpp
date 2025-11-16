@@ -10,6 +10,7 @@
 #include <QTimer>
 #include <QCloseEvent>
 
+
 class PlaceholderFilter : public QObject
 {
 public:
@@ -50,12 +51,41 @@ TestClient::TestClient(QWidget *parent)
     mainWindow(nullptr)
 {
     ui->setupUi(this);
+    this->setFixedSize(640, 500);
+
+    QString messageBoxStyle =
+        "QMessageBox {"
+        "    background-color: #2c3e50;"  // 背景色
+        "    color: #cccccc;"             // 文字颜色改为浅灰色
+        "    font-size: 14px;"
+        "}"
+        "QMessageBox QLabel {"
+        "    color: #cccccc;"             // 消息文本颜色
+        "    background-color: transparent;"
+        "    font-size: 14px;"
+        "}"
+        "QMessageBox QPushButton {"
+        "    background-color: #3498db;"
+        "    color: white;"
+        "    border: none;"
+        "    border-radius: 5px;"
+        "    padding: 8px 15px;"
+        "    font-size: 12px;"
+        "    min-width: 80px;"
+        "}"
+        "QMessageBox QPushButton:hover {"
+        "    background-color: #5dade2;"
+        "}"
+        "QMessageBox QPushButton:pressed {"
+        "    background-color: #2e86c1;"
+        "}";
+
+    // 应用样式到所有QMessageBox
+    setStyleSheet(messageBoxStyle);
 
 
     ui->outputLabel->hide();
     ui->textEditOutput->hide();
-
-    //ui->registerGroup->hide();
 
 
     // 清除可能的初始文本
@@ -64,8 +94,8 @@ TestClient::TestClient(QWidget *parent)
     //ui->regUsernameEdit->clear();
     //ui->regPasswordEdit->clear();
     //ui->emailEdit->clear();
-
-
+    ui->loginButton->setFixedSize(80, 15);
+    ui->loginButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
     // 设置占位符文本（点击时会自动隐藏）
     // 设置占位符文本，并安装焦点事件过滤器
     ui->usernameEdit->setPlaceholderText("请输入用户名");
@@ -74,38 +104,41 @@ TestClient::TestClient(QWidget *parent)
     ui->passwordEdit->setPlaceholderText("请输入密码");
     ui->passwordEdit->installEventFilter(new PlaceholderFilter(ui->passwordEdit, "请输入密码"));
 
-    //ui->regUsernameEdit->setPlaceholderText("请输入用户名");
-    //ui->regUsernameEdit->installEventFilter(new PlaceholderFilter(ui->regUsernameEdit, "请输入用户名"));
-
-    //ui->regPasswordEdit->setPlaceholderText("请输入密码");
-    //ui->regPasswordEdit->installEventFilter(new PlaceholderFilter(ui->regPasswordEdit, "请输入密码"));
-
-    //ui->emailEdit->setPlaceholderText("请输入邮箱(可选)");
-    //ui->emailEdit->installEventFilter(new PlaceholderFilter(ui->emailEdit, "请输入邮箱(可选)"));
-
-
-
-
-
 
     // 创建注册链接按钮
     QPushButton *registerLinkButton = new QPushButton("没有账号？立即注册", this);
     registerLinkButton->setObjectName("registerLinkButton");
-    registerLinkButton->setStyleSheet("color: blue; text-decoration: underline; border: none; background: transparent;");//颜色，下划线，透明背景
+    // 设置链接按钮样式
+    registerLinkButton->setStyleSheet(
+        "QPushButton {"
+        "  background-color: transparent;"
+        "  color: #3498db;"
+        "  border: none;"
+        "  text-decoration: underline;"
+        "  padding: 5px;"
+        "  font-size: 12px;"
+        "  min-height: 25px;"
+        "}"
+        "QPushButton:hover {"
+        "  color: #5dade2;"
+        "  background-color: rgba(52, 152, 219, 0.1);"
+        "}"
+        );
 
 
 
-    // 将注册链接按钮添加到登录区域的布局中
-    QHBoxLayout *buttonLayout = new QHBoxLayout();
-    buttonLayout->addWidget(registerLinkButton);
-    buttonLayout->addStretch();  // 添加弹性空间
-    buttonLayout->addWidget(ui->loginButton);  // 原来的登录按钮
+    // ✅ 将注册链接按钮添加到布局中
+    // 找到buttonLayout
+    QHBoxLayout *buttonLayout = qobject_cast<QHBoxLayout*>(ui->buttonLayout);
+    if (buttonLayout) {
+        // 在spacer之前插入注册链接按钮
+        buttonLayout->insertWidget(0, registerLinkButton);
 
-
-    // 找到登录区域的布局并添加按钮行
-    QVBoxLayout *loginLayout = qobject_cast<QVBoxLayout*>(ui->loginGroup->layout());
-    if (loginLayout) {
-        loginLayout->addLayout(buttonLayout);
+        // 可选：调整spacer的大小，为按钮留出空间
+        QSpacerItem *spacer = buttonLayout->itemAt(1)->spacerItem();
+        if (spacer) {
+            spacer->changeSize(20, 20); // 减小spacer大小
+        }
     }
 
 
@@ -222,51 +255,25 @@ void TestClient::on_loginButton_clicked()
 
 void TestClient::on_registerLinkButton_clicked()
 {
-    // 隐藏登录界面
     this->hide();
 
-    // 创建注册对话框（模态对话框）
+    // 创建注册对话框
     RegisterDialog dialog(networkManager, this);
 
-    // 注册成功
     connect(&dialog, &RegisterDialog::registrationSuccess, this, [this]() {
         QMessageBox::information(this, "提示", "注册成功，请登录");
     });
 
-    // 显示模态对话框（会自动阻塞，关闭后继续执行）
-    dialog.exec();
 
-    // 对话框关闭后，显示登录界面
+    dialog.exec();  // 对话框关闭后，下面的代码立即执行
+
+
     this->show();
     this->raise();
     this->activateWindow();
 }
 
-/*void TestClient::on_registerButton_clicked()
-{
-    QString username = ui->regUsernameEdit->text().trimmed();
-    QString password = ui->regPasswordEdit->text().trimmed();
-    QString email = ui->emailEdit->text().trimmed();
 
-    if (username.isEmpty() || password.isEmpty()) {
-        QMessageBox::warning(this, "输入错误", "请输入用户名和密码");
-        return;
-    }
-
-    if (!networkManager->isConnected()) {
-        QMessageBox::warning(this, "连接错误", "请先连接服务器");
-        return;
-    }
-
-    NetworkMessage msg;
-    msg.type = REGISTER_REQUEST;
-    msg.data["username"] = username;
-    msg.data["password"] = password;
-    msg.data["email"] = email;
-    networkManager->sendMessage(msg);
-
-    ui->textEditOutput->append(QString("发送注册请求: %1").arg(username));
-}*/
 
 void TestClient::onMessageReceived(const NetworkMessage &message)
 {
@@ -293,23 +300,7 @@ void TestClient::onMessageReceived(const NetworkMessage &message)
         }
     }
 
-    // 处理注册响应
-    /*if (message.type == REGISTER_RESPONSE) {
-        bool success = message.data["success"].toBool();
-        QString resultMsg = message.data["message"].toString();
 
-        if (success) {
-            QString username = message.data["username"].toString();
-            QMessageBox::information(this, "注册成功",
-                                     QString("用户 %1 注册成功").arg(username));
-            // 清空注册表单
-            ui->regUsernameEdit->clear();
-            ui->regPasswordEdit->clear();
-            ui->emailEdit->clear();
-        } else {
-            QMessageBox::warning(this, "注册失败", resultMsg);
-        }
-    }*/
 }
 
 void TestClient::onConnected()

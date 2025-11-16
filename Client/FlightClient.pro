@@ -19,3 +19,6 @@ FORMS += \
     testclient.ui \
     mainwindow.ui
     # 注意：mainwindow 和 registerdialog 都没有.ui文件
+
+RESOURCES += \
+    images.qrc

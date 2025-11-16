@@ -51,13 +51,14 @@ RegisterDialog::RegisterDialog(ClientNetworkManager* networkManager, QWidget *pa
     setupUI();
     applyBeautifyStyles();//新增调用美化函数
     setWindowTitle("用户注册");
-    setFixedSize(400, 300);
+    setFixedSize(450, 350);
 
     // 连接网络消息信号
     connect(networkManager, &ClientNetworkManager::messageReceived,
             this, &RegisterDialog::onMessageReceived);
 
     connect(usernameEdit, &QLineEdit::textChanged, this, &RegisterDialog::checkUsernameAvailability);
+    connect(cancelButton, &QPushButton::clicked, this, &RegisterDialog::onCancelClicked);
 
     connect(this, &RegisterDialog::finished, this, [this](int result) {
         // 清空所有输入框
@@ -148,7 +149,7 @@ void RegisterDialog::applyBeautifyStyles()
         "}"
         );
 
-    // 2. 美化GroupBox
+    // 2. 美化 GroupBox
     const QList<QGroupBox*> groupBoxes = findChildren<QGroupBox*>();
     for (QGroupBox* const &groupBox : groupBoxes) {
         groupBox->setStyleSheet(
@@ -173,33 +174,39 @@ void RegisterDialog::applyBeautifyStyles()
             );
     }
 
-    // 3. 美化标签 - 设置固定宽度，实现对齐
+    // 3. 🌟 美化 Label —— 自动对齐所有标签
     const QList<QLabel*> labels = findChildren<QLabel*>();
+
+    // (1) 获取所有 label 文本的最大宽度
+    int maxWidth = 0;
+    QFontMetrics fm(this->font());
     for (QLabel* const &label : labels) {
-        // 设置标签固定宽度，确保对齐
-        if (label->text().contains("用户名") ||
-            label->text().contains("密 码") ||
-            label->text().contains("确 认") ||
-            label->text().contains("邮 箱")) {
-            label->setFixedWidth(60);  // 标签固定宽度
-        }
+        int w = fm.horizontalAdvance(label->text());
+        maxWidth = std::max(maxWidth, w);
+    }
+    maxWidth += 20; // 增加一点边距，使布局更美观
+
+    // (2) 为所有 label 统一设置宽度 + 右对齐
+    for (QLabel* const &label : labels) {
+        label->setMinimumWidth(maxWidth);
+        label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
 
         label->setStyleSheet(
             "QLabel {"
-            "  color: #2c3e50;"           // 深色文字（在白色背景上更清晰）
+            "  color: #2c3e50;"
             "  font-size: 14px;"
             "  font-weight: bold;"
             "  background: transparent;"
-            "  padding: 5px 0px;"         // 垂直内边距
+            "  padding: 5px 0px;"
             "}"
             );
     }
 
-    // 4. 美化输入框 - 设置固定宽度，实现对齐
+    // 4. 美化 LineEdit
     const QList<QLineEdit*> lineEdits = findChildren<QLineEdit*>();
     for (QLineEdit* const &edit : lineEdits) {
-        edit->setFixedHeight(35);  //输入框固定高度
-        edit->setFixedWidth(200);  // 输入框固定宽度
+        edit->setFixedHeight(35);
+        edit->setFixedWidth(200);
 
         edit->setStyleSheet(
             "QLineEdit {"
@@ -209,7 +216,7 @@ void RegisterDialog::applyBeautifyStyles()
             "  padding: 8px 12px;"
             "  font-size: 14px;"
             "  color: #2c3e50;"
-            "  min-width: 200px;"         // 最小宽度
+            "  min-width: 200px;"
             "}"
             "QLineEdit:focus {"
             "  border-color: #3498db;"
@@ -222,7 +229,7 @@ void RegisterDialog::applyBeautifyStyles()
     const QList<QPushButton*> buttons = findChildren<QPushButton*>();
     for (QPushButton* const &btn : buttons) {
         btn->setFixedHeight(35);
-        btn->setFixedWidth(80);  // 按钮固定宽度
+        btn->setFixedWidth(80);
 
         if (btn->text().contains("注册")) {
             btn->setStyleSheet(
@@ -265,6 +272,7 @@ void RegisterDialog::applyBeautifyStyles()
         }
     }
 }
+
 //新增美化函数定义
 void RegisterDialog::checkUsernameAvailability()
 {

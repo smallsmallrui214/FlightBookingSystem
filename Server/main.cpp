@@ -1,7 +1,9 @@
 #include <QCoreApplication>
 #include <QDebug>
+#include <QJsonArray>  // 添加这个头文件
 #include "servernetworkmanager.h"
 #include "databasemanager.h"
+#include "../Common/flight.h"  // 添加Flight头文件
 
 class TestServer : public QObject
 {
@@ -63,6 +65,21 @@ private slots:
 
             if (db.validateUser(username, password)) {
                 int userId = db.getUserId(username);
+
+                // 更新最后登录时间
+                bool updateSuccess = db.updateLastLogin(username);
+                qDebug() << "更新最后登录时间结果:" << (updateSuccess ? "成功" : "失败");
+
+                // 获取更新后的最后登录时间
+                QSqlQuery timeQuery;
+                timeQuery.prepare("SELECT last_login FROM users WHERE username = ?");
+                timeQuery.addBindValue(username);
+                if (timeQuery.exec() && timeQuery.next()) {
+                    QDateTime lastLogin = timeQuery.value(0).toDateTime();
+                    qDebug() << "用户" << username << "的最后登录时间:" << lastLogin.toString("yyyy-MM-dd hh:mm:ss");
+                    reply.data["last_login"] = lastLogin.toString("yyyy-MM-dd hh:mm:ss");
+                }
+
                 reply.data["success"] = true;
                 reply.data["message"] = "登录成功";
                 reply.data["user_id"] = userId;
@@ -96,6 +113,123 @@ private slots:
                 qDebug() << "用户注册失败:" << username;
             }
             networkManager.sendMessage(reply, client);
+            break;
+        }
+        case CHECK_USERNAME_REQUEST: {
+            QString username = message.data["username"].toString();
+
+            DatabaseManager& db = DatabaseManager::getInstance();
+            NetworkMessage reply;
+            reply.type = CHECK_USERNAME_RESPONSE;
+
+            bool exists = db.userExists(username);
+            reply.data["exists"] = exists;
+            reply.data["username"] = username;
+
+            qDebug() << "检查用户名:" << username << (exists ? "已存在" : "可用");
+            networkManager.sendMessage(reply, client);
+            break;
+        }
+        case FLIGHT_SEARCH_REQUEST: {
+            QString departureCity = message.data["departure_city"].toString();
+            QString arrivalCity = message.data["arrival_city"].toString();
+            QString date = message.data["date"].toString();
+            QString sortBy = message.data["sort_by"].toString("departure_time");
+            bool sortAsc = message.data["sort_asc"].toBool(true);
+
+            qDebug() << "=== 航班搜索请求 ===";
+            qDebug() << "出发城市:" << departureCity;
+            qDebug() << "到达城市:" << arrivalCity;
+            qDebug() << "日期:" << date;
+            qDebug() << "排序:" << sortBy << (sortAsc ? "升序" : "降序");
+
+            QSqlQuery query;
+            QString sql = "SELECT * FROM flights WHERE 1=1";
+
+            if (!departureCity.isEmpty()) {
+                sql += " AND departure_city = ?";
+            }
+            if (!arrivalCity.isEmpty()) {
+                sql += " AND arrival_city = ?";
+            }
+            if (!date.isEmpty()) {
+                sql += " AND DATE(departure_time) = ?";
+            }
+
+            // 排序
+            if (sortBy == "price") {
+                sql += " ORDER BY price " + QString(sortAsc ? "ASC" : "DESC");
+            } else if (sortBy == "duration") {
+                sql += " ORDER BY duration_minutes " + QString(sortAsc ? "ASC" : "DESC");
+            } else {
+                sql += " ORDER BY departure_time " + QString(sortAsc ? "ASC" : "DESC");
+            }
+
+            qDebug() << "执行的SQL:" << sql;
+
+            query.prepare(sql);
+
+            int paramIndex = 0;
+            if (!departureCity.isEmpty()) {
+                query.bindValue(paramIndex++, departureCity);
+                qDebug() << "参数" << paramIndex << ":" << departureCity;
+            }
+            if (!arrivalCity.isEmpty()) {
+                query.bindValue(paramIndex++, arrivalCity);
+                qDebug() << "参数" << paramIndex << ":" << arrivalCity;
+            }
+            if (!date.isEmpty()) {
+                query.bindValue(paramIndex++, date);
+                qDebug() << "参数" << paramIndex << ":" << date;
+            }
+
+            NetworkMessage reply;
+            reply.type = FLIGHT_SEARCH_RESPONSE;
+
+            if (query.exec()) {
+                qDebug() << "SQL执行成功";
+                QJsonArray flightsArray;
+                int count = 0;
+                while (query.next()) {
+                    count++;
+                    Flight flight(
+                        query.value("id").toInt(),
+                        query.value("flight_number").toString(),
+                        query.value("airline").toString(),
+                        query.value("departure_city").toString(),
+                        query.value("arrival_city").toString(),
+                        query.value("departure_time").toDateTime(),
+                        query.value("arrival_time").toDateTime(),
+                        query.value("duration_minutes").toInt(),
+                        query.value("price").toDouble(),
+                        query.value("total_seats").toInt(),
+                        query.value("available_seats").toInt(),
+                        query.value("aircraft_type").toString(),
+                        query.value("status").toString()
+                        );
+                    flightsArray.append(flight.toJson());
+                    qDebug() << "找到航班:" << flight.getFlightNumber() << flight.getDepartureCity() << "->" << flight.getArrivalCity();
+                }
+                reply.data["success"] = true;
+                reply.data["flights"] = flightsArray;
+                qDebug() << "返回航班数据:" << flightsArray.size() << "条";
+
+                if (count == 0) {
+                    qDebug() << "警告: 查询返回0条记录";
+                    // 测试数据库连接和表数据
+                    QSqlQuery testQuery("SELECT COUNT(*) as total FROM flights");
+                    if (testQuery.exec() && testQuery.next()) {
+                        qDebug() << "数据库中共有航班记录:" << testQuery.value("total").toInt() << "条";
+                    }
+                }
+            } else {
+                qDebug() << "SQL执行失败:" << query.lastError().text();
+                reply.data["success"] = false;
+                reply.data["message"] = "查询失败: " + query.lastError().text();
+            }
+
+            networkManager.sendMessage(reply, client);
+            qDebug() << "=== 搜索处理完成 ===";
             break;
         }
         default:

@@ -4,7 +4,6 @@
 #include <QDialog>
 #include "../Common/protocol.h"
 
-
 // 前向声明
 class QLineEdit;
 class QPushButton;
@@ -26,28 +25,30 @@ private slots:
     void onRegisterClicked();
     void onCancelClicked();
     void onMessageReceived(const NetworkMessage &message);
-    void checkUsernameAvailability();  // 检查用户名是否可用
 
 private:
     void setupUI();
-    void validateInputs();  // 输入验证
-    void sendRegisterRequest();  // 发送注册请求
-    void applyBeautifyStyles();  //新增美化函数
+    void applyBeautifyStyles();
+
+    // 保存待注册信息的结构体
+    struct PendingRegistration {
+        QString username;
+        QString password;
+        QString email;
+        bool checked = false;
+    };
+
+    PendingRegistration pendingRegistration;  // 新增成员变量
+
+    ClientNetworkManager* networkManager;
 
     // UI控件
     QLineEdit *usernameEdit;
     QLineEdit *passwordEdit;
     QLineEdit *confirmPasswordEdit;
-
     QLineEdit *emailEdit;
     QPushButton *registerButton;
     QPushButton *cancelButton;
-
-    // 状态变量
-    QString pendingUsername;  // 待检查的用户名
-    bool isUsernameAvailable; // 用户名是否可用
-
-    ClientNetworkManager* networkManager;
 };
 
 #endif // REGISTERDIALOG_H

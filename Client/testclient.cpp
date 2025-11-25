@@ -9,6 +9,11 @@
 #include <QMessageBox>
 #include <QTimer>
 #include <QCloseEvent>
+#include <QFile>
+#include <QFileInfo>
+#include <QPixmap>
+#include <QPalette>
+#include <QApplication>
 
 
 class PlaceholderFilter : public QObject
@@ -53,6 +58,7 @@ TestClient::TestClient(QWidget *parent)
     ui->setupUi(this);
     this->setFixedSize(640, 500);
 
+    // ============ 恢复原有样式，只修改背景部分 ============
     QString messageBoxStyle =
         "QMessageBox {"
         "    background-color: #2c3e50;"  // 背景色
@@ -83,32 +89,25 @@ TestClient::TestClient(QWidget *parent)
     // 应用样式到所有QMessageBox
     setStyleSheet(messageBoxStyle);
 
-
     ui->outputLabel->hide();
     ui->textEditOutput->hide();
-
 
     // 清除可能的初始文本
     ui->usernameEdit->clear();
     ui->passwordEdit->clear();
-    //ui->regUsernameEdit->clear();
-    //ui->regPasswordEdit->clear();
-    //ui->emailEdit->clear();
     ui->loginButton->setFixedSize(80, 15);
     ui->loginButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
-    // 设置占位符文本（点击时会自动隐藏）
-    // 设置占位符文本，并安装焦点事件过滤器
+
+    // 设置占位符文本
     ui->usernameEdit->setPlaceholderText("请输入用户名");
     ui->usernameEdit->installEventFilter(new PlaceholderFilter(ui->usernameEdit, "请输入用户名"));
 
     ui->passwordEdit->setPlaceholderText("请输入密码");
     ui->passwordEdit->installEventFilter(new PlaceholderFilter(ui->passwordEdit, "请输入密码"));
 
-
     // 创建注册链接按钮
     QPushButton *registerLinkButton = new QPushButton("没有账号？立即注册", this);
     registerLinkButton->setObjectName("registerLinkButton");
-    // 设置链接按钮样式
     registerLinkButton->setStyleSheet(
         "QPushButton {"
         "  background-color: transparent;"
@@ -125,31 +124,52 @@ TestClient::TestClient(QWidget *parent)
         "}"
         );
 
-
-
-    // ✅ 将注册链接按钮添加到布局中
-    // 找到buttonLayout
+    // 将注册链接按钮添加到布局中
     QHBoxLayout *buttonLayout = qobject_cast<QHBoxLayout*>(ui->buttonLayout);
     if (buttonLayout) {
-        // 在spacer之前插入注册链接按钮
         buttonLayout->insertWidget(0, registerLinkButton);
-
-        // 可选：调整spacer的大小，为按钮留出空间
         QSpacerItem *spacer = buttonLayout->itemAt(1)->spacerItem();
         if (spacer) {
-            spacer->changeSize(20, 20); // 减小spacer大小
+            spacer->changeSize(20, 20);
         }
     }
 
-
     // 连接注册链接按钮的信号
     connect(registerLinkButton, &QPushButton::clicked, this, &TestClient::on_registerLinkButton_clicked);
-
 
     setupConnections();
 
     QTimer::singleShot(100, this, [this]() {
         autoConnect();
+    });
+
+    // ============ 最后设置背景图片 ============
+    // 延迟设置背景，确保其他UI先初始化完成
+    QTimer::singleShot(50, this, [this]() {
+        QString imagePath = "C:/FlightBookingSystem/Client/login.jpg";
+        QPixmap background(imagePath);
+
+        if (!background.isNull()) {
+            qDebug() << "设置背景图片...";
+
+            // 方法1：完全填充窗口（可能拉伸图片）
+            QPixmap scaledBackground = background.scaled(this->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+
+            // 或者方法2：保持比例但可能显示不全
+            // QPixmap scaledBackground = background.scaled(this->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+
+            QPalette palette;
+            palette.setBrush(QPalette::Window, QBrush(scaledBackground));
+            this->setPalette(palette);
+            this->setAutoFillBackground(true);
+
+            // 调整登录框位置（如果需要的话）
+            ui->loginFrame->move(140, 60);
+
+            qDebug() << "背景设置完成 - 窗口:" << this->size() << "背景:" << scaledBackground.size();
+        } else {
+            qDebug() << "背景图片加载失败";
+        }
     });
 }
 
@@ -169,12 +189,12 @@ TestClient::~TestClient()
 // 显示主界面的函数
 void TestClient::showMainWindow(const QString &username)
 {
-    // 创建主界面
-    mainWindow = new MainWindow(username);
+    // 创建主界面，传递网络管理器
+    mainWindow = new MainWindow(username, networkManager);
     mainWindow->show();
 
-    // 关闭登录界面
-    this->close();
+    // 隐藏登录界面而不是关闭
+    this->hide();
 }
 
 
@@ -228,14 +248,6 @@ void TestClient::on_loginButton_clicked()
     if (password.isEmpty()) {
         QMessageBox::warning(this, "输入错误", "请输入密码");
         ui->passwordEdit->setFocus(); // 聚焦到密码输入框
-        return;
-    }
-
-    // 首先检查是否是内置测试账号
-    if (username == "test" && password == "123456") {
-        // 内置测试账号，直接登录成功，不发送到服务器
-        QMessageBox::information(this, "登录成功", "欢迎测试用户！");
-        showMainWindow(username);
         return;
     }
 
@@ -315,8 +327,8 @@ void TestClient::onDisconnected()
 
 void TestClient::closeEvent(QCloseEvent *event)
 {
-    // 在窗口关闭时断开连接
-    if (networkManager->isConnected()) {
+    // 只有在没有打开主窗口时才断开连接
+    if (networkManager->isConnected() && !mainWindow) {
         ui->textEditOutput->append("程序关闭，断开服务器连接...");
         networkManager->disconnectFromServer();
     }

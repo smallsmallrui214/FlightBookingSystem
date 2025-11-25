@@ -12,12 +12,20 @@ enum MessageType {
     LOGIN_RESPONSE = 101,      // 登录响应
     REGISTER_REQUEST = 102,    // 注册请求
     REGISTER_RESPONSE = 103,   // 注册响应
-    FLIGHT_SEARCH_REQUEST = 200,
-    FLIGHT_SEARCH_RESPONSE = 201,
 
     // 用户验证
     CHECK_USERNAME_REQUEST = 0x1005,  // 新增：检查用户名是否存在
     CHECK_USERNAME_RESPONSE = 0x1006, // 新增：检查用户名响应
+
+    // 航班查询相关
+    FLIGHT_SEARCH_REQUEST = 200,
+    FLIGHT_SEARCH_RESPONSE = 201,
+    FLIGHT_DETAIL_REQUEST = 202,
+    FLIGHT_DETAIL_RESPONSE = 203,
+
+    // 订单相关
+    BOOKING_REQUEST = 300,
+    BOOKING_RESPONSE = 301
 };
 
 // 基础消息结构

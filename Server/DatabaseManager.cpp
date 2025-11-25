@@ -105,3 +105,24 @@ int DatabaseManager::getUserId(const QString &username)
 
     return query.value(0).toInt();
 }
+
+bool DatabaseManager::updateLastLogin(const QString &username)
+{
+    QSqlQuery query;
+    query.prepare("UPDATE users SET last_login = NOW() WHERE username = ?");
+    query.addBindValue(username);
+
+    if (!query.exec()) {
+        qDebug() << "更新最后登录时间失败:" << query.lastError().text();
+        qDebug() << "SQL错误:" << query.lastError().databaseText();
+        return false;
+    }
+
+    if (query.numRowsAffected() > 0) {
+        qDebug() << "成功更新用户最后登录时间:" << username;
+        return true;
+    } else {
+        qDebug() << "未找到用户或更新失败:" << username;
+        return false;
+    }
+}

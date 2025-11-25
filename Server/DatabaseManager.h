@@ -20,6 +20,7 @@ public:
     bool createUser(const QString &username, const QString &password, const QString &email = "");
     bool userExists(const QString &username);
     int getUserId(const QString &username);
+    bool updateLastLogin(const QString &username);
 
 private:
     DatabaseManager(QObject *parent = nullptr);

@@ -45,22 +45,27 @@ RegisterDialog::RegisterDialog(ClientNetworkManager* networkManager, QWidget *pa
     confirmPasswordEdit(nullptr),
     emailEdit(nullptr),
     registerButton(nullptr),
-    cancelButton(nullptr),
-    isUsernameAvailable(false)
+    cancelButton(nullptr)
+// 移除 isUsernameAvailable 的初始化
 {
     setupUI();
-    applyBeautifyStyles();//新增调用美化函数
+    applyBeautifyStyles();
     setWindowTitle("用户注册");
     setFixedSize(450, 350);
+
+    // 初始化 pendingRegistration
+    pendingRegistration.checked = false;
 
     // 连接网络消息信号
     connect(networkManager, &ClientNetworkManager::messageReceived,
             this, &RegisterDialog::onMessageReceived);
 
-    connect(usernameEdit, &QLineEdit::textChanged, this, &RegisterDialog::checkUsernameAvailability);
+    // 移除实时用户名检查的连接
+    // connect(usernameEdit, &QLineEdit::textChanged, this, &RegisterDialog::checkUsernameAvailability);
+
     connect(cancelButton, &QPushButton::clicked, this, &RegisterDialog::onCancelClicked);
 
-    connect(this, &RegisterDialog::finished, this, [this](int result) {
+    connect(this, &RegisterDialog::finished, this, [this](int) {
         // 清空所有输入框
         usernameEdit->clear();
         passwordEdit->clear();
@@ -69,6 +74,9 @@ RegisterDialog::RegisterDialog(ClientNetworkManager* networkManager, QWidget *pa
 
         // 重新启用注册按钮（如果之前被禁用）
         registerButton->setEnabled(true);
+
+        // 重置 pendingRegistration
+        pendingRegistration = PendingRegistration();
     });
 }
 
@@ -139,13 +147,13 @@ void RegisterDialog::setupUI()
 }
 void RegisterDialog::applyBeautifyStyles()
 {
-    // 1. 设置窗口背景
+    // 1. 设置窗口背景为天蓝色
     this->setStyleSheet(
         "QDialog {"
         "  background: qlineargradient(x1:0, y1:0, x2:1, y2:1,"
-        "    stop:0 #2c3e50, stop:1 #34495e);"
+        "    stop:0 #87CEEB, stop:1 #B0E2FF);"  // 天蓝色渐变
         "  border-radius: 15px;"
-        "  border: 2px solid #34495e;"
+        "  border: 2px solid #4682B4;"
         "}"
         );
 
@@ -156,7 +164,7 @@ void RegisterDialog::applyBeautifyStyles()
             "QGroupBox {"
             "  background-color: rgba(255, 255, 255, 0.95);"
             "  border-radius: 10px;"
-            "  border: 2px solid rgba(255, 255, 255, 0.5);"
+            "  border: 2px solid rgba(255, 255, 255, 0.8);"
             "  padding: 20px;"
             "  margin: 15px;"
             "  font-size: 14px;"
@@ -165,7 +173,7 @@ void RegisterDialog::applyBeautifyStyles()
             "  subcontrol-origin: margin;"
             "  subcontrol-position: top center;"
             "  padding: 5px 15px;"
-            "  background-color: #3498db;"
+            "  background-color: #4682B4;"  // 钢蓝色
             "  color: white;"
             "  border-radius: 5px;"
             "  font-size: 16px;"
@@ -174,19 +182,19 @@ void RegisterDialog::applyBeautifyStyles()
             );
     }
 
-    // 3. 🌟 美化 Label —— 自动对齐所有标签
+    // 3. 美化 Label
     const QList<QLabel*> labels = findChildren<QLabel*>();
 
-    // (1) 获取所有 label 文本的最大宽度
+    // 获取所有 label 文本的最大宽度
     int maxWidth = 0;
     QFontMetrics fm(this->font());
     for (QLabel* const &label : labels) {
         int w = fm.horizontalAdvance(label->text());
         maxWidth = std::max(maxWidth, w);
     }
-    maxWidth += 20; // 增加一点边距，使布局更美观
+    maxWidth += 20;
 
-    // (2) 为所有 label 统一设置宽度 + 右对齐
+    // 为所有 label 统一设置宽度 + 右对齐
     for (QLabel* const &label : labels) {
         label->setMinimumWidth(maxWidth);
         label->setAlignment(Qt::AlignRight | Qt::AlignVCenter);
@@ -219,7 +227,7 @@ void RegisterDialog::applyBeautifyStyles()
             "  min-width: 200px;"
             "}"
             "QLineEdit:focus {"
-            "  border-color: #3498db;"
+            "  border-color: #4682B4;"  // 钢蓝色
             "  background-color: #f8f9fa;"
             "}"
             );
@@ -234,7 +242,7 @@ void RegisterDialog::applyBeautifyStyles()
         if (btn->text().contains("注册")) {
             btn->setStyleSheet(
                 "QPushButton {"
-                "  background-color: #27ae60;"
+                "  background-color: #4682B4;"  // 钢蓝色
                 "  color: white;"
                 "  border: none;"
                 "  border-radius: 5px;"
@@ -244,10 +252,10 @@ void RegisterDialog::applyBeautifyStyles()
                 "  min-width: 80px;"
                 "}"
                 "QPushButton:hover {"
-                "  background-color: #2ecc71;"
+                "  background-color: #5F9EA0;"  // 青蓝色
                 "}"
                 "QPushButton:pressed {"
-                "  background-color: #229954;"
+                "  background-color: #36648B;"  // 深钢蓝色
                 "}"
                 );
         } else if (btn->text().contains("取消")) {
@@ -273,32 +281,6 @@ void RegisterDialog::applyBeautifyStyles()
     }
 }
 
-//新增美化函数定义
-void RegisterDialog::checkUsernameAvailability()
-{
-    QString username = usernameEdit->text().trimmed();
-
-    if (username.isEmpty()) {
-        isUsernameAvailable = false;
-        usernameEdit->setStyleSheet(""); // 清除样式
-        return;
-    }
-
-    // 延迟检查，避免频繁请求
-    QTimer::singleShot(500, this, [this, username]() {
-        if (username == usernameEdit->text().trimmed() && !username.isEmpty()) {
-            // 发送检查用户名请求
-            NetworkMessage msg;
-            msg.type = CHECK_USERNAME_REQUEST;
-            msg.data["username"] = username;
-            networkManager->sendMessage(msg);
-
-            pendingUsername = username;
-            qDebug() << "检查用户名是否存在:" << username;
-        }
-    });
-}
-
 void RegisterDialog::onRegisterClicked()
 {
     QString username = usernameEdit->text().trimmed();
@@ -309,14 +291,14 @@ void RegisterDialog::onRegisterClicked()
     // 检查用户名是否为空
     if (username.isEmpty()) {
         QMessageBox::warning(this, "输入错误", "请输入用户名");
-        usernameEdit->setFocus(); // 聚焦到用户名输入框
+        usernameEdit->setFocus();
         return;
     }
 
     // 检查密码是否为空
     if (password.isEmpty()) {
         QMessageBox::warning(this, "输入错误", "请输入密码");
-        passwordEdit->setFocus(); // 聚焦到密码输入框
+        passwordEdit->setFocus();
         return;
     }
 
@@ -331,7 +313,7 @@ void RegisterDialog::onRegisterClicked()
     // 检查确认密码是否为空
     if (confirmPassword.isEmpty()) {
         QMessageBox::warning(this, "输入错误", "请再次输入密码");
-        confirmPasswordEdit->setFocus(); // 聚焦到确认密码输入框
+        confirmPasswordEdit->setFocus();
         return;
     }
 
@@ -346,15 +328,8 @@ void RegisterDialog::onRegisterClicked()
     // 检查两次密码是否一致
     if (password != confirmPassword) {
         QMessageBox::warning(this, "输入错误", "两次输入的密码不一致");
-        confirmPasswordEdit->setFocus(); // 聚焦到确认密码输入框
-        confirmPasswordEdit->selectAll(); // 可选：选中所有文本方便修改
-        return;
-    }
-
-    // 检查用户名是否可用
-    if (!isUsernameAvailable || pendingUsername != username) {
-        QMessageBox::warning(this, "输入错误", "请等待用户名检查完成或用户名不可用");
-        usernameEdit->setFocus();
+        confirmPasswordEdit->setFocus();
+        confirmPasswordEdit->selectAll();
         return;
     }
 
@@ -363,17 +338,21 @@ void RegisterDialog::onRegisterClicked()
         return;
     }
 
-    // 发送注册请求
-    NetworkMessage msg;
-    msg.type = REGISTER_REQUEST;
-    msg.data["username"] = username;
-    msg.data["password"] = password;
-    msg.data["email"] = email;
-    networkManager->sendMessage(msg);
+    // 保存当前输入的信息
+    pendingRegistration.username = username;
+    pendingRegistration.password = password;
+    pendingRegistration.email = email;
+    pendingRegistration.checked = false;
+
+    // 发送检查用户名请求（在注册前先检查）
+    NetworkMessage checkMsg;
+    checkMsg.type = CHECK_USERNAME_REQUEST;
+    checkMsg.data["username"] = username;
+    networkManager->sendMessage(checkMsg);
 
     // 禁用注册按钮，防止重复点击
     registerButton->setEnabled(false);
-    qDebug() << "发送注册请求:" << username;
+    qDebug() << "发送用户名检查请求:" << username;
 }
 
 void RegisterDialog::onCancelClicked()
@@ -385,23 +364,35 @@ void RegisterDialog::onMessageReceived(const NetworkMessage &message)
 {
     // 处理用户名检查响应
     if (message.type == CHECK_USERNAME_RESPONSE) {
-        bool exists = message.data["exists"].toBool();  // 服务器返回用户名是否存在
+        bool exists = message.data["exists"].toBool();
         QString checkedUsername = message.data["username"].toString();
 
-        // 确保检查的是当前输入框中的用户名
-        if (checkedUsername == usernameEdit->text().trimmed()) {
-            isUsernameAvailable = !exists;  // 如果不存在，就是可用的
+        // 确保检查的是当前待注册的用户名
+        if (checkedUsername == pendingRegistration.username && !pendingRegistration.checked) {
+            pendingRegistration.checked = true;
 
             if (exists) {
-                // 用户名已存在，给用户视觉提示
-                usernameEdit->setStyleSheet("border: 1px solid red;");
+                // 用户名已存在
+                usernameEdit->setStyleSheet("border: 2px solid #e74c3c;");
                 QMessageBox::warning(this, "用户名不可用", "该用户名已被使用，请选择其他用户名");
                 usernameEdit->setFocus();
                 usernameEdit->selectAll();
+                registerButton->setEnabled(true); // 重新启用注册按钮
             } else {
-                // 用户名可用
-                usernameEdit->setStyleSheet("border: 1px solid green;");
-                qDebug() << "用户名可用:" << checkedUsername;
+                // 用户名可用，继续注册流程
+                usernameEdit->setStyleSheet("border: 2px solid #27ae60;");
+                qDebug() << "用户名可用，继续注册:" << checkedUsername;
+
+                // 发送注册请求
+                NetworkMessage registerMsg;
+                registerMsg.type = REGISTER_REQUEST;
+                registerMsg.data["username"] = pendingRegistration.username;
+                registerMsg.data["password"] = pendingRegistration.password;
+                registerMsg.data["email"] = pendingRegistration.email;
+                networkManager->sendMessage(registerMsg);
+
+                qDebug() << "发送注册请求:" << pendingRegistration.username;
+                // 注册按钮保持禁用状态，等待注册响应
             }
         }
     }
@@ -421,10 +412,11 @@ void RegisterDialog::onMessageReceived(const NetworkMessage &message)
             accept();
         } else {
             QMessageBox::warning(this, "注册失败", resultMsg);
-            // 注册失败时重置用户名可用状态
-            isUsernameAvailable = false;
-            usernameEdit->setStyleSheet(""); // 清除样式
+            // 注册失败时清除样式
+            usernameEdit->setStyleSheet("");
         }
-    }
 
+        // 重置注册状态
+        pendingRegistration = PendingRegistration();
+    }
 }

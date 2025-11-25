@@ -31,3 +31,31 @@ FlightServer.exe
 Thumbs.db
 
 
+
+# ----------------------------------------------------------------------------
+# Qt Creator IDE files
+.qtcreator/
+*.pro.user
+*.pro.user.*
+
+# Build directories
+build/
+*/build/
+*/*/build/
+Debug/
+Release/
+debug/
+release/
+obj/
+*.obj
+
+# Generated files
+moc_*
+qrc_*
+ui_*
+*.moc
+
+# Logs and temporary files
+*.log
+*.tmp
+*.autosave

@@ -15,7 +15,6 @@
 #include <QPalette>
 #include <QApplication>
 
-
 class PlaceholderFilter : public QObject
 {
 public:
@@ -26,13 +25,13 @@ protected:
     bool eventFilter(QObject *obj, QEvent *event) override {
         if (obj == lineEdit) {
             if (event->type() == QEvent::FocusIn) {
-                lineEdit->setPlaceholderText(""); // 获得焦点隐藏占位符
+                lineEdit->setPlaceholderText("");
             } else if (event->type() == QEvent::FocusOut) {
                 if (lineEdit->text().isEmpty())
-                    lineEdit->setPlaceholderText(placeholder); // 失去焦点且为空显示占位符
+                    lineEdit->setPlaceholderText(placeholder);
             }
         }
-        return false; // 继续处理事件
+        return false;
     }
 
 private:
@@ -47,7 +46,6 @@ void TestClient::showLoginWindow()
     this->activateWindow();
 }
 
-
 TestClient::TestClient(QWidget *parent)
     : QWidget(parent),
     ui(new Ui::TestClient),
@@ -56,38 +54,10 @@ TestClient::TestClient(QWidget *parent)
     mainWindow(nullptr)
 {
     ui->setupUi(this);
-    this->setFixedSize(640, 500);
+    this->setFixedSize(900, 500);
 
-    // ============ 恢复原有样式，只修改背景部分 ============
-    QString messageBoxStyle =
-        "QMessageBox {"
-        "    background-color: #2c3e50;"  // 背景色
-        "    color: #cccccc;"             // 文字颜色改为浅灰色
-        "    font-size: 14px;"
-        "}"
-        "QMessageBox QLabel {"
-        "    color: #cccccc;"             // 消息文本颜色
-        "    background-color: transparent;"
-        "    font-size: 14px;"
-        "}"
-        "QMessageBox QPushButton {"
-        "    background-color: #3498db;"
-        "    color: white;"
-        "    border: none;"
-        "    border-radius: 5px;"
-        "    padding: 8px 15px;"
-        "    font-size: 12px;"
-        "    min-width: 80px;"
-        "}"
-        "QMessageBox QPushButton:hover {"
-        "    background-color: #5dade2;"
-        "}"
-        "QMessageBox QPushButton:pressed {"
-        "    background-color: #2e86c1;"
-        "}";
-
-    // 应用样式到所有QMessageBox
-    setStyleSheet(messageBoxStyle);
+    // 设置背景
+    setBackgroundImage();
 
     ui->outputLabel->hide();
     ui->textEditOutput->hide();
@@ -95,8 +65,6 @@ TestClient::TestClient(QWidget *parent)
     // 清除可能的初始文本
     ui->usernameEdit->clear();
     ui->passwordEdit->clear();
-    ui->loginButton->setFixedSize(80, 15);
-    ui->loginButton->setSizePolicy(QSizePolicy::Fixed, QSizePolicy::Fixed);
 
     // 设置占位符文本
     ui->usernameEdit->setPlaceholderText("请输入用户名");
@@ -105,72 +73,93 @@ TestClient::TestClient(QWidget *parent)
     ui->passwordEdit->setPlaceholderText("请输入密码");
     ui->passwordEdit->installEventFilter(new PlaceholderFilter(ui->passwordEdit, "请输入密码"));
 
-    // 创建注册链接按钮
-    QPushButton *registerLinkButton = new QPushButton("没有账号？立即注册", this);
-    registerLinkButton->setObjectName("registerLinkButton");
-    registerLinkButton->setStyleSheet(
-        "QPushButton {"
-        "  background-color: transparent;"
-        "  color: #3498db;"
-        "  border: none;"
-        "  text-decoration: underline;"
-        "  padding: 5px;"
-        "  font-size: 12px;"
-        "  min-height: 25px;"
-        "}"
-        "QPushButton:hover {"
-        "  color: #5dade2;"
-        "  background-color: rgba(52, 152, 219, 0.1);"
-        "}"
-        );
-
-    // 将注册链接按钮添加到布局中
-    QHBoxLayout *buttonLayout = qobject_cast<QHBoxLayout*>(ui->buttonLayout);
-    if (buttonLayout) {
-        buttonLayout->insertWidget(0, registerLinkButton);
-        QSpacerItem *spacer = buttonLayout->itemAt(1)->spacerItem();
-        if (spacer) {
-            spacer->changeSize(20, 20);
-        }
-    }
-
     // 连接注册链接按钮的信号
-    connect(registerLinkButton, &QPushButton::clicked, this, &TestClient::on_registerLinkButton_clicked);
+    connect(ui->registerLinkButton, &QPushButton::clicked, this, &TestClient::on_registerLinkButton_clicked);
 
     setupConnections();
+
+    // 延迟设置图标，确保UI完全初始化
+    QTimer::singleShot(100, this, &TestClient::setupIcons);
 
     QTimer::singleShot(100, this, [this]() {
         autoConnect();
     });
+}
 
-    // ============ 最后设置背景图片 ============
-    // 延迟设置背景，确保其他UI先初始化完成
-    QTimer::singleShot(50, this, [this]() {
-        QString imagePath = "C:/FlightBookingSystem/Client/login.jpg";
-        QPixmap background(imagePath);
+void TestClient::setBackgroundImage()
+{
+    // 使用完整路径
+    QString backgroundPath = "C:/FlightBookingSystem/Client/login-background.png";
+    QPixmap background(backgroundPath);
 
-        if (!background.isNull()) {
-            qDebug() << "设置背景图片...";
+    if (!background.isNull()) {
+        // 设置整个窗口的背景
+        QPixmap scaledBackground = background.scaled(this->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+        QPalette palette;
+        palette.setBrush(QPalette::Window, QBrush(scaledBackground));
+        this->setPalette(palette);
+        this->setAutoFillBackground(true);
 
-            // 方法1：完全填充窗口（可能拉伸图片）
-            QPixmap scaledBackground = background.scaled(this->size(), Qt::IgnoreAspectRatio, Qt::SmoothTransformation);
+        // 设置左侧登录框为完全透明
+        ui->loginFrame->setStyleSheet(
+            "QFrame {"
+            "    background: transparent;"
+            "    border: none;"
+            "    border-right: 2px solid rgba(255, 255, 255, 0.3);"
+            "    border-radius: 0px;"
+            "}"
+            );
 
-            // 或者方法2：保持比例但可能显示不全
-            // QPixmap scaledBackground = background.scaled(this->size(), Qt::KeepAspectRatioByExpanding, Qt::SmoothTransformation);
+        qDebug() << "背景图片加载成功:" << backgroundPath;
+    } else {
+        qDebug() << "背景图片加载失败，路径:" << backgroundPath;
+        // 使用黄蓝渐变作为fallback
+        this->setStyleSheet(
+            "QWidget {"
+            "    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #FFD700, stop:0.5 #87CEEB, stop:1 #1E90FF);"
+            "}"
+            );
+    }
+}
 
-            QPalette palette;
-            palette.setBrush(QPalette::Window, QBrush(scaledBackground));
-            this->setPalette(palette);
-            this->setAutoFillBackground(true);
+void TestClient::setupIcons()
+{
+    // 使用默认图标（表情符号）
+    ui->userIconLabel->setText("👤");
+    ui->userIconLabel->setStyleSheet("font-size: 24px; color: #FFD700;");  // 黄色图标
 
-            // 调整登录框位置（如果需要的话）
-            ui->loginFrame->move(140, 60);
+    ui->pwdIconLabel->setText("🔒");
+    ui->pwdIconLabel->setStyleSheet("font-size: 24px; color: #FFD700;");  // 黄色图标
 
-            qDebug() << "背景设置完成 - 窗口:" << this->size() << "背景:" << scaledBackground.size();
-        } else {
-            qDebug() << "背景图片加载失败";
-        }
-    });
+    // 设置右侧插图 - 使用UI中设置的固定尺寸
+    QString loginPath = "C:/FlightBookingSystem/Client/login.jpg";
+    QPixmap loginPixmap(loginPath);
+
+    if (!loginPixmap.isNull()) {
+        // 直接使用UI中设置的400x500尺寸
+        QSize targetSize(400, 500);
+
+        // 使用高质量缩放填满整个区域
+        QPixmap scaledPixmap = loginPixmap.scaled(targetSize,
+                                                  Qt::IgnoreAspectRatio,
+                                                  Qt::SmoothTransformation);
+
+        ui->loginIllustrationLabel->setPixmap(scaledPixmap);
+        ui->loginIllustrationLabel->setScaledContents(true);  // 启用自动缩放以确保填满
+
+        qDebug() << "右侧插图加载成功 - 原始尺寸:" << loginPixmap.size() << "目标尺寸:" << targetSize;
+    } else {
+        // 备用方案
+        ui->loginIllustrationLabel->setText("✈️");
+        ui->loginIllustrationLabel->setStyleSheet(
+            "QLabel {"
+            "    font-size: 150px;"
+            "    color: white;"
+            "    background: transparent;"
+            "}"
+            );
+        qDebug() << "右侧插图加载失败，路径:" << loginPath;
+    }
 }
 
 TestClient::~TestClient()
@@ -185,22 +174,15 @@ TestClient::~TestClient()
     delete ui;
 }
 
-
-// 显示主界面的函数
 void TestClient::showMainWindow(const QString &username)
 {
-    // 创建主界面，传递网络管理器
     mainWindow = new MainWindow(username, networkManager);
     mainWindow->show();
-
-    // 隐藏登录界面而不是关闭
     this->hide();
 }
 
-
 void TestClient::setupConnections()
 {
-    // 连接网络管理器的信号
     connect(networkManager, &ClientNetworkManager::messageReceived,
             this, &TestClient::onMessageReceived);
     connect(networkManager, &ClientNetworkManager::connected,
@@ -220,34 +202,20 @@ void TestClient::autoConnect()
     networkManager->connectToServer("127.0.0.1", 8888);
 }
 
-void TestClient::on_connectButton_clicked()
-{
-    ui->textEditOutput->append("正在连接服务器...");
-    networkManager->connectToServer("127.0.0.1", 8888);
-}
-
-void TestClient::on_disconnectButton_clicked()
-{
-    ui->textEditOutput->append("断开服务器连接...");
-    networkManager->disconnectFromServer();
-}
-
 void TestClient::on_loginButton_clicked()
 {
     QString username = ui->usernameEdit->text().trimmed();
     QString password = ui->passwordEdit->text().trimmed();
 
-    // 检查用户名是否为空
     if (username.isEmpty()) {
         QMessageBox::warning(this, "输入错误", "请输入用户名");
-        ui->usernameEdit->setFocus(); // 聚焦到用户名输入框
+        ui->usernameEdit->setFocus();
         return;
     }
 
-    // 检查密码是否为空
     if (password.isEmpty()) {
         QMessageBox::warning(this, "输入错误", "请输入密码");
-        ui->passwordEdit->setFocus(); // 聚焦到密码输入框
+        ui->passwordEdit->setFocus();
         return;
     }
 
@@ -268,24 +236,15 @@ void TestClient::on_loginButton_clicked()
 void TestClient::on_registerLinkButton_clicked()
 {
     this->hide();
-
-    // 创建注册对话框
     RegisterDialog dialog(networkManager, this);
-
     connect(&dialog, &RegisterDialog::registrationSuccess, this, [this]() {
         QMessageBox::information(this, "提示", "注册成功，请登录");
     });
-
-
-    dialog.exec();  // 对话框关闭后，下面的代码立即执行
-
-
+    dialog.exec();
     this->show();
     this->raise();
     this->activateWindow();
 }
-
-
 
 void TestClient::onMessageReceived(const NetworkMessage &message)
 {
@@ -294,10 +253,7 @@ void TestClient::onMessageReceived(const NetworkMessage &message)
                               .arg(QString::fromUtf8(QJsonDocument(message.data).toJson(QJsonDocument::Indented)));
     ui->textEditOutput->append(displayText);
 
-    // 处理登录响应
     if (message.type == LOGIN_RESPONSE) {
-
-        // 正常处理服务器返回的登录响应
         bool success = message.data["success"].toBool();
         QString resultMsg = message.data["message"].toString();
 
@@ -305,14 +261,11 @@ void TestClient::onMessageReceived(const NetworkMessage &message)
             QString username = message.data["username"].toString();
             QMessageBox::information(this, "登录成功",
                                      QString("欢迎 %1！").arg(username));
-            // 登录成功，跳转到主界面
             showMainWindow(username);
         } else {
             QMessageBox::warning(this, "登录失败", resultMsg);
         }
     }
-
-
 }
 
 void TestClient::onConnected()
@@ -327,11 +280,9 @@ void TestClient::onDisconnected()
 
 void TestClient::closeEvent(QCloseEvent *event)
 {
-    // 只有在没有打开主窗口时才断开连接
     if (networkManager->isConnected() && !mainWindow) {
         ui->textEditOutput->append("程序关闭，断开服务器连接...");
         networkManager->disconnectFromServer();
     }
-
     QWidget::closeEvent(event);
 }

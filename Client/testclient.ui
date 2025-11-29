@@ -6,299 +6,468 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>640</width>
+    <width>900</width>
     <height>500</height>
    </rect>
+  </property>
+  <property name="minimumSize">
+   <size>
+    <width>900</width>
+    <height>500</height>
+   </size>
+  </property>
+  <property name="maximumSize">
+   <size>
+    <width>900</width>
+    <height>500</height>
+   </size>
   </property>
   <property name="windowTitle">
    <string>航班管理系统 - 登录</string>
   </property>
   <property name="styleSheet">
-   <string notr="true">/* 主窗口样式 - 与RegisterDialog相同的深蓝色渐变 */
-QWidget {
-    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #2c3e50, stop:1 #34495e);
-    border-radius: 15px;
-    border: 2px solid #34495e;
-}
-
-/* 所有标签默认样式 - 黑色字体 */
-QLabel {
-    color: black !important;
-    font-size: 14px;
-    font-weight: bold;
-    background: transparent;
+   <string notr="true">QWidget {
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
 }</string>
   </property>
-  <widget class="QFrame" name="loginFrame">
-   <property name="geometry">
-    <rect>
-     <x>140</x>
-     <y>100</y>
-     <width>350</width>
-     <height>311</height>
-    </rect>
+  <layout class="QHBoxLayout" name="mainLayout">
+   <property name="spacing">
+    <number>0</number>
    </property>
-   <property name="styleSheet">
-    <string notr="true">/* Frame样式 - 移除padding */
-QFrame {
-    background-color: rgba(255, 255, 255, 0.95);
-    border-radius: 10px;
-    border: 2px solid rgba(255, 255, 255, 0.5);
-}
-
-/* Frame内的标签样式 */
-QFrame QLabel {
-    color: black !important;
-    font-size: 14px;
-    font-weight: bold;
+   <property name="leftMargin">
+    <number>0</number>
+   </property>
+   <property name="topMargin">
+    <number>0</number>
+   </property>
+   <property name="rightMargin">
+    <number>0</number>
+   </property>
+   <property name="bottomMargin">
+    <number>0</number>
+   </property>
+   <item>
+    <widget class="QFrame" name="loginFrame">
+     <property name="minimumSize">
+      <size>
+       <width>500</width>
+       <height>0</height>
+      </size>
+     </property>
+     <property name="maximumSize">
+      <size>
+       <width>500</width>
+       <height>16777215</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QFrame {
     background: transparent;
+    border: none;
+    border-right: 2px solid rgba(255, 255, 255, 0.3);
 }</string>
-   </property>
-   <property name="frameShape">
-    <enum>QFrame::Shape::StyledPanel</enum>
-   </property>
-   <property name="frameShadow">
-    <enum>QFrame::Shadow::Raised</enum>
-   </property>
-   <layout class="QVBoxLayout" name="frameLayout">
-    <property name="spacing">
-     <number>10</number>
-    </property>
-    <property name="leftMargin">
-     <number>20</number>
-    </property>
-    <property name="topMargin">
-     <number>20</number>
-    </property>
-    <property name="rightMargin">
-     <number>20</number>
-    </property>
-    <property name="bottomMargin">
-     <number>20</number>
-    </property>
-    <item>
-     <layout class="QHBoxLayout" name="titleLayout">
-      <item>
-       <spacer name="titleLeftSpacer">
-        <property name="orientation">
-         <enum>Qt::Orientation::Horizontal</enum>
-        </property>
-        <property name="sizeHint" stdset="0">
-         <size>
-          <width>40</width>
-          <height>20</height>
-         </size>
-        </property>
-       </spacer>
-      </item>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout">
+      <property name="spacing">
+       <number>25</number>
+      </property>
+      <property name="leftMargin">
+       <number>60</number>
+      </property>
+      <property name="topMargin">
+       <number>100</number>
+      </property>
+      <property name="rightMargin">
+       <number>60</number>
+      </property>
+      <property name="bottomMargin">
+       <number>80</number>
+      </property>
       <item>
        <widget class="QLabel" name="titleLabel">
-        <property name="minimumSize">
-         <size>
-          <width>120</width>
-          <height>35</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>120</width>
-          <height>35</height>
-         </size>
-        </property>
         <property name="styleSheet">
          <string notr="true">QLabel {
-    background-color: #3498db;
-    color: white;
-    border-radius: 5px;
-    font-size: 16px;
+    color: #FFD700;  <!-- 改为黄色 -->
+    font-size: 32px;
     font-weight: bold;
-    padding: 5px 15px;
+    background: transparent;
+    margin-bottom: 10px;
 }</string>
         </property>
         <property name="text">
          <string>用户登录</string>
         </property>
         <property name="alignment">
-         <set>Qt::AlignmentFlag::AlignCenter</set>
+         <set>Qt::AlignCenter</set>
         </property>
        </widget>
       </item>
       <item>
-       <spacer name="titleRightSpacer">
+       <spacer name="verticalSpacer">
         <property name="orientation">
-         <enum>Qt::Orientation::Horizontal</enum>
+         <enum>Qt::Vertical</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>
-          <width>40</width>
+          <width>20</width>
+          <height>30</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="usernameLayout">
+        <property name="spacing">
+         <number>15</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="userIconLabel">
+          <property name="minimumSize">
+           <size>
+            <width>30</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>30</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QLabel {
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    color: #FFD700;
+}</string>
+          </property>
+          <property name="text">
+           <string>👤</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="usernameEdit">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>50</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QLineEdit {
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 15px;
+    color: #2c3e50;
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+}
+
+QLineEdit:focus {
+    border-color: #FFD700;
+    background-color: white;
+}
+
+QLineEdit::placeholder {
+    color: #6c757d;
+}</string>
+          </property>
+          <property name="placeholderText">
+           <string>请输入用户名</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="passwordLayout">
+        <property name="spacing">
+         <number>15</number>
+        </property>
+        <item>
+         <widget class="QLabel" name="pwdIconLabel">
+          <property name="minimumSize">
+           <size>
+            <width>30</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="maximumSize">
+           <size>
+            <width>30</width>
+            <height>30</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QLabel {
+    background: transparent;
+    border: none;
+    font-size: 24px;
+    color: #FFD700;
+}</string>
+          </property>
+          <property name="text">
+           <string>🔒</string>
+          </property>
+          <property name="alignment">
+           <set>Qt::AlignCenter</set>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="passwordEdit">
+          <property name="minimumSize">
+           <size>
+            <width>0</width>
+            <height>50</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QLineEdit {
+    background: rgba(255, 255, 255, 0.9);
+    border: 2px solid rgba(255, 255, 255, 0.5);
+    border-radius: 10px;
+    padding: 12px 18px;
+    font-size: 15px;
+    color: #2c3e50;
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+}
+
+QLineEdit:focus {
+    border-color: #FFD700;
+    background-color: white;
+}
+
+QLineEdit::placeholder {
+    color: #6c757d;
+}</string>
+          </property>
+          <property name="echoMode">
+           <enum>QLineEdit::Password</enum>
+          </property>
+          <property name="placeholderText">
+           <string>请输入密码</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="registerLinkLayout">
+        <item>
+         <spacer name="horizontalSpacer_4">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="registerLinkButton">
+          <property name="styleSheet">
+           <string notr="true">QPushButton {
+    background: transparent;
+    color: #FFD700;  <!-- 改为黄色 -->
+    border: none;
+    font-size: 14px;
+    text-decoration: underline;
+    padding: 8px 12px;
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    color: #FFA500;
+    background-color: rgba(255, 215, 0, 0.1);
+    border-radius: 4px;
+}
+
+QPushButton:pressed {
+    color: #FF8C00;
+}</string>
+          </property>
+          <property name="text">
+           <string>没有账号？立即注册</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_5">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <spacer name="verticalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Vertical</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
           <height>20</height>
          </size>
         </property>
        </spacer>
       </item>
-     </layout>
-    </item>
-    <item>
-     <layout class="QHBoxLayout" name="usernameLayout">
       <item>
-       <widget class="QLabel" name="usernameLabel">
-        <property name="minimumSize">
-         <size>
-          <width>60</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>用户名:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="usernameEdit">
-        <property name="minimumSize">
-         <size>
-          <width>228</width>
-          <height>55</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>228</width>
-          <height>55</height>
-         </size>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QLineEdit {
-    background-color: white;
-    border: 2px solid #bdc3c7;
-    border-radius: 5px;
-    padding: 8px 12px;
-    font-size: 14px;
-    color: #2c3e50;
-    min-width: 200px;
-    max-width: 200px;
-    min-height: 35px;
-    max-height: 35px;
-}
-
-QLineEdit:focus {
-    border-color: #3498db;
-    background-color: #f8f9fa;
-}</string>
-        </property>
-        <property name="placeholderText">
-         <string>请输入用户名</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <layout class="QHBoxLayout" name="passwordLayout">
-      <item>
-       <widget class="QLabel" name="passwordLabel">
-        <property name="minimumSize">
-         <size>
-          <width>60</width>
-          <height>30</height>
-         </size>
-        </property>
-        <property name="text">
-         <string>密   码:</string>
-        </property>
-       </widget>
-      </item>
-      <item>
-       <widget class="QLineEdit" name="passwordEdit">
-        <property name="minimumSize">
-         <size>
-          <width>228</width>
-          <height>55</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>228</width>
-          <height>55</height>
-         </size>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QLineEdit {
-    background-color: white;
-    border: 2px solid #bdc3c7;
-    border-radius: 5px;
-    padding: 8px 12px;
-    font-size: 14px;
-    color: #2c3e50;
-    min-width: 200px;
-    max-width: 200px;
-    min-height: 35px;
-    max-height: 35px;
-}
-
-QLineEdit:focus {
-    border-color: #3498db;
-    background-color: #f8f9fa;
-}</string>
-        </property>
-        <property name="echoMode">
-         <enum>QLineEdit::EchoMode::Password</enum>
-        </property>
-        <property name="placeholderText">
-         <string>请输入密码</string>
-        </property>
-       </widget>
-      </item>
-     </layout>
-    </item>
-    <item>
-     <layout class="QHBoxLayout" name="buttonLayout">
-      <item>
-       <widget class="QPushButton" name="loginButton">
-        <property name="minimumSize">
-         <size>
-          <width>96</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="maximumSize">
-         <size>
-          <width>96</width>
-          <height>24</height>
-         </size>
-        </property>
-        <property name="styleSheet">
-         <string notr="true">QPushButton {
-    background-color: #27ae60;
+       <layout class="QHBoxLayout" name="loginButtonLayout">
+        <item>
+         <spacer name="horizontalSpacer_6">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+        <item>
+         <widget class="QPushButton" name="loginButton">
+          <property name="minimumSize">
+           <size>
+            <width>200</width>
+            <height>55</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFD700, stop:1 #FFA500);
     color: white;
     border: none;
-    border-radius: 5px;
-    padding: 2px 8px;
-    font-size: 12px;
+    border-radius: 12px;
+    padding: 15px 30px;
+    font-size: 18px;
     font-weight: bold;
-    min-width: 80px;
-    max-width: 80px;
-    min-height: 20px;
-    max-height: 20px;
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    min-width: 200px;
 }
 
 QPushButton:hover {
-    background-color: #2ecc71;
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFA500, stop:1 #FF8C00);
 }
 
 QPushButton:pressed {
-    background-color: #229954;
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FF8C00, stop:1 #FF7F50);
+}</string>
+          </property>
+          <property name="text">
+           <string>登录</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_7">
+          <property name="orientation">
+           <enum>Qt::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="illustrationFrame">
+     <property name="styleSheet">
+      <string notr="true">QFrame {
+    background: transparent;
+    border: none;
+}</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Raised</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <property name="spacing">
+       <number>0</number>
+      </property>
+      <property name="leftMargin">
+       <number>0</number>
+      </property>
+      <property name="topMargin">
+       <number>0</number>
+      </property>
+      <property name="rightMargin">
+       <number>0</number>
+      </property>
+      <property name="bottomMargin">
+       <number>0</number>
+      </property>
+      <item>
+       <widget class="QLabel" name="loginIllustrationLabel">
+        <property name="minimumSize">
+         <size>
+          <width>400</width>
+          <height>500</height>
+         </size>
+        </property>
+        <property name="maximumSize">
+         <size>
+          <width>400</width>
+          <height>500</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    background: transparent;
+    border: none;
 }</string>
         </property>
         <property name="text">
-         <string>登录</string>
+         <string/>
+        </property>
+        <property name="alignment">
+         <set>Qt::AlignCenter</set>
+        </property>
+        <property name="scaledContents">
+         <bool>true</bool>
         </property>
        </widget>
       </item>
      </layout>
-    </item>
-   </layout>
-  </widget>
+    </widget>
+   </item>
+  </layout>
   <widget class="QLabel" name="outputLabel">
    <property name="geometry">
     <rect>
@@ -310,12 +479,6 @@ QPushButton:pressed {
    </property>
    <property name="visible">
     <bool>false</bool>
-   </property>
-   <property name="styleSheet">
-    <string notr="true">QLabel {
-    color: black;
-    background: transparent;
-}</string>
    </property>
    <property name="text">
     <string>消息输出:</string>

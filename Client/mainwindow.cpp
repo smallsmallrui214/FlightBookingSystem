@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "../Common/protocol.h"
+#include "calendardialog.h"  // 添加头文件
 #include <QListWidgetItem>
 #include <QLabel>
 #include <QPushButton>
@@ -12,6 +13,8 @@
 #include <QTimer>           // 添加QTimer头文件
 #include <QJsonArray>       // 添加QJsonArray头文件
 #include <QJsonDocument>    // 添加QJsonDocument头文件
+#include <QButtonGroup>     // 添加QButtonGroup头文件
+#include <QInputDialog>     // 添加QInputDialog头文件
 
 // 自定义航班列表项Widget
 class FlightItemWidget : public QWidget
@@ -171,20 +174,150 @@ MainWindow::MainWindow(const QString &username, ClientNetworkManager* networkMan
     // 设置用户信息
     ui->userLabel->setText(QString("欢迎，%1").arg(username));
 
-    // 设置日期为2025年11月24日
-    ui->dateEdit->setDate(QDate(2025, 11, 24));
-
-    // 设置默认城市（可选）
+    // 设置默认城市
     ui->departureEdit->setText("广州");
     ui->arrivalEdit->setText("宜宾");
 
     qDebug() << "主窗口初始化完成";
+
+    // 初始化日期选择系统
+    setupDateSelection();
 
     setupConnections();
 
     // 延迟搜索，确保界面完全加载
     QTimer::singleShot(500, this, &MainWindow::onSearchButtonClicked);
 }
+
+void MainWindow::setupDateSelection()
+{
+    // 初始化日期按钮组
+    dateButtonGroup = new QButtonGroup(this);
+    dateButtonGroup->setExclusive(true);
+
+    // 收集所有日期按钮
+    dateButtons.clear();
+    dateButtons.append(ui->dateButton_0);
+    dateButtons.append(ui->dateButton_1);
+    dateButtons.append(ui->dateButton_2);
+    dateButtons.append(ui->dateButton_3);
+    dateButtons.append(ui->dateButton_4);
+    dateButtons.append(ui->dateButton_5);
+    dateButtons.append(ui->dateButton_6);
+
+    // 将按钮添加到按钮组
+    for (int i = 0; i < dateButtons.size(); ++i) {
+        dateButtonGroup->addButton(dateButtons[i], i);
+    }
+
+    // 设置初始日期为今天
+    currentCenterDate = QDate::currentDate();
+    selectedDate = QDate::currentDate();
+    updateDateButtons();
+}
+
+void MainWindow::updateDateButtons()
+{
+    // 计算显示的7天日期（今天前后各3天）
+    QDate startDate = currentCenterDate.addDays(-3);
+    QDate currentDate = QDate::currentDate();
+
+    for (int i = 0; i < dateButtons.size(); ++i) {
+        QDate buttonDate = startDate.addDays(i);
+        QPushButton *button = dateButtons[i];
+
+        // 设置日期文本
+        QString dayName;
+        if (buttonDate == currentDate) {
+            dayName = "今天";
+        } else if (buttonDate == currentDate.addDays(1)) {
+            dayName = "明天";
+        } else if (buttonDate == currentDate.addDays(2)) {
+            dayName = "后天";
+        } else {
+            // 根据星期几显示中文
+            QStringList weekDays = {"周日", "周一", "周二", "周三", "周四", "周五", "周六"};
+            dayName = weekDays[buttonDate.dayOfWeek() - 1];
+        }
+
+        QString buttonText = QString("%1\n%2").arg(dayName).arg(buttonDate.toString("MM/dd"));
+        button->setText(buttonText);
+
+        // 设置选中状态
+        bool isSelected = (buttonDate == selectedDate);
+        bool isToday = (buttonDate == currentDate);
+
+        // 更新按钮样式
+        if (isSelected) {
+            button->setStyleSheet(
+                "QPushButton {"
+                "    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1e88e5, stop:1 #1565c0);"
+                "    color: white;"
+                "    border: 2px solid #0d47a1;"
+                "    border-radius: 6px;"
+                "    padding: 5px 8px;"
+                "    font-size: 11px;"
+                "    font-weight: bold;"
+                "    min-width: 70px;"
+                "    max-width: 70px;"
+                "    min-height: 40px;"
+                "    max-height: 40px;"
+                "}"
+                "QPushButton:hover {"
+                "    background: qlineargradient(x1:0, y1:0, x2:0, y2:1, stop:0 #1976d2, stop:1 #0d47a1);"
+                "}"
+                );
+        } else if (isToday) {
+            button->setStyleSheet(
+                "QPushButton {"
+                "    background: #e8f5e8;"
+                "    color: #2e7d32;"
+                "    border: 2px solid #4caf50;"
+                "    border-radius: 6px;"
+                "    padding: 5px 8px;"
+                "    font-size: 11px;"
+                "    font-weight: bold;"
+                "    min-width: 70px;"
+                "    max-width: 70px;"
+                "    min-height: 40px;"
+                "    max-height: 40px;"
+                "}"
+                "QPushButton:hover {"
+                "    background: #c8e6c9;"
+                "}"
+                );
+        } else {
+            button->setStyleSheet(
+                "QPushButton {"
+                "    background: white;"
+                "    color: #333;"
+                "    border: 2px solid #e0e0e0;"
+                "    border-radius: 6px;"
+                "    padding: 5px 8px;"
+                "    font-size: 11px;"
+                "    min-width: 70px;"
+                "    max-width: 70px;"
+                "    min-height: 40px;"
+                "    max-height: 40px;"
+                "}"
+                "QPushButton:hover {"
+                "    background: #f5f5f5;"
+                "    border-color: #1e88e5;"
+                "}"
+                "QPushButton:checked {"
+                "    background: #e3f2fd;"
+                "    border-color: #1e88e5;"
+                "    color: #1e88e5;"
+                "}"
+                );
+        }
+
+        // 启用/禁用按钮（过去日期禁用）
+        button->setEnabled(buttonDate >= currentDate);
+        button->setChecked(isSelected);
+    }
+}
+
 MainWindow::~MainWindow()
 {
     if (ui) {
@@ -201,6 +334,26 @@ void MainWindow::setupConnections()
     connect(ui->swapButton, &QPushButton::clicked, this, &MainWindow::onSwapButtonClicked);
     connect(ui->airlineComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onAirlineFilterChanged);
 
+    // 新增日期选择连接
+    connect(ui->prevWeekButton, &QPushButton::clicked, this, &MainWindow::onPrevWeekClicked);
+    connect(ui->nextWeekButton, &QPushButton::clicked, this, &MainWindow::onNextWeekClicked);
+    connect(ui->calendarButton, &QPushButton::clicked, this, &MainWindow::onCalendarButtonClicked);
+    connect(dateButtonGroup, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),
+            this, [this](QAbstractButton *button) {
+                int buttonId = dateButtonGroup->id(button);
+                QDate startDate = currentCenterDate.addDays(-3);
+                QDate selected = startDate.addDays(buttonId);
+
+                // 确保不选择过去日期
+                if (selected < QDate::currentDate()) {
+                    selected = QDate::currentDate();
+                }
+
+                selectedDate = selected;
+                updateDateButtons();
+                searchFlightsByDate(selected);
+            });
+
     if (networkManager) {
         connect(networkManager, &ClientNetworkManager::messageReceived, this, &MainWindow::onMessageReceived);
     }
@@ -208,16 +361,115 @@ void MainWindow::setupConnections()
 
 void MainWindow::onSearchButtonClicked()
 {
-    searchFlights();
+    searchFlightsByDate(selectedDate);
 }
 
 void MainWindow::onSortChanged(int index)
 {
-    // 重新排序当前航班列表
-    if (!currentFlights.isEmpty()) {
-        // 这里可以实现本地排序，或者重新请求服务器排序
-        searchFlights();
+    searchFlightsByDate(selectedDate);
+}
+
+void MainWindow::onAirlineFilterChanged(int index)
+{
+    qDebug() << "航空公司筛选改变，索引:" << index;
+    searchFlightsByDate(selectedDate);
+}
+
+void MainWindow::onPrevWeekClicked()
+{
+    currentCenterDate = currentCenterDate.addDays(-7);
+    updateDateButtons();
+   //qDebug() << "向前一周，中心日期:" << currentCenterDate.toString("yyyy-MM-dd");
+}
+
+void MainWindow::onNextWeekClicked()
+{
+    currentCenterDate = currentCenterDate.addDays(7);
+    updateDateButtons();
+    //qDebug() << "向后一周，中心日期:" << currentCenterDate.toString("yyyy-MM-dd");
+}
+
+void MainWindow::onCalendarButtonClicked()
+{
+    showCalendarDialog();
+}
+
+void MainWindow::showCalendarDialog()
+{
+    CalendarDialog dialog(this);
+
+    // 设置日期范围：今天到2个月后
+    dialog.setDateRange(QDate::currentDate(), QDate::currentDate().addMonths(2));
+    dialog.setSelectedDate(selectedDate);
+
+    if (dialog.exec() == QDialog::Accepted) {
+        QDate selected = dialog.getSelectedDate();
+        if (selected.isValid() && selected >= QDate::currentDate()) {
+            selectedDate = selected;
+            currentCenterDate = selected;
+            updateDateButtons();
+            searchFlightsByDate(selected);
+
+            //qDebug() << "通过日历选择日期:" << selected.toString("yyyy-MM-dd");
+        }
     }
+}
+
+
+void MainWindow::searchFlightsByDate(const QDate &date)
+{
+    if (!networkManager || !networkManager->isConnected()) {
+        QMessageBox::warning(this, "错误", "未连接到服务器");
+        return;
+    }
+
+    if (ui->departureEdit->text().trimmed().isEmpty() ||
+        ui->arrivalEdit->text().trimmed().isEmpty()) {
+        return; // 如果没有输入出发地或目的地，不搜索
+    }
+
+    NetworkMessage msg;
+    msg.type = FLIGHT_SEARCH_REQUEST;
+    msg.data["departure_city"] = ui->departureEdit->text().trimmed();
+    msg.data["arrival_city"] = ui->arrivalEdit->text().trimmed();
+    msg.data["date"] = date.toString("yyyy-MM-dd");
+
+    // 设置排序
+    int sortIndex = ui->sortComboBox->currentIndex();
+    switch (sortIndex) {
+    case 0: msg.data["sort_by"] = "departure_time"; msg.data["sort_asc"] = true; break;
+    case 1: msg.data["sort_by"] = "price"; msg.data["sort_asc"] = true; break;
+    case 2: msg.data["sort_by"] = "price"; msg.data["sort_asc"] = false; break;
+    case 3: msg.data["sort_by"] = "duration"; msg.data["sort_asc"] = true; break;
+    }
+
+    // 设置航空公司筛选
+    int airlineIndex = ui->airlineComboBox->currentIndex();
+    QString selectedAirline = "";
+    switch (airlineIndex) {
+    case 1: selectedAirline = "中国国航"; break;
+    case 2: selectedAirline = "东方航空"; break;
+    case 3: selectedAirline = "南方航空"; break;
+    case 4: selectedAirline = "海南航空"; break;
+    case 5: selectedAirline = "厦门航空"; break;
+    default: selectedAirline = ""; // 所有航空公司
+    }
+    msg.data["airline"] = selectedAirline;
+
+    qDebug() << "发送搜索请求 - 日期:" << date.toString("yyyy-MM-dd")
+             << "出发:" << ui->departureEdit->text()
+             << "到达:" << ui->arrivalEdit->text()
+             << "航空公司:" << (selectedAirline.isEmpty() ? "所有" : selectedAirline);
+
+    networkManager->sendMessage(msg);
+    ui->flightListWidget->clear();
+    ui->flightListWidget->addItem("正在搜索" + date.toString("yyyy年MM月dd日") + "的航班...");
+}
+
+// 保留原有的searchFlights方法，但修改为调用新的方法
+void MainWindow::searchFlights()
+{
+    searchFlightsByDate(selectedDate);
 }
 
 void MainWindow::onFlightItemDoubleClicked(QListWidgetItem *item)
@@ -245,88 +497,6 @@ void MainWindow::onSwapButtonClicked()
     ui->arrivalEdit->setText(departure);
 }
 
-void MainWindow::searchFlights()
-{
-    if (!networkManager || !networkManager->isConnected()) {
-        QMessageBox::warning(this, "错误", "未连接到服务器");
-        return;
-    }
-
-    if (ui->departureEdit->text().trimmed().isEmpty() ||
-        ui->arrivalEdit->text().trimmed().isEmpty()) {
-        return; // 如果没有输入出发地或目的地，不搜索
-    }
-
-    NetworkMessage msg;
-    msg.type = FLIGHT_SEARCH_REQUEST;
-    msg.data["departure_city"] = ui->departureEdit->text().trimmed();
-    msg.data["arrival_city"] = ui->arrivalEdit->text().trimmed();
-    msg.data["date"] = ui->dateEdit->date().toString("yyyy-MM-dd");
-
-    // 设置排序
-    int sortIndex = ui->sortComboBox->currentIndex();
-    switch (sortIndex) {
-    case 0: // 出发时间
-        msg.data["sort_by"] = "departure_time";
-        msg.data["sort_asc"] = true;
-        break;
-    case 1: // 价格从低到高
-        msg.data["sort_by"] = "price";
-        msg.data["sort_asc"] = true;
-        break;
-    case 2: // 价格从高到低
-        msg.data["sort_by"] = "price";
-        msg.data["sort_asc"] = false;
-        break;
-    case 3: // 飞行时长
-        msg.data["sort_by"] = "duration";
-        msg.data["sort_asc"] = true;
-        break;
-    }
-
-    // 设置航空公司筛选
-    int airlineIndex = ui->airlineComboBox->currentIndex();
-    QString selectedAirline = "";
-    switch (airlineIndex) {
-    case 1: selectedAirline = "中国国航"; break;
-    case 2: selectedAirline = "东方航空"; break;
-    case 3: selectedAirline = "南方航空"; break;
-    case 4: selectedAirline = "海南航空"; break;
-    case 5: selectedAirline = "厦门航空"; break;
-    default: selectedAirline = ""; // 所有航空公司
-    }
-    msg.data["airline"] = selectedAirline;
-
-    qDebug() << "发送搜索请求 - 出发:" << ui->departureEdit->text()
-             << "到达:" << ui->arrivalEdit->text()
-             << "航空公司:" << (selectedAirline.isEmpty() ? "所有" : selectedAirline);
-
-    networkManager->sendMessage(msg);
-    ui->flightListWidget->clear();
-    ui->flightListWidget->addItem("正在搜索航班...");
-}
-
-void MainWindow::onAirlineFilterChanged(int index)
-{
-    qDebug() << "航空公司筛选改变，索引:" << index;
-
-    // 获取选中的航空公司
-    QString selectedAirline = "";
-    switch (index) {
-    case 1: selectedAirline = "中国国航"; break;
-    case 2: selectedAirline = "东方航空"; break;
-    case 3: selectedAirline = "南方航空"; break;
-    case 4: selectedAirline = "海南航空"; break;
-    case 5: selectedAirline = "厦门航空"; break;
-    default: selectedAirline = ""; // 所有航空公司
-    }
-
-    qDebug() << "选中的航空公司:" << (selectedAirline.isEmpty() ? "所有航空公司" : selectedAirline);
-
-    // 如果有当前航班数据，重新搜索
-    searchFlights();
-}
-
 void MainWindow::onMessageReceived(const NetworkMessage &message)
 {
     if (message.type == FLIGHT_SEARCH_RESPONSE) {
@@ -343,10 +513,15 @@ void MainWindow::onMessageReceived(const NetworkMessage &message)
 
             currentFlights = flights;
             displayFlights(flights);
+
+            // 显示搜索日期信息
+            if (!flights.isEmpty()) {
+                ui->flightListWidget->insertItem(0, "📅 搜索日期: " + selectedDate.toString("yyyy年MM月dd日"));
+            }
         } else {
             QMessageBox::warning(this, "搜索失败", message.data["message"].toString());
             ui->flightListWidget->clear();
-            ui->flightListWidget->addItem("搜索失败");
+            ui->flightListWidget->addItem("搜索" + selectedDate.toString("yyyy年MM月dd日") + "的航班失败");
         }
     }
 }
@@ -401,6 +576,13 @@ void MainWindow::showFlightDetail(const Flight &flight)
                                  .arg(flight.getPrice())
                                  .arg(flight.getAvailableSeats())
                              );
+}
+
+// 添加头文件中声明的但未实现的槽函数
+void MainWindow::onDateButtonClicked()
+{
+    // 这个功能已经在lambda表达式中实现，这里可以留空
+    // 或者删除头文件中的声明
 }
 
 #include "mainwindow.moc"

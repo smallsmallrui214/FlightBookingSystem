@@ -597,15 +597,6 @@ QPushButton:pressed {
 
 QComboBox:focus {
     border-color: #1e88e5;
-}
-
-QComboBox::drop-down {
-    subcontrol-origin: padding;
-    subcontrol-position: top right;
-    width: 20px;
-    border-left-width: 1px;
-    border-left-color: #e0e0e0;
-    border-left-style: solid;
 }</string>
            </property>
            <item>
@@ -615,12 +606,12 @@ QComboBox::drop-down {
            </item>
            <item>
             <property name="text">
-             <string>价格从低到高</string>
+             <string>价格升序</string>
             </property>
            </item>
            <item>
             <property name="text">
-             <string>价格从高到低</string>
+             <string>价格降序</string>
             </property>
            </item>
            <item>
@@ -662,7 +653,7 @@ QComboBox:focus {
            </property>
            <item>
             <property name="text">
-             <string>所有航空公司</string>
+             <string>所有</string>
             </property>
            </item>
            <item>

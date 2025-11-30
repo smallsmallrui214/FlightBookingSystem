@@ -31,6 +31,7 @@ private slots:
     void onMessageReceived(const NetworkMessage &message);
     void onLogoutButtonClicked();
     void onSwapButtonClicked();
+    void onAirlineFilterChanged(int index);
 
 private:
     void setupConnections();

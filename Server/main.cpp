@@ -137,11 +137,16 @@ private slots:
             QString sortBy = message.data["sort_by"].toString("departure_time");
             bool sortAsc = message.data["sort_asc"].toBool(true);
 
+            QString airline = message.data["airline"].toString();
+
             qDebug() << "=== 航班搜索请求 ===";
             qDebug() << "出发城市:" << departureCity;
             qDebug() << "到达城市:" << arrivalCity;
             qDebug() << "日期:" << date;
             qDebug() << "排序:" << sortBy << (sortAsc ? "升序" : "降序");
+
+            // 打印所有接收到的数据
+            qDebug() << "所有接收到的数据:" << message.data;
 
             QSqlQuery query;
             QString sql = "SELECT * FROM flights WHERE 1=1";
@@ -154,6 +159,13 @@ private slots:
             }
             if (!date.isEmpty()) {
                 sql += " AND DATE(departure_time) = ?";
+            }
+
+            if (!airline.isEmpty()) {
+                sql += " AND airline = ?";
+                qDebug() << "✅ 添加航空公司筛选条件:" << airline;
+            } else {
+                qDebug() << "❌ 没有航空公司筛选条件";
             }
 
             // 排序
@@ -181,6 +193,10 @@ private slots:
             if (!date.isEmpty()) {
                 query.bindValue(paramIndex++, date);
                 qDebug() << "参数" << paramIndex << ":" << date;
+            }
+
+            if (!airline.isEmpty()) {
+                query.bindValue(paramIndex++, airline);
             }
 
             NetworkMessage reply;

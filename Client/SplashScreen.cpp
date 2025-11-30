@@ -63,7 +63,7 @@ void SplashScreen::setupUI()
     logoLabel->setStyleSheet("background: transparent;");
 
     // 加载GIF
-    gifMovie = new QMovie("C:/FlightBookingSystem/Client/loading.gif");
+    gifMovie = new QMovie("D:/develop/project/FlightBookingSystem/Client/loading.gif");
 
     if (gifMovie->isValid()) {
         gifMovie->setScaledSize(QSize(160, 160));

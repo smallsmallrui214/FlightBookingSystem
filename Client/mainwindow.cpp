@@ -199,6 +199,7 @@ void MainWindow::setupConnections()
     connect(ui->flightListWidget, &QListWidget::itemDoubleClicked, this, &MainWindow::onFlightItemDoubleClicked);
     connect(ui->logoutButton, &QPushButton::clicked, this, &MainWindow::onLogoutButtonClicked);
     connect(ui->swapButton, &QPushButton::clicked, this, &MainWindow::onSwapButtonClicked);
+    connect(ui->airlineComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onAirlineFilterChanged);
 
     if (networkManager) {
         connect(networkManager, &ClientNetworkManager::messageReceived, this, &MainWindow::onMessageReceived);
@@ -251,6 +252,11 @@ void MainWindow::searchFlights()
         return;
     }
 
+    if (ui->departureEdit->text().trimmed().isEmpty() ||
+        ui->arrivalEdit->text().trimmed().isEmpty()) {
+        return; // 如果没有输入出发地或目的地，不搜索
+    }
+
     NetworkMessage msg;
     msg.type = FLIGHT_SEARCH_REQUEST;
     msg.data["departure_city"] = ui->departureEdit->text().trimmed();
@@ -278,9 +284,47 @@ void MainWindow::searchFlights()
         break;
     }
 
+    // 设置航空公司筛选
+    int airlineIndex = ui->airlineComboBox->currentIndex();
+    QString selectedAirline = "";
+    switch (airlineIndex) {
+    case 1: selectedAirline = "中国国航"; break;
+    case 2: selectedAirline = "东方航空"; break;
+    case 3: selectedAirline = "南方航空"; break;
+    case 4: selectedAirline = "海南航空"; break;
+    case 5: selectedAirline = "厦门航空"; break;
+    default: selectedAirline = ""; // 所有航空公司
+    }
+    msg.data["airline"] = selectedAirline;
+
+    qDebug() << "发送搜索请求 - 出发:" << ui->departureEdit->text()
+             << "到达:" << ui->arrivalEdit->text()
+             << "航空公司:" << (selectedAirline.isEmpty() ? "所有" : selectedAirline);
+
     networkManager->sendMessage(msg);
     ui->flightListWidget->clear();
     ui->flightListWidget->addItem("正在搜索航班...");
+}
+
+void MainWindow::onAirlineFilterChanged(int index)
+{
+    qDebug() << "航空公司筛选改变，索引:" << index;
+
+    // 获取选中的航空公司
+    QString selectedAirline = "";
+    switch (index) {
+    case 1: selectedAirline = "中国国航"; break;
+    case 2: selectedAirline = "东方航空"; break;
+    case 3: selectedAirline = "南方航空"; break;
+    case 4: selectedAirline = "海南航空"; break;
+    case 5: selectedAirline = "厦门航空"; break;
+    default: selectedAirline = ""; // 所有航空公司
+    }
+
+    qDebug() << "选中的航空公司:" << (selectedAirline.isEmpty() ? "所有航空公司" : selectedAirline);
+
+    // 如果有当前航班数据，重新搜索
+    searchFlights();
 }
 
 void MainWindow::onMessageReceived(const NetworkMessage &message)

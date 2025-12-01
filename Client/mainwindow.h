@@ -62,6 +62,7 @@ private:
     QDate selectedDate;       // 当前选中的日期
     QButtonGroup *dateButtonGroup;
     QList<QPushButton*> dateButtons;
+     QDate currentStartDate;  // 当前显示的起始日期
 };
 
 #endif // MAINWINDOW_H

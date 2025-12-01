@@ -211,19 +211,22 @@ void MainWindow::setupDateSelection()
     }
 
     // 设置初始日期为今天
-    currentCenterDate = QDate::currentDate();
     selectedDate = QDate::currentDate();
+    currentStartDate = QDate::currentDate();  // 起始日期为今天
+
+    // 初始显示从今天开始的7天
     updateDateButtons();
+
+    // 初始禁用向左按钮
+    ui->prevWeekButton->setEnabled(false);
 }
 
 void MainWindow::updateDateButtons()
 {
-    // 计算显示的7天日期（今天前后各3天）
-    QDate startDate = currentCenterDate.addDays(-3);
     QDate currentDate = QDate::currentDate();
 
     for (int i = 0; i < dateButtons.size(); ++i) {
-        QDate buttonDate = startDate.addDays(i);
+        QDate buttonDate = currentStartDate.addDays(i);  // 从当前起始日期开始
         QPushButton *button = dateButtons[i];
 
         // 设置日期文本
@@ -240,7 +243,7 @@ void MainWindow::updateDateButtons()
             dayName = weekDays[buttonDate.dayOfWeek() - 1];
         }
 
-        QString buttonText = QString("%1\n%2").arg(dayName, buttonDate.toString("MM/dd"));
+        QString buttonText = QString("%1\n%2").arg(dayName).arg(buttonDate.toString("MM/dd"));
         button->setText(buttonText);
 
         // 设置选中状态
@@ -312,8 +315,7 @@ void MainWindow::updateDateButtons()
                 );
         }
 
-        // 启用/禁用按钮（过去日期禁用）
-        button->setEnabled(buttonDate >= currentDate);
+        button->setEnabled(true);
         button->setChecked(isSelected);
     }
 }
@@ -341,8 +343,7 @@ void MainWindow::setupConnections()
     connect(dateButtonGroup, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),
             this, [this](QAbstractButton *button) {
                 int buttonId = dateButtonGroup->id(button);
-                QDate startDate = currentCenterDate.addDays(-3);
-                QDate selected = startDate.addDays(buttonId);
+                QDate selected = currentStartDate.addDays(buttonId);  // 从当前起始日期开始计算
 
                 // 确保不选择过去日期
                 if (selected < QDate::currentDate()) {
@@ -378,16 +379,45 @@ void MainWindow::onAirlineFilterChanged(int index)
 
 void MainWindow::onPrevWeekClicked()
 {
-    currentCenterDate = currentCenterDate.addDays(-7);
+    // 向左巡航：回到上一周
+    QDate newStartDate = currentStartDate.addDays(-7);  // 前移7天
+
+    // 如果新起始日期在今天之前，就显示从今天开始
+    if (newStartDate < QDate::currentDate()) {
+        newStartDate = QDate::currentDate();
+        ui->prevWeekButton->setEnabled(false);  // 禁用向左按钮
+    } else {
+        ui->prevWeekButton->setEnabled(true);   // 启用向左按钮
+    }
+
+    currentStartDate = newStartDate;
     updateDateButtons();
-   //qDebug() << "向前一周，中心日期:" << currentCenterDate.toString("yyyy-MM-dd");
+
+    // 自动选择新一周的第一天
+    selectedDate = currentStartDate;
+    updateDateButtons();
+
+    // 搜索航班
+    searchFlightsByDate(selectedDate);
 }
 
 void MainWindow::onNextWeekClicked()
 {
-    currentCenterDate = currentCenterDate.addDays(7);
+    // 向右巡航：显示下一周
+    QDate newStartDate = currentStartDate.addDays(7);  // 后移7天
+
+    currentStartDate = newStartDate;
     updateDateButtons();
-    //qDebug() << "向后一周，中心日期:" << currentCenterDate.toString("yyyy-MM-dd");
+
+    // 启用向左按钮（因为现在不是显示今天了）
+    ui->prevWeekButton->setEnabled(true);
+
+    // 自动选择新一周的第一天
+    selectedDate = currentStartDate;
+    updateDateButtons();
+
+    // 搜索航班
+    searchFlightsByDate(selectedDate);
 }
 
 void MainWindow::onCalendarButtonClicked()
@@ -399,19 +429,32 @@ void MainWindow::showCalendarDialog()
 {
     CalendarDialog dialog(this);
 
-    // 设置日期范围：今天到2个月后
-    dialog.setDateRange(QDate::currentDate(), QDate::currentDate().addMonths(2));
+    // 修复：设置日期范围为今天到2个月后（包含本月共3个月）
+    QDate minDate = QDate::currentDate();
+    QDate maxDate = QDate::currentDate().addMonths(2);  // 2个月后
+
+    // 确保最后一个月完整显示：设置为2个月后的最后一天
+    maxDate = QDate(maxDate.year(), maxDate.month(), maxDate.daysInMonth());
+
+    dialog.setDateRange(minDate, maxDate);
     dialog.setSelectedDate(selectedDate);
 
     if (dialog.exec() == QDialog::Accepted) {
         QDate selected = dialog.getSelectedDate();
         if (selected.isValid() && selected >= QDate::currentDate()) {
             selectedDate = selected;
-            currentCenterDate = selected;
-            updateDateButtons();
-            searchFlightsByDate(selected);
 
-            //qDebug() << "通过日历选择日期:" << selected.toString("yyyy-MM-dd");
+            // 计算新的起始日期：找到包含选中日期的那一周的第一天
+            int daysFromToday = QDate::currentDate().daysTo(selected);
+            int weekOffset = daysFromToday / 7 * 7;  // 计算整周数
+            currentStartDate = QDate::currentDate().addDays(weekOffset);
+
+            updateDateButtons();
+
+            // 更新向左按钮状态
+            ui->prevWeekButton->setEnabled(currentStartDate > QDate::currentDate());
+
+            searchFlightsByDate(selected);
         }
     }
 }

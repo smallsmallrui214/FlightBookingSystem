@@ -30,6 +30,9 @@ private:
     void setupUI();
     void applyBeautifyStyles();
 
+protected:
+    void closeEvent(QCloseEvent *event) override;  // 新增
+
     // 保存待注册信息的结构体
     struct PendingRegistration {
         QString username;

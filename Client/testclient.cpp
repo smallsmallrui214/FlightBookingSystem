@@ -235,17 +235,33 @@ void TestClient::on_loginButton_clicked()
 
 void TestClient::on_registerLinkButton_clicked()
 {
-    this->hide();
-    RegisterDialog dialog(networkManager, this);
-    connect(&dialog, &RegisterDialog::registrationSuccess, this, [this]() {
-        QMessageBox::information(this, "提示", "注册成功，请登录");
-    });
-    dialog.exec();
-    this->show();
-    this->raise();
-    this->activateWindow();
-}
+    // 查找是否已经有RegisterDialog在显示
+    QList<RegisterDialog*> existingDialogs = findChildren<RegisterDialog*>();
 
+    if (!existingDialogs.isEmpty()) {
+        // 如果已经有对话框在显示，激活它并返回
+        RegisterDialog* existingDialog = existingDialogs.first();
+        existingDialog->raise();
+        existingDialog->activateWindow();
+        existingDialog->setFocus();
+        return;
+    }
+
+    // 创建新对话框
+    RegisterDialog *dialog = new RegisterDialog(networkManager, this);
+
+    // 关键设置：非模态，关闭时删除
+    dialog->setModal(false);
+    dialog->setAttribute(Qt::WA_DeleteOnClose, true);
+
+    // 连接关闭信号 - 当对话框关闭时，它会被自动删除
+    // 因为设置了WA_DeleteOnClose，所以不需要手动删除
+
+    // 显示对话框
+    dialog->show();
+    dialog->raise();
+    dialog->activateWindow();
+}
 void TestClient::onMessageReceived(const NetworkMessage &message)
 {
     QString displayText = QString("收到消息[类型:%1]: %2")
@@ -259,8 +275,7 @@ void TestClient::onMessageReceived(const NetworkMessage &message)
 
         if (success) {
             QString username = message.data["username"].toString();
-            QMessageBox::information(this, "登录成功",
-                                     QString("欢迎 %1！").arg(username));
+            // 直接显示主窗口，不显示登录成功弹窗
             showMainWindow(username);
         } else {
             QMessageBox::warning(this, "登录失败", resultMsg);

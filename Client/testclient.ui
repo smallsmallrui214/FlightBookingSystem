@@ -50,13 +50,13 @@
     <widget class="QFrame" name="loginFrame">
      <property name="minimumSize">
       <size>
-       <width>500</width>
+       <width>400</width>  <!-- 从500改为400 -->
        <height>0</height>
       </size>
      </property>
      <property name="maximumSize">
       <size>
-       <width>500</width>
+       <width>400</width>  <!-- 从500改为400 -->
        <height>16777215</height>
       </size>
      </property>
@@ -75,13 +75,13 @@
      </property>
      <layout class="QVBoxLayout" name="verticalLayout">
       <property name="spacing">
-       <number>25</number>
+       <number>20</number>  <!-- 从25改为20 -->
       </property>
       <property name="leftMargin">
        <number>60</number>
       </property>
       <property name="topMargin">
-       <number>100</number>
+       <number>70</number>  <!-- 从100改为70，整体上移 -->
       </property>
       <property name="rightMargin">
        <number>60</number>
@@ -93,7 +93,7 @@
        <widget class="QLabel" name="titleLabel">
         <property name="styleSheet">
          <string notr="true">QLabel {
-    color: #FFD700;  <!-- 改为黄色 -->
+    color: #FFD700;
     font-size: 32px;
     font-weight: bold;
     background: transparent;
@@ -116,7 +116,7 @@
         <property name="sizeHint" stdset="0">
          <size>
           <width>20</width>
-          <height>30</height>
+          <height>20</height>  <!-- 从30改为20 -->
          </size>
         </property>
        </spacer>
@@ -284,7 +284,7 @@ QLineEdit::placeholder {
           <property name="styleSheet">
            <string notr="true">QPushButton {
     background: transparent;
-    color: #FFD700;  <!-- 改为黄色 -->
+    color: #FFD700;
     border: none;
     font-size: 14px;
     text-decoration: underline;
@@ -331,7 +331,7 @@ QPushButton:pressed {
         <property name="sizeHint" stdset="0">
          <size>
           <width>20</width>
-          <height>20</height>
+          <height>10</height>  <!-- 从20改为10，减小间距 -->
          </size>
         </property>
        </spacer>
@@ -437,13 +437,13 @@ QPushButton:pressed {
        <widget class="QLabel" name="loginIllustrationLabel">
         <property name="minimumSize">
          <size>
-          <width>400</width>
+          <width>500</width>  <!-- 从400改为500 -->
           <height>500</height>
          </size>
         </property>
         <property name="maximumSize">
          <size>
-          <width>400</width>
+          <width>500</width>  <!-- 从400改为500 -->
           <height>500</height>
          </size>
         </property>

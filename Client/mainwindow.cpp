@@ -240,7 +240,7 @@ void MainWindow::updateDateButtons()
             dayName = weekDays[buttonDate.dayOfWeek() - 1];
         }
 
-        QString buttonText = QString("%1\n%2").arg(dayName).arg(buttonDate.toString("MM/dd"));
+        QString buttonText = QString("%1\n%2").arg(dayName, buttonDate.toString("MM/dd"));
         button->setText(buttonText);
 
         // 设置选中状态
@@ -366,6 +366,7 @@ void MainWindow::onSearchButtonClicked()
 
 void MainWindow::onSortChanged(int index)
 {
+    Q_UNUSED(index)  // 标记参数为未使用
     searchFlightsByDate(selectedDate);
 }
 
@@ -506,8 +507,8 @@ void MainWindow::onMessageReceived(const NetworkMessage &message)
             QJsonArray flightsArray = message.data["flights"].toArray();
             QList<Flight> flights;
 
-            for (const QJsonValue &value : flightsArray) {
-                Flight flight = Flight::fromJson(value.toObject());
+            for (auto it = flightsArray.constBegin(); it != flightsArray.constEnd(); ++it) {
+                Flight flight = Flight::fromJson((*it).toObject());
                 flights.append(flight);
             }
 

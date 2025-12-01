@@ -9,7 +9,8 @@
 #include <QMessageBox>
 #include <QDebug>
 #include <QEvent>
-#include<QTimer>
+#include <QTimer>
+#include <QCloseEvent>  // 新增头文件
 
 
 class PlaceholderFilter : public QObject
@@ -38,7 +39,7 @@ private:
 
 
 RegisterDialog::RegisterDialog(ClientNetworkManager* networkManager, QWidget *parent)
-    : QDialog(parent),
+    : QDialog(parent, Qt::Dialog | Qt::WindowCloseButtonHint | Qt::WindowTitleHint),
     networkManager(networkManager),
     usernameEdit(nullptr),
     passwordEdit(nullptr),
@@ -46,8 +47,11 @@ RegisterDialog::RegisterDialog(ClientNetworkManager* networkManager, QWidget *pa
     emailEdit(nullptr),
     registerButton(nullptr),
     cancelButton(nullptr)
-// 移除 isUsernameAvailable 的初始化
 {
+    // 设置窗口属性
+    setAttribute(Qt::WA_DeleteOnClose, false);
+    setModal(true);
+
     setupUI();
     applyBeautifyStyles();
     setWindowTitle("用户注册");
@@ -60,24 +64,9 @@ RegisterDialog::RegisterDialog(ClientNetworkManager* networkManager, QWidget *pa
     connect(networkManager, &ClientNetworkManager::messageReceived,
             this, &RegisterDialog::onMessageReceived);
 
-    // 移除实时用户名检查的连接
-    // connect(usernameEdit, &QLineEdit::textChanged, this, &RegisterDialog::checkUsernameAvailability);
-
+    // 连接按钮信号
+    connect(registerButton, &QPushButton::clicked, this, &RegisterDialog::onRegisterClicked);
     connect(cancelButton, &QPushButton::clicked, this, &RegisterDialog::onCancelClicked);
-
-    connect(this, &RegisterDialog::finished, this, [this](int) {
-        // 清空所有输入框
-        usernameEdit->clear();
-        passwordEdit->clear();
-        confirmPasswordEdit->clear();
-        emailEdit->clear();
-
-        // 重新启用注册按钮（如果之前被禁用）
-        registerButton->setEnabled(true);
-
-        // 重置 pendingRegistration
-        pendingRegistration = PendingRegistration();
-    });
 }
 
 RegisterDialog::~RegisterDialog()
@@ -140,20 +129,16 @@ void RegisterDialog::setupUI()
     groupLayout->addLayout(buttonLayout);
 
     mainLayout->addWidget(groupBox);
-
-    // 连接信号槽
-    connect(registerButton, &QPushButton::clicked, this, &RegisterDialog::onRegisterClicked);
-    connect(cancelButton, &QPushButton::clicked, this, &RegisterDialog::onCancelClicked);
 }
 void RegisterDialog::applyBeautifyStyles()
 {
-    // 1. 设置窗口背景为天蓝色
+    // 1. 设置窗口背景为黄蓝色渐变，匹配登录界面主题
     this->setStyleSheet(
         "QDialog {"
         "  background: qlineargradient(x1:0, y1:0, x2:1, y2:1,"
-        "    stop:0 #87CEEB, stop:1 #B0E2FF);"  // 天蓝色渐变
+        "    stop:0 #FFD700, stop:0.5 #87CEEB, stop:1 #1E90FF);"  // 黄蓝渐变
         "  border-radius: 15px;"
-        "  border: 2px solid #4682B4;"
+        "  border: 3px solid rgba(255, 255, 255, 0.5);"
         "}"
         );
 
@@ -162,8 +147,8 @@ void RegisterDialog::applyBeautifyStyles()
     for (QGroupBox* const &groupBox : groupBoxes) {
         groupBox->setStyleSheet(
             "QGroupBox {"
-            "  background-color: rgba(255, 255, 255, 0.95);"
-            "  border-radius: 10px;"
+            "  background-color: rgba(255, 255, 255, 0.92);"  // 更透明
+            "  border-radius: 12px;"
             "  border: 2px solid rgba(255, 255, 255, 0.8);"
             "  padding: 20px;"
             "  margin: 15px;"
@@ -172,10 +157,10 @@ void RegisterDialog::applyBeautifyStyles()
             "QGroupBox::title {"
             "  subcontrol-origin: margin;"
             "  subcontrol-position: top center;"
-            "  padding: 5px 15px;"
-            "  background-color: #4682B4;"  // 钢蓝色
+            "  padding: 6px 18px;"
+            "  background-color: #FFA500;"  // 橙色，匹配黄蓝主题
             "  color: white;"
-            "  border-radius: 5px;"
+            "  border-radius: 8px;"
             "  font-size: 16px;"
             "  font-weight: bold;"
             "}"
@@ -201,7 +186,7 @@ void RegisterDialog::applyBeautifyStyles()
 
         label->setStyleSheet(
             "QLabel {"
-            "  color: #2c3e50;"
+            "  color: #1e3a5f;"  // 深蓝色文字
             "  font-size: 14px;"
             "  font-weight: bold;"
             "  background: transparent;"
@@ -220,15 +205,15 @@ void RegisterDialog::applyBeautifyStyles()
             "QLineEdit {"
             "  background-color: white;"
             "  border: 2px solid #bdc3c7;"
-            "  border-radius: 5px;"
+            "  border-radius: 6px;"
             "  padding: 8px 12px;"
             "  font-size: 14px;"
             "  color: #2c3e50;"
             "  min-width: 200px;"
             "}"
             "QLineEdit:focus {"
-            "  border-color: #4682B4;"  // 钢蓝色
-            "  background-color: #f8f9fa;"
+            "  border-color: #FFD700;"  // 黄色边框，匹配主题
+            "  background-color: #fffaf0;"
             "}"
             );
     }
@@ -237,44 +222,44 @@ void RegisterDialog::applyBeautifyStyles()
     const QList<QPushButton*> buttons = findChildren<QPushButton*>();
     for (QPushButton* const &btn : buttons) {
         btn->setFixedHeight(35);
-        btn->setFixedWidth(80);
+        btn->setFixedWidth(90);  // 稍微加宽
 
         if (btn->text().contains("注册")) {
             btn->setStyleSheet(
                 "QPushButton {"
-                "  background-color: #4682B4;"  // 钢蓝色
+                "  background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFD700, stop:1 #FFA500);"  // 黄橙渐变
                 "  color: white;"
                 "  border: none;"
-                "  border-radius: 5px;"
+                "  border-radius: 6px;"
                 "  padding: 10px 15px;"
                 "  font-size: 14px;"
                 "  font-weight: bold;"
-                "  min-width: 80px;"
+                "  min-width: 90px;"
                 "}"
                 "QPushButton:hover {"
-                "  background-color: #5F9EA0;"  // 青蓝色
+                "  background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FFA500, stop:1 #FF8C00);"
                 "}"
                 "QPushButton:pressed {"
-                "  background-color: #36648B;"  // 深钢蓝色
+                "  background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #FF8C00, stop:1 #FF7F50);"
                 "}"
                 );
         } else if (btn->text().contains("取消")) {
             btn->setStyleSheet(
                 "QPushButton {"
-                "  background-color: #e74c3c;"
+                "  background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1E90FF, stop:1 #4169E1);"  // 蓝色渐变
                 "  color: white;"
                 "  border: none;"
-                "  border-radius: 5px;"
+                "  border-radius: 6px;"
                 "  padding: 10px 15px;"
                 "  font-size: 14px;"
                 "  font-weight: bold;"
-                "  min-width: 80px;"
+                "  min-width: 90px;"
                 "}"
                 "QPushButton:hover {"
-                "  background-color: #ec7063;"
+                "  background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #4169E1, stop:1 #0000CD);"
                 "}"
                 "QPushButton:pressed {"
-                "  background-color: #cb4335;"
+                "  background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0000CD, stop:1 #191970);"
                 "}"
                 );
         }
@@ -357,7 +342,8 @@ void RegisterDialog::onRegisterClicked()
 
 void RegisterDialog::onCancelClicked()
 {
-    reject(); // 关闭对话框
+    // 直接关闭对话框
+    close();
 }
 
 void RegisterDialog::onMessageReceived(const NetworkMessage &message)
@@ -407,7 +393,7 @@ void RegisterDialog::onMessageReceived(const NetworkMessage &message)
         if (success) {
             QString username = message.data["username"].toString();
             QMessageBox::information(this, "注册成功",
-                                     QString("用户 %1 注册成功").arg(username));
+                                     QString("用户 %1 注册成功，请返回登录").arg(username));
             emit registrationSuccess();
             accept();
         } else {
@@ -419,4 +405,25 @@ void RegisterDialog::onMessageReceived(const NetworkMessage &message)
         // 重置注册状态
         pendingRegistration = PendingRegistration();
     }
+}
+
+void RegisterDialog::closeEvent(QCloseEvent *event)
+{
+    // 清理输入框
+    usernameEdit->clear();
+    passwordEdit->clear();
+    confirmPasswordEdit->clear();
+    emailEdit->clear();
+
+    // 重置按钮状态
+    registerButton->setEnabled(true);
+
+    // 重置注册状态
+    pendingRegistration = PendingRegistration();
+
+    // 恢复输入框默认样式
+    usernameEdit->setStyleSheet("");
+
+    // 接受关闭事件
+    event->accept();
 }

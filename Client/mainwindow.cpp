@@ -1,7 +1,8 @@
 #include "mainwindow.h"
 #include "ui_mainwindow.h"
 #include "../Common/protocol.h"
-#include "calendardialog.h"  // 添加头文件
+#include "calendardialog.h"
+#include "flightdetaildialog.h"  // 新增头文件
 #include <QListWidgetItem>
 #include <QLabel>
 #include <QPushButton>
@@ -10,11 +11,11 @@
 #include <QMessageBox>
 #include <QDebug>
 #include <QDate>
-#include <QTimer>           // 添加QTimer头文件
-#include <QJsonArray>       // 添加QJsonArray头文件
-#include <QJsonDocument>    // 添加QJsonDocument头文件
-#include <QButtonGroup>     // 添加QButtonGroup头文件
-#include <QInputDialog>     // 添加QInputDialog头文件
+#include <QTimer>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QButtonGroup>
+#include <QInputDialog>
 
 // 自定义航班列表项Widget
 class FlightItemWidget : public QWidget
@@ -25,7 +26,7 @@ public:
     FlightItemWidget(const Flight &flight, QWidget *parent = nullptr)
         : QWidget(parent), flight(flight)
     {
-        setupUI();  // 直接调用，不需要类名限定
+        setupUI();
     }
 
     Flight getFlight() const { return flight; }
@@ -40,13 +41,12 @@ private slots:
     }
 
 private:
-    void setupUI();  // 声明，不要在这里实现
+    void setupUI();
 
 private:
     Flight flight;
 };
 
-// 在类外部实现 setupUI 方法
 void FlightItemWidget::setupUI()
 {
     QHBoxLayout *layout = new QHBoxLayout(this);
@@ -116,7 +116,7 @@ void FlightItemWidget::setupUI()
     QVBoxLayout *priceLayout = new QVBoxLayout();
     priceLayout->setAlignment(Qt::AlignRight | Qt::AlignTop);
 
-    QLabel *priceLabel = new QLabel(QString("¥%1").arg(flight.getPrice()));
+    QLabel *priceLabel = new QLabel(QString("¥%1").arg(flight.getPrice(), 0, 'f', 2));
     priceLabel->setStyleSheet("font-size: 24px; font-weight: bold; color: #ff5722;");
 
     QLabel *seatsLabel = new QLabel(QString("剩余%1张").arg(flight.getAvailableSeats()));
@@ -212,7 +212,7 @@ void MainWindow::setupDateSelection()
 
     // 设置初始日期为今天
     selectedDate = QDate::currentDate();
-    currentStartDate = QDate::currentDate();  // 起始日期为今天
+    currentStartDate = QDate::currentDate();
 
     // 初始显示从今天开始的7天
     updateDateButtons();
@@ -226,7 +226,7 @@ void MainWindow::updateDateButtons()
     QDate currentDate = QDate::currentDate();
 
     for (int i = 0; i < dateButtons.size(); ++i) {
-        QDate buttonDate = currentStartDate.addDays(i);  // 从当前起始日期开始
+        QDate buttonDate = currentStartDate.addDays(i);
         QPushButton *button = dateButtons[i];
 
         // 设置日期文本
@@ -238,7 +238,6 @@ void MainWindow::updateDateButtons()
         } else if (buttonDate == currentDate.addDays(2)) {
             dayName = "后天";
         } else {
-            // 根据星期几显示中文
             QStringList weekDays = {"周日", "周一", "周二", "周三", "周四", "周五", "周六"};
             dayName = weekDays[buttonDate.dayOfWeek() - 1];
         }
@@ -336,14 +335,14 @@ void MainWindow::setupConnections()
     connect(ui->swapButton, &QPushButton::clicked, this, &MainWindow::onSwapButtonClicked);
     connect(ui->airlineComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onAirlineFilterChanged);
 
-    // 新增日期选择连接
+    // 日期选择连接
     connect(ui->prevWeekButton, &QPushButton::clicked, this, &MainWindow::onPrevWeekClicked);
     connect(ui->nextWeekButton, &QPushButton::clicked, this, &MainWindow::onNextWeekClicked);
     connect(ui->calendarButton, &QPushButton::clicked, this, &MainWindow::onCalendarButtonClicked);
     connect(dateButtonGroup, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),
             this, [this](QAbstractButton *button) {
                 int buttonId = dateButtonGroup->id(button);
-                QDate selected = currentStartDate.addDays(buttonId);  // 从当前起始日期开始计算
+                QDate selected = currentStartDate.addDays(buttonId);
 
                 // 确保不选择过去日期
                 if (selected < QDate::currentDate()) {
@@ -367,7 +366,7 @@ void MainWindow::onSearchButtonClicked()
 
 void MainWindow::onSortChanged(int index)
 {
-    Q_UNUSED(index)  // 标记参数为未使用
+    Q_UNUSED(index)
     searchFlightsByDate(selectedDate);
 }
 
@@ -379,44 +378,36 @@ void MainWindow::onAirlineFilterChanged(int index)
 
 void MainWindow::onPrevWeekClicked()
 {
-    // 向左巡航：回到上一周
-    QDate newStartDate = currentStartDate.addDays(-7);  // 前移7天
+    QDate newStartDate = currentStartDate.addDays(-7);
 
-    // 如果新起始日期在今天之前，就显示从今天开始
     if (newStartDate < QDate::currentDate()) {
         newStartDate = QDate::currentDate();
-        ui->prevWeekButton->setEnabled(false);  // 禁用向左按钮
+        ui->prevWeekButton->setEnabled(false);
     } else {
-        ui->prevWeekButton->setEnabled(true);   // 启用向左按钮
+        ui->prevWeekButton->setEnabled(true);
     }
 
     currentStartDate = newStartDate;
     updateDateButtons();
 
-    // 自动选择新一周的第一天
     selectedDate = currentStartDate;
     updateDateButtons();
 
-    // 搜索航班
     searchFlightsByDate(selectedDate);
 }
 
 void MainWindow::onNextWeekClicked()
 {
-    // 向右巡航：显示下一周
-    QDate newStartDate = currentStartDate.addDays(7);  // 后移7天
+    QDate newStartDate = currentStartDate.addDays(7);
 
     currentStartDate = newStartDate;
     updateDateButtons();
 
-    // 启用向左按钮（因为现在不是显示今天了）
     ui->prevWeekButton->setEnabled(true);
 
-    // 自动选择新一周的第一天
     selectedDate = currentStartDate;
     updateDateButtons();
 
-    // 搜索航班
     searchFlightsByDate(selectedDate);
 }
 
@@ -429,11 +420,8 @@ void MainWindow::showCalendarDialog()
 {
     CalendarDialog dialog(this);
 
-    // 修复：设置日期范围为今天到2个月后（包含本月共3个月）
     QDate minDate = QDate::currentDate();
-    QDate maxDate = QDate::currentDate().addMonths(2);  // 2个月后
-
-    // 确保最后一个月完整显示：设置为2个月后的最后一天
+    QDate maxDate = QDate::currentDate().addMonths(2);
     maxDate = QDate(maxDate.year(), maxDate.month(), maxDate.daysInMonth());
 
     dialog.setDateRange(minDate, maxDate);
@@ -444,21 +432,16 @@ void MainWindow::showCalendarDialog()
         if (selected.isValid() && selected >= QDate::currentDate()) {
             selectedDate = selected;
 
-            // 计算新的起始日期：找到包含选中日期的那一周的第一天
             int daysFromToday = QDate::currentDate().daysTo(selected);
-            int weekOffset = daysFromToday / 7 * 7;  // 计算整周数
+            int weekOffset = daysFromToday / 7 * 7;
             currentStartDate = QDate::currentDate().addDays(weekOffset);
 
             updateDateButtons();
-
-            // 更新向左按钮状态
             ui->prevWeekButton->setEnabled(currentStartDate > QDate::currentDate());
-
             searchFlightsByDate(selected);
         }
     }
 }
-
 
 void MainWindow::searchFlightsByDate(const QDate &date)
 {
@@ -469,7 +452,7 @@ void MainWindow::searchFlightsByDate(const QDate &date)
 
     if (ui->departureEdit->text().trimmed().isEmpty() ||
         ui->arrivalEdit->text().trimmed().isEmpty()) {
-        return; // 如果没有输入出发地或目的地，不搜索
+        return;
     }
 
     NetworkMessage msg;
@@ -478,7 +461,6 @@ void MainWindow::searchFlightsByDate(const QDate &date)
     msg.data["arrival_city"] = ui->arrivalEdit->text().trimmed();
     msg.data["date"] = date.toString("yyyy-MM-dd");
 
-    // 设置排序
     int sortIndex = ui->sortComboBox->currentIndex();
     switch (sortIndex) {
     case 0: msg.data["sort_by"] = "departure_time"; msg.data["sort_asc"] = true; break;
@@ -487,7 +469,6 @@ void MainWindow::searchFlightsByDate(const QDate &date)
     case 3: msg.data["sort_by"] = "duration"; msg.data["sort_asc"] = true; break;
     }
 
-    // 设置航空公司筛选
     int airlineIndex = ui->airlineComboBox->currentIndex();
     QString selectedAirline = "";
     switch (airlineIndex) {
@@ -496,7 +477,7 @@ void MainWindow::searchFlightsByDate(const QDate &date)
     case 3: selectedAirline = "南方航空"; break;
     case 4: selectedAirline = "海南航空"; break;
     case 5: selectedAirline = "厦门航空"; break;
-    default: selectedAirline = ""; // 所有航空公司
+    default: selectedAirline = "";
     }
     msg.data["airline"] = selectedAirline;
 
@@ -510,7 +491,6 @@ void MainWindow::searchFlightsByDate(const QDate &date)
     ui->flightListWidget->addItem("正在搜索" + date.toString("yyyy年MM月dd日") + "的航班...");
 }
 
-// 保留原有的searchFlights方法，但修改为调用新的方法
 void MainWindow::searchFlights()
 {
     searchFlightsByDate(selectedDate);
@@ -522,6 +502,15 @@ void MainWindow::onFlightItemDoubleClicked(QListWidgetItem *item)
     if (widget) {
         showFlightDetail(widget->getFlight());
     }
+}
+
+// 修改：显示航班详情对话框
+void MainWindow::showFlightDetail(const Flight &flight)
+{
+    FlightDetailDialog *dialog = new FlightDetailDialog(flight, networkManager,
+                                                        currentUsername, this);
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->exec();
 }
 
 void MainWindow::onLogoutButtonClicked()
@@ -558,7 +547,6 @@ void MainWindow::onMessageReceived(const NetworkMessage &message)
             currentFlights = flights;
             displayFlights(flights);
 
-            // 显示搜索日期信息
             if (!flights.isEmpty()) {
                 ui->flightListWidget->insertItem(0, "📅 搜索日期: " + selectedDate.toString("yyyy年MM月dd日"));
             }
@@ -596,37 +584,9 @@ void MainWindow::addFlightItem(const Flight &flight)
     ui->flightListWidget->setItemWidget(item, widget);
 }
 
-void MainWindow::showFlightDetail(const Flight &flight)
-{
-    // 显示航班详情对话框
-    QMessageBox::information(this,
-                             QString("航班 %1 详情").arg(flight.getFlightNumber()),
-                             QString("航班号: %1\n"
-                                     "航空公司: %2\n"
-                                     "航线: %3 → %4\n"
-                                     "时间: %5 - %6\n"
-                                     "时长: %7\n"
-                                     "机型: %8\n"
-                                     "价格: ¥%9\n"
-                                     "剩余座位: %10")
-                                 .arg(flight.getFlightNumber())
-                                 .arg(flight.getAirline())
-                                 .arg(flight.getDepartureCity())
-                                 .arg(flight.getArrivalCity())
-                                 .arg(flight.getDepartureTime().toString("MM月dd日 hh:mm"))
-                                 .arg(flight.getArrivalTime().toString("MM月dd日 hh:mm"))
-                                 .arg(flight.getDurationString())
-                                 .arg(flight.getAircraftType())
-                                 .arg(flight.getPrice())
-                                 .arg(flight.getAvailableSeats())
-                             );
-}
-
-// 添加头文件中声明的但未实现的槽函数
 void MainWindow::onDateButtonClicked()
 {
-    // 这个功能已经在lambda表达式中实现，这里可以留空
-    // 或者删除头文件中的声明
+    // 功能已经在lambda表达式中实现
 }
 
 #include "mainwindow.moc"

@@ -1,9 +1,15 @@
 #include <QCoreApplication>
 #include <QDebug>
-#include <QJsonArray>  // 添加这个头文件
+#include <QJsonArray>
+#include <QRandomGenerator>
+#include <QTime>
+#include <cstdlib>
+#include <ctime>
 #include "servernetworkmanager.h"
 #include "databasemanager.h"
-#include "../Common/flight.h"  // 添加Flight头文件
+#include "../Common/flight.h"
+#include "../Common/cabin.h"
+#include "../Common/booking.h"
 
 class TestServer : public QObject
 {
@@ -11,6 +17,10 @@ class TestServer : public QObject
 
 public:
     TestServer() {
+        // 初始化随机数种子
+        srand(QTime::currentTime().msec());
+        srand(static_cast<unsigned int>(time(nullptr)));
+
         // 初始化数据库连接
         if (!DatabaseManager::getInstance().initializeDatabase()) {
             qDebug() << "数据库连接失败!";
@@ -66,11 +76,9 @@ private slots:
             if (db.validateUser(username, password)) {
                 int userId = db.getUserId(username);
 
-                // 更新最后登录时间
                 bool updateSuccess = db.updateLastLogin(username);
                 qDebug() << "更新最后登录时间结果:" << (updateSuccess ? "成功" : "失败");
 
-                // 获取更新后的最后登录时间
                 QSqlQuery timeQuery;
                 timeQuery.prepare("SELECT last_login FROM users WHERE username = ?");
                 timeQuery.addBindValue(username);
@@ -145,9 +153,6 @@ private slots:
             qDebug() << "日期:" << date;
             qDebug() << "排序:" << sortBy << (sortAsc ? "升序" : "降序");
 
-            // 打印所有接收到的数据
-            qDebug() << "所有接收到的数据:" << message.data;
-
             QSqlQuery query;
             QString sql = "SELECT * FROM flights WHERE 1=1";
 
@@ -163,12 +168,9 @@ private slots:
 
             if (!airline.isEmpty()) {
                 sql += " AND airline = ?";
-                qDebug() << "✅ 添加航空公司筛选条件:" << airline;
-            } else {
-                qDebug() << "❌ 没有航空公司筛选条件";
+                qDebug() << "航空公司筛选条件:" << airline;
             }
 
-            // 排序
             if (sortBy == "price") {
                 sql += " ORDER BY price " + QString(sortAsc ? "ASC" : "DESC");
             } else if (sortBy == "duration") {
@@ -184,15 +186,12 @@ private slots:
             int paramIndex = 0;
             if (!departureCity.isEmpty()) {
                 query.bindValue(paramIndex++, departureCity);
-                qDebug() << "参数" << paramIndex << ":" << departureCity;
             }
             if (!arrivalCity.isEmpty()) {
                 query.bindValue(paramIndex++, arrivalCity);
-                qDebug() << "参数" << paramIndex << ":" << arrivalCity;
             }
             if (!date.isEmpty()) {
                 query.bindValue(paramIndex++, date);
-                qDebug() << "参数" << paramIndex << ":" << date;
             }
 
             if (!airline.isEmpty()) {
@@ -229,15 +228,6 @@ private slots:
                 reply.data["success"] = true;
                 reply.data["flights"] = flightsArray;
                 qDebug() << "返回航班数据:" << flightsArray.size() << "条";
-
-                if (count == 0) {
-                    qDebug() << "警告: 查询返回0条记录";
-                    // 测试数据库连接和表数据
-                    QSqlQuery testQuery("SELECT COUNT(*) as total FROM flights");
-                    if (testQuery.exec() && testQuery.next()) {
-                        qDebug() << "数据库中共有航班记录:" << testQuery.value("total").toInt() << "条";
-                    }
-                }
             } else {
                 qDebug() << "SQL执行失败:" << query.lastError().text();
                 reply.data["success"] = false;
@@ -246,6 +236,161 @@ private slots:
 
             networkManager.sendMessage(reply, client);
             qDebug() << "=== 搜索处理完成 ===";
+            break;
+        }
+        case CABIN_SEARCH_REQUEST: {
+            int flightId = message.data["flight_id"].toInt();
+
+            qDebug() << "=== 舱位查询请求 ===";
+            qDebug() << "航班ID:" << flightId;
+
+            QSqlQuery query;
+            query.prepare("SELECT * FROM cabins WHERE flight_id = ? ORDER BY price ASC");
+            query.bindValue(0, flightId);
+
+            NetworkMessage reply;
+            reply.type = CABIN_SEARCH_RESPONSE;
+
+            if (query.exec()) {
+                QJsonArray cabinsArray;
+                int count = 0;
+                while (query.next()) {
+                    count++;
+                    Cabin cabin(
+                        query.value("id").toInt(),
+                        query.value("flight_id").toInt(),
+                        query.value("cabin_type").toString(),
+                        query.value("price").toDouble(),
+                        query.value("available_seats").toInt(),
+                        query.value("total_seats").toInt(),
+                        query.value("baggage_allowance").toString(),
+                        query.value("amenities").toString()
+                        );
+                    cabinsArray.append(cabin.toJson());
+                    qDebug() << "找到舱位:" << cabin.getCabinType() << "价格:" << cabin.getPrice();
+                }
+                reply.data["success"] = true;
+                reply.data["cabins"] = cabinsArray;
+                qDebug() << "返回舱位数据:" << cabinsArray.size() << "条";
+            } else {
+                qDebug() << "舱位查询失败:" << query.lastError().text();
+                reply.data["success"] = false;
+                reply.data["message"] = "查询舱位信息失败: " + query.lastError().text();
+            }
+
+            networkManager.sendMessage(reply, client);
+            break;
+        }
+        case BOOKING_REQUEST: {
+            int flightId = message.data["flight_id"].toInt();
+            int cabinId = message.data["cabin_id"].toInt();
+            QString passengerName = message.data["passenger_name"].toString();
+            QString passengerId = message.data["passenger_id"].toString();
+            QString passengerPhone = message.data["passenger_phone"].toString();
+            double totalPrice = message.data["total_price"].toDouble();
+
+            int userId = message.data["user_id"].toInt();
+            if (userId <= 0) {
+                userId = 1;
+            }
+
+            qDebug() << "=== 预订请求 ===";
+            qDebug() << "航班ID:" << flightId;
+            qDebug() << "舱位ID:" << cabinId;
+            qDebug() << "乘客:" << passengerName;
+            qDebug() << "用户ID:" << userId;
+
+            NetworkMessage reply;
+            reply.type = BOOKING_RESPONSE;
+
+            // 开始事务
+            QSqlDatabase::database().transaction();
+
+            try {
+                // 1. 检查舱位可用性
+                QSqlQuery checkQuery;
+                checkQuery.prepare("SELECT available_seats FROM cabins WHERE id = ?");
+                checkQuery.bindValue(0, cabinId);
+
+                if (!checkQuery.exec() || !checkQuery.next()) {
+                    throw std::runtime_error("舱位不存在");
+                }
+
+                int availableSeats = checkQuery.value(0).toInt();
+                if (availableSeats <= 0) {
+                    throw std::runtime_error("该舱位已无可用座位");
+                }
+
+                // 2. 生成订单号 - 使用QRandomGenerator
+                QString dateStr = QDateTime::currentDateTime().toString("yyyyMMdd");
+                int randomNum = QRandomGenerator::global()->bounded(10000);
+                QString bookingNumber = "BK" + dateStr + QString("%1").arg(randomNum, 4, 10, QChar('0'));
+
+                // 3. 创建预订
+                QSqlQuery insertQuery;
+                insertQuery.prepare(
+                    "INSERT INTO bookings (booking_number, user_id, flight_id, cabin_id, "
+                    "passenger_name, passenger_id, passenger_phone, total_price, "
+                    "departure_city, arrival_city, departure_time, arrival_time, "
+                    "flight_number, airline, travel_date) "
+                    "SELECT ?, ?, f.id, ?, ?, ?, ?, ?, "
+                    "f.departure_city, f.arrival_city, f.departure_time, f.arrival_time, "
+                    "f.flight_number, f.airline, DATE(f.departure_time) "
+                    "FROM flights f WHERE f.id = ?"
+                    );
+
+                insertQuery.bindValue(0, bookingNumber);
+                insertQuery.bindValue(1, userId);
+                insertQuery.bindValue(2, cabinId);
+                insertQuery.bindValue(3, passengerName);
+                insertQuery.bindValue(4, passengerId);
+                insertQuery.bindValue(5, passengerPhone);
+                insertQuery.bindValue(6, totalPrice);
+                insertQuery.bindValue(7, flightId);
+
+                if (!insertQuery.exec()) {
+                    throw std::runtime_error("创建订单失败: " + insertQuery.lastError().text().toStdString());
+                }
+
+                int bookingId = insertQuery.lastInsertId().toInt();
+
+                // 4. 更新舱位可用座位数
+                QSqlQuery updateCabinQuery;
+                updateCabinQuery.prepare("UPDATE cabins SET available_seats = available_seats - 1 WHERE id = ?");
+                updateCabinQuery.bindValue(0, cabinId);
+
+                if (!updateCabinQuery.exec()) {
+                    throw std::runtime_error("更新舱位座位数失败");
+                }
+
+                // 5. 更新航班可用座位数
+                QSqlQuery updateFlightQuery;
+                updateFlightQuery.prepare("UPDATE flights SET available_seats = available_seats - 1 WHERE id = ?");
+                updateFlightQuery.bindValue(0, flightId);
+
+                if (!updateFlightQuery.exec()) {
+                    throw std::runtime_error("更新航班座位数失败");
+                }
+
+                // 提交事务
+                QSqlDatabase::database().commit();
+
+                reply.data["success"] = true;
+                reply.data["message"] = "预订成功";
+                reply.data["booking_number"] = bookingNumber;
+                reply.data["booking_id"] = bookingId;
+                qDebug() << "预订成功，订单号:" << bookingNumber << "订单ID:" << bookingId;
+
+            } catch (const std::exception &e) {
+                // 回滚事务
+                QSqlDatabase::database().rollback();
+
+                reply.data["success"] = false;
+                reply.data["message"] = QString("预订失败: %1").arg(e.what());
+                qDebug() << "预订失败:" << e.what();
+            }
+
+            networkManager.sendMessage(reply, client);
             break;
         }
         default:

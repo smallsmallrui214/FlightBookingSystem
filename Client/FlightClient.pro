@@ -11,7 +11,11 @@ SOURCES += \
     registerdialog.cpp \
     mainwindow.cpp \
     SplashScreen.cpp \
-    ../Common/flight.cpp
+    flightdetaildialog.cpp \
+    bookingdialog.cpp \
+    ../Common/flight.cpp \
+    ../Common/cabin.cpp \
+    ../Common/booking.cpp
 
 HEADERS += \
     calendardialog.h \
@@ -20,9 +24,15 @@ HEADERS += \
     registerdialog.h \
     mainwindow.h \
     SplashScreen.h \
+    flightdetaildialog.h \
+    bookingdialog.h \
     ../Common/protocol.h \
-    ../Common/flight.h
+    ../Common/flight.h \
+    ../Common/cabin.h \
+    ../Common/booking.h
 
 FORMS += \
     testclient.ui \
-    mainwindow.ui
+    mainwindow.ui \
+    flightdetaildialog.ui \
+    bookingdialog.ui

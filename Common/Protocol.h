@@ -14,14 +14,18 @@ enum MessageType {
     REGISTER_RESPONSE = 103,   // 注册响应
 
     // 用户验证
-    CHECK_USERNAME_REQUEST = 0x1005,  // 新增：检查用户名是否存在
-    CHECK_USERNAME_RESPONSE = 0x1006, // 新增：检查用户名响应
+    CHECK_USERNAME_REQUEST = 0x1005,  // 检查用户名是否存在
+    CHECK_USERNAME_RESPONSE = 0x1006, // 检查用户名响应
 
     // 航班查询相关
     FLIGHT_SEARCH_REQUEST = 200,
     FLIGHT_SEARCH_RESPONSE = 201,
     FLIGHT_DETAIL_REQUEST = 202,
     FLIGHT_DETAIL_RESPONSE = 203,
+
+    // 舱位查询相关
+    CABIN_SEARCH_REQUEST = 204,
+    CABIN_SEARCH_RESPONSE = 205,
 
     // 订单相关
     BOOKING_REQUEST = 300,

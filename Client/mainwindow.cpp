@@ -242,7 +242,7 @@ void MainWindow::updateDateButtons()
             dayName = weekDays[buttonDate.dayOfWeek() - 1];
         }
 
-        QString buttonText = QString("%1\n%2").arg(dayName).arg(buttonDate.toString("MM/dd"));
+        QString buttonText = QString("%1\n%2").arg(dayName, buttonDate.toString("MM/dd"));
         button->setText(buttonText);
 
         // 设置选中状态
@@ -329,7 +329,6 @@ MainWindow::~MainWindow()
 void MainWindow::setupConnections()
 {
     connect(ui->searchButton, &QPushButton::clicked, this, &MainWindow::onSearchButtonClicked);
-    connect(ui->sortComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onSortChanged);
     connect(ui->flightListWidget, &QListWidget::itemDoubleClicked, this, &MainWindow::onFlightItemDoubleClicked);
     connect(ui->logoutButton, &QPushButton::clicked, this, &MainWindow::onLogoutButtonClicked);
     connect(ui->swapButton, &QPushButton::clicked, this, &MainWindow::onSwapButtonClicked);
@@ -361,12 +360,6 @@ void MainWindow::setupConnections()
 
 void MainWindow::onSearchButtonClicked()
 {
-    searchFlightsByDate(selectedDate);
-}
-
-void MainWindow::onSortChanged(int index)
-{
-    Q_UNUSED(index)
     searchFlightsByDate(selectedDate);
 }
 
@@ -461,13 +454,9 @@ void MainWindow::searchFlightsByDate(const QDate &date)
     msg.data["arrival_city"] = ui->arrivalEdit->text().trimmed();
     msg.data["date"] = date.toString("yyyy-MM-dd");
 
-    int sortIndex = ui->sortComboBox->currentIndex();
-    switch (sortIndex) {
-    case 0: msg.data["sort_by"] = "departure_time"; msg.data["sort_asc"] = true; break;
-    case 1: msg.data["sort_by"] = "price"; msg.data["sort_asc"] = true; break;
-    case 2: msg.data["sort_by"] = "price"; msg.data["sort_asc"] = false; break;
-    case 3: msg.data["sort_by"] = "duration"; msg.data["sort_asc"] = true; break;
-    }
+    // 固定按照出发时间升序排序
+    msg.data["sort_by"] = "departure_time";
+    msg.data["sort_asc"] = true;
 
     int airlineIndex = ui->airlineComboBox->currentIndex();
     QString selectedAirline = "";
@@ -590,3 +579,4 @@ void MainWindow::onDateButtonClicked()
 }
 
 #include "mainwindow.moc"
+

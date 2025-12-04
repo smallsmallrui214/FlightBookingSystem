@@ -1,5 +1,6 @@
 QT += core network widgets gui
 CONFIG += c++17
+CONFIG += c++11
 
 INCLUDEPATH += ../Common
 

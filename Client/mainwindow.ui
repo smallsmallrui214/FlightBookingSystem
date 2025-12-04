@@ -570,58 +570,6 @@ QPushButton:pressed {
        <item>
         <layout class="QHBoxLayout" name="filterLayout">
          <item>
-          <widget class="QLabel" name="sortLabel">
-           <property name="styleSheet">
-            <string notr="true">QLabel {
-    color: #666;
-    font-size: 13px;
-    padding: 8px 5px;
-}</string>
-           </property>
-           <property name="text">
-            <string>排序:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="sortComboBox">
-           <property name="styleSheet">
-            <string notr="true">QComboBox {
-    background: white;
-    border: 1px solid #e0e0e0;
-    border-radius: 6px;
-    padding: 8px 12px;
-    font-size: 13px;
-    min-width: 120px;
-}
-
-QComboBox:focus {
-    border-color: #1e88e5;
-}</string>
-           </property>
-           <item>
-            <property name="text">
-             <string>出发时间</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>价格升序</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>价格降序</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>飞行时长</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item>
           <widget class="QLabel" name="airlineLabel">
            <property name="styleSheet">
             <string notr="true">QLabel {

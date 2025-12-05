@@ -103,6 +103,8 @@ void FlightDetailDialog::loadCabinData()
 
 void FlightDetailDialog::displayCabinData(const QList<Cabin> &cabins)
 {
+
+
     currentCabins = cabins;
     ui->cabinTable->setRowCount(cabins.size());
 
@@ -191,7 +193,7 @@ void FlightDetailDialog::showBookingDialog(const Cabin &cabin)
 
 void FlightDetailDialog::onCloseButtonClicked()
 {
-    accept();
+    this->accept();  // 关闭对话框
 }
 
 void FlightDetailDialog::onMessageReceived(const NetworkMessage &message)

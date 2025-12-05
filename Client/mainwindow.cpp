@@ -470,10 +470,6 @@ void MainWindow::searchFlightsByDate(const QDate &date)
     }
     msg.data["airline"] = selectedAirline;
 
-    qDebug() << "发送搜索请求 - 日期:" << date.toString("yyyy-MM-dd")
-             << "出发:" << ui->departureEdit->text()
-             << "到达:" << ui->arrivalEdit->text()
-             << "航空公司:" << (selectedAirline.isEmpty() ? "所有" : selectedAirline);
 
     networkManager->sendMessage(msg);
     ui->flightListWidget->clear();

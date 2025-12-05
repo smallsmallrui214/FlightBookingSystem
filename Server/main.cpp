@@ -147,12 +147,6 @@ private slots:
 
             QString airline = message.data["airline"].toString();
 
-            qDebug() << "=== 航班搜索请求 ===";
-            qDebug() << "出发城市:" << departureCity;
-            qDebug() << "到达城市:" << arrivalCity;
-            qDebug() << "日期:" << date;
-            qDebug() << "排序:" << sortBy << (sortAsc ? "升序" : "降序");
-
             QSqlQuery query;
             QString sql = "SELECT * FROM flights WHERE 1=1";
 
@@ -179,8 +173,6 @@ private slots:
                 sql += " ORDER BY departure_time " + QString(sortAsc ? "ASC" : "DESC");
             }
 
-            qDebug() << "执行的SQL:" << sql;
-
             query.prepare(sql);
 
             int paramIndex = 0;
@@ -202,7 +194,6 @@ private slots:
             reply.type = FLIGHT_SEARCH_RESPONSE;
 
             if (query.exec()) {
-                qDebug() << "SQL执行成功";
                 QJsonArray flightsArray;
                 int count = 0;
                 while (query.next()) {
@@ -223,11 +214,9 @@ private slots:
                         query.value("status").toString()
                         );
                     flightsArray.append(flight.toJson());
-                    qDebug() << "找到航班:" << flight.getFlightNumber() << flight.getDepartureCity() << "->" << flight.getArrivalCity();
                 }
                 reply.data["success"] = true;
                 reply.data["flights"] = flightsArray;
-                qDebug() << "返回航班数据:" << flightsArray.size() << "条";
             } else {
                 qDebug() << "SQL执行失败:" << query.lastError().text();
                 reply.data["success"] = false;
@@ -235,47 +224,67 @@ private slots:
             }
 
             networkManager.sendMessage(reply, client);
-            qDebug() << "=== 搜索处理完成 ===";
             break;
         }
         case CABIN_SEARCH_REQUEST: {
             int flightId = message.data["flight_id"].toInt();
 
-            qDebug() << "=== 舱位查询请求 ===";
-            qDebug() << "航班ID:" << flightId;
-
+            // 使用CONVERT或CAST将整数字段转换为字符串，避免ODBC问题
             QSqlQuery query;
-            query.prepare("SELECT * FROM cabins WHERE flight_id = ? ORDER BY price ASC");
+            query.prepare(
+                "SELECT "
+                "CONVERT(id, CHAR) as id_str, "
+                "CONVERT(flight_id, CHAR) as flight_id_str, "
+                "cabin_type, "
+                "price, "
+                "CONVERT(available_seats, CHAR) as available_seats_str, "
+                "CONVERT(total_seats, CHAR) as total_seats_str, "
+                "baggage_allowance, "
+                "amenities "
+                "FROM cabins WHERE flight_id = ?"
+                );
             query.bindValue(0, flightId);
 
             NetworkMessage reply;
             reply.type = CABIN_SEARCH_RESPONSE;
 
             if (query.exec()) {
+
                 QJsonArray cabinsArray;
-                int count = 0;
+
                 while (query.next()) {
-                    count++;
-                    Cabin cabin(
-                        query.value("id").toInt(),
-                        query.value("flight_id").toInt(),
-                        query.value("cabin_type").toString(),
-                        query.value("price").toDouble(),
-                        query.value("available_seats").toInt(),
-                        query.value("total_seats").toInt(),
-                        query.value("baggage_allowance").toString(),
-                        query.value("amenities").toString()
-                        );
+                    // 以字符串形式获取，然后转换
+                    QString idStr = query.value("id_str").toString();
+                    QString flightIdStr = query.value("flight_id_str").toString();
+                    QString cabinType = query.value("cabin_type").toString();
+                    double price = query.value("price").toDouble();
+                    QString availSeatsStr = query.value("available_seats_str").toString();
+                    QString totalSeatsStr = query.value("total_seats_str").toString();
+                    QString baggageAllowance = query.value("baggage_allowance").toString();
+                    QString amenities = query.value("amenities").toString();
+
+                    // 转换为整数
+                    int id = idStr.toInt();
+                    int dbFlightId = flightIdStr.toInt();
+                    int availableSeats = availSeatsStr.toInt();
+                    int totalSeats = totalSeatsStr.toInt();
+
+
+                    // 创建Cabin对象
+                    Cabin cabin(id, dbFlightId, cabinType, price, availableSeats, totalSeats,
+                                baggageAllowance, amenities);
+
                     cabinsArray.append(cabin.toJson());
-                    qDebug() << "找到舱位:" << cabin.getCabinType() << "价格:" << cabin.getPrice();
                 }
+
+
                 reply.data["success"] = true;
                 reply.data["cabins"] = cabinsArray;
-                qDebug() << "返回舱位数据:" << cabinsArray.size() << "条";
+
             } else {
-                qDebug() << "舱位查询失败:" << query.lastError().text();
+                qDebug() << "查询失败:" << query.lastError().text();
                 reply.data["success"] = false;
-                reply.data["message"] = "查询舱位信息失败: " + query.lastError().text();
+                reply.data["message"] = "查询失败: " + query.lastError().text();
             }
 
             networkManager.sendMessage(reply, client);

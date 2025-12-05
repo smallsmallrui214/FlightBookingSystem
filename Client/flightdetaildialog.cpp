@@ -98,6 +98,32 @@ void FlightDetailDialog::setupUI()
                            .arg(flight.getAvailableSeats());
 
     ui->flightInfoText->setText(infoText);
+
+    // 1. 缩小航班信息区域（通过减小字体和内边距）
+    ui->flightInfoText->setStyleSheet(
+        "font-size: 10px;"          // 减小字体大小
+        "padding: 5px;"             // 减小内边距
+        "line-height: 1.2;"         // 减小行高
+        );
+
+    // 2. 给购票表格预留更多空间
+    ui->cabinTable->setMinimumHeight(350);  // 设置表格最小高度
+
+    // 3. 调整窗口大小，让表格有更多显示空间
+    this->resize(700, 550);  // 增加窗口高度
+
+    // 4. 如果有垂直布局，调整拉伸比例
+    // 尝试找到布局并调整比例
+    QLayout *layout = this->layout();
+    if (layout && layout->inherits("QVBoxLayout")) {
+        QVBoxLayout *vLayout = qobject_cast<QVBoxLayout*>(layout);
+        // 简单方法：找到包含航班信息的widget和表格，设置拉伸比例
+        // 假设航班信息在索引0，表格在索引1
+        if (vLayout->count() >= 2) {
+            vLayout->setStretch(0, 1);  // 航班信息占1份
+            vLayout->setStretch(1, 3);  // 表格占3份（更多空间）
+        }
+    }
 }
 
 void FlightDetailDialog::loadCabinData()

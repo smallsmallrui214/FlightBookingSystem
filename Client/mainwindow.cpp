@@ -615,9 +615,83 @@ void MainWindow::displayFlights(const QList<Flight> &flights)
     ui->flightListWidget->clear();
 
     if (flights.isEmpty()) {
-        ui->flightListWidget->addItem("未找到符合条件的航班");
+        // 获取搜索条件
+        QString departure = ui->departureEdit->text().trimmed();
+        QString arrival = ui->arrivalEdit->text().trimmed();
+
+        // 获取航空公司
+        QString airline = "";
+        int airlineIndex = ui->airlineComboBox->currentIndex();
+        switch (airlineIndex) {
+        case 1: airline = "中国国航"; break;
+        case 2: airline = "东方航空"; break;
+        case 3: airline = "南方航空"; break;
+        case 4: airline = "海南航空"; break;
+        case 5: airline = "厦门航空"; break;
+        default: airline = "所有航空公司"; break;
+        }
+
+        QString dateStr = selectedDate.toString("yyyy年MM月dd日");
+
+        // 使用 HTML 富文本格式化，带有颜色标注
+        QString message = QString(
+                              "<div style='text-align: center; padding: 20px; font-family: Microsoft YaHei;'>"
+                              "<p style='font-size: 16px; color: #333; margin-bottom: 10px;'>您搜索的 "
+                              "<span style='color: #1e88e5; font-weight: bold; font-size: 18px;'>%1</span> "
+                              "到 "
+                              "<span style='color: #1e88e5; font-weight: bold; font-size: 18px;'>%2</span> "
+                              "的 "
+                              "<span style='color: #ff9800; font-weight: bold; font-size: 18px;'>%3</span> "
+                              "航班，</p>"
+                              "<p style='font-size: 16px; color: #333; margin-bottom: 10px;'>"
+                              "在 <span style='color: #f44336; font-weight: bold; font-size: 18px;'>%4</span> "
+                              "无直飞航班，</p>"
+                              "<p style='font-size: 14px; color: #666; margin-top: 15px;'>"
+                              "💡 可以尝试更换其他日期查看。</p>"
+                              "</div>")
+                              .arg(departure, arrival, airline, dateStr);
+
+        // 创建自定义小部件来显示 HTML
+        QWidget *widget = new QWidget();
+        // 设置widget为不可交互
+        widget->setAttribute(Qt::WA_TransparentForMouseEvents);  // 鼠标事件穿透
+        widget->setEnabled(false);  // 禁用widget
+
+        QVBoxLayout *layout = new QVBoxLayout(widget);
+        layout->setContentsMargins(10, 20, 10, 20);  // 增加内边距
+
+        QLabel *label = new QLabel();
+        label->setText(message);
+        label->setAlignment(Qt::AlignCenter);
+        label->setWordWrap(true);
+        // 修改样式表：去掉虚线边框，设置透明背景
+        label->setStyleSheet(
+            "QLabel {"
+            "    background: transparent;"  // 透明背景
+            "    border: none;"             // 去掉边框
+            "}"
+            );
+
+        layout->addWidget(label);
+
+        QListWidgetItem *item = new QListWidgetItem();
+        item->setSizeHint(QSize(ui->flightListWidget->width() - 20, 180));  // 增加高度
+        item->setFlags(item->flags() & ~Qt::ItemIsSelectable & ~Qt::ItemIsEnabled);  // 禁止选中和禁用
+        item->setBackground(QBrush(Qt::transparent));  // 透明背景
+
+        // 如果需要设置整个列表项的样式
+        item->setData(Qt::UserRole, "no_flights_item");  // 可以标记这个特殊项
+
+        ui->flightListWidget->addItem(item);
+        ui->flightListWidget->setItemWidget(item, widget);
+
+        // 确保列表本身不会对这个项有特殊效果
+        ui->flightListWidget->setSelectionMode(QAbstractItemView::NoSelection);
         return;
     }
+
+    // 如果有航班，恢复选择模式
+    ui->flightListWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 
     for (const Flight &flight : flights) {
         addFlightItem(flight);
@@ -640,6 +714,8 @@ void MainWindow::onDateButtonClicked()
 {
     // 功能已经在lambda表达式中实现
 }
+
+
 
 #include "mainwindow.moc"
 

@@ -49,6 +49,7 @@ private:
     void updateDateButtons();
     void searchFlightsByDate(const QDate &date);
     void showCalendarDialog();
+    QString getSearchConditions() const;
 
     Ui::MainWindow *ui;
     QString currentUsername;

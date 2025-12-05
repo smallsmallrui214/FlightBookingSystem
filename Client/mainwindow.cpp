@@ -65,8 +65,21 @@ void FlightItemWidget::setupUI()
     QLabel *airlineLabel = new QLabel(flight.getAirline());
     airlineLabel->setStyleSheet("font-size: 14px; color: #666; background: #f0f7ff; padding: 4px 8px; border-radius: 4px;");
 
-    QLabel *aircraftLabel = new QLabel(flight.getAircraftType());
-    aircraftLabel->setStyleSheet("font-size: 12px; color: #999;");
+    // 判断飞机型号并添加宽窄分类
+    QString aircraftType = flight.getAircraftType();
+    QString aircraftDisplay = aircraftType;
+
+    if (aircraftType == "A330" || aircraftType == "B787" || aircraftType == "B777") {
+        aircraftDisplay += "（宽）";  // 宽体机
+    } else if (aircraftType == "A320" || aircraftType == "A319" ||
+               aircraftType == "B737" || aircraftType == "ARJ21") {
+        aircraftDisplay += "（窄）";  // 窄体机
+    } else {
+        aircraftDisplay += "（中）";  // 中型机或其他
+    }
+
+    QLabel *aircraftLabel = new QLabel(aircraftDisplay);
+    aircraftLabel->setStyleSheet("font-size: 12px; color: #666; background: #f5f5f5; padding: 2px 6px; border-radius: 3px;");
 
     headerLayout->addWidget(flightNumberLabel);
     headerLayout->addWidget(airlineLabel);
@@ -115,53 +128,107 @@ void FlightItemWidget::setupUI()
     // 右侧：价格和预订按钮
     QVBoxLayout *priceLayout = new QVBoxLayout();
     priceLayout->setAlignment(Qt::AlignRight | Qt::AlignTop);
+    priceLayout->setSpacing(8);
 
-    QLabel *priceLabel = new QLabel(QString("¥%1").arg(flight.getPrice(), 0, 'f', 2));
-    priceLabel->setStyleSheet("font-size: 24px; font-weight: bold; color: #ff5722;");
-
-    QLabel *seatsLabel = new QLabel(QString("剩余%1张").arg(flight.getAvailableSeats()));
-    seatsLabel->setStyleSheet("font-size: 12px; color: #4caf50; padding: 2px 0px;");
-
-    QPushButton *bookButton = new QPushButton("立即预订");
-    bookButton->setStyleSheet(
-        "QPushButton {"
-        "    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #ff5722, stop:1 #e64a19);"
-        "    color: white;"
-        "    border: none;"
-        "    border-radius: 6px;"
-        "    padding: 10px 20px;"
-        "    font-size: 14px;"
-        "    font-weight: bold;"
-        "    min-width: 90px;"
-        "}"
-        "QPushButton:hover {"
-        "    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #e64a19, stop:1 #d84315);"
-        "}"
-        "QPushButton:pressed {"
-        "    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #d84315, stop:1 #c62828);"
-        "}"
+    // 价格 - 只保留整数，添加"起"字（主页面粗略显示）
+    double price = flight.getPrice();
+    QString priceText = QString("¥%1起").arg(static_cast<int>(price));  // 转换为整数，加"起"
+    QLabel *priceLabel = new QLabel(priceText);
+    priceLabel->setStyleSheet(
+        "font-size: 24px; "
+        "font-weight: bold; "
+        "color: #ff5722; "
+        "font-family: 'Microsoft YaHei';"
         );
+
+    // 添加价格说明小字
+    QLabel *priceNoteLabel = new QLabel("经济舱最低价");
+    priceNoteLabel->setStyleSheet("font-size: 11px; color: #999;");
+
+    // 剩余座位信息
+    int availableSeats = flight.getAvailableSeats();
+    QString seatsText;
+    QString seatsStyle;
+
+    if (availableSeats <= 0) {
+        seatsText = "已售罄";
+        seatsStyle = "font-size: 12px; color: #9e9e9e; padding: 2px 8px; background: #f5f5f5; border-radius: 3px;";
+    } else if (availableSeats < 5) {
+        seatsText = QString("仅剩%1张").arg(availableSeats);
+        seatsStyle = "font-size: 12px; color: #f44336; font-weight: bold; padding: 2px 8px; background: #ffebee; border-radius: 3px;";
+    } else if (availableSeats < 20) {
+        seatsText = QString("余%1张").arg(availableSeats);
+        seatsStyle = "font-size: 12px; color: #ff9800; padding: 2px 8px; background: #fff3e0; border-radius: 3px;";
+    } else {
+        seatsText = QString("余%1张").arg(availableSeats);
+        seatsStyle = "font-size: 12px; color: #4caf50; padding: 2px 8px; background: #e8f5e8; border-radius: 3px;";
+    }
+
+    QLabel *seatsLabel = new QLabel(seatsText);
+    seatsLabel->setStyleSheet(seatsStyle);
+
+    QPushButton *bookButton = new QPushButton(availableSeats > 0 ? "查看详情" : "已售罄");
+
+    if (availableSeats > 0) {
+        bookButton->setStyleSheet(
+            "QPushButton {"
+            "    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1e88e5, stop:1 #1565c0);"  // 蓝色渐变
+            "    color: white;"
+            "    border: none;"
+            "    border-radius: 6px;"
+            "    padding: 10px 24px;"
+            "    font-size: 14px;"
+            "    font-weight: bold;"
+            "    font-family: 'Microsoft YaHei';"
+            "    min-width: 100px;"
+            "}"
+            "QPushButton:hover {"
+            "    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1565c0, stop:1 #0d47a1);"
+            "}"
+            "QPushButton:pressed {"
+            "    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #0d47a1, stop:1 #002171);"
+            "}"
+            );
+        bookButton->setCursor(Qt::PointingHandCursor);
+    } else {
+        bookButton->setStyleSheet(
+            "QPushButton {"
+            "    background: #bdbdbd;"  // 灰色
+            "    color: white;"
+            "    border: none;"
+            "    border-radius: 6px;"
+            "    padding: 10px 24px;"
+            "    font-size: 14px;"
+            "    font-weight: bold;"
+            "    font-family: 'Microsoft YaHei';"
+            "    min-width: 100px;"
+            "}"
+            );
+        bookButton->setCursor(Qt::ForbiddenCursor);
+    }
 
     connect(bookButton, &QPushButton::clicked, this, &FlightItemWidget::onBookButtonClicked);
 
     priceLayout->addWidget(priceLabel);
+    priceLayout->addWidget(priceNoteLabel);
     priceLayout->addWidget(seatsLabel);
     priceLayout->addWidget(bookButton);
 
     layout->addLayout(infoLayout, 1);
     layout->addLayout(priceLayout);
 
-    // 使用简单的边框样式替代阴影
+    // 美化整体样式
     setStyleSheet(
         "FlightItemWidget {"
         "    background: white;"
         "    border: 1px solid #e0e0e0;"
-        "    border-radius: 8px;"
+        "    border-radius: 10px;"
         "    margin: 5px 15px;"
         "}"
         "FlightItemWidget:hover {"
         "    background: #f8fdff;"
         "    border-color: #bbdefb;"
+        "    box-shadow: 0 2px 8px rgba(30, 136, 229, 0.1);"
         "}"
         );
 }

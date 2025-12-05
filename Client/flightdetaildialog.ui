@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>800</width>
-    <height>600</height>
+    <height>707</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -16,7 +16,7 @@
   <property name="styleSheet">
    <string notr="true">QDialog {
     background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #f8f9fa, stop:1 #e9ecef);
-    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
+    font-family: &quot;Microsoft YaHei&quot;, &quot;PingFang SC&quot;, sans-serif;
 }</string>
   </property>
   <layout class="QVBoxLayout" name="verticalLayout">
@@ -96,7 +96,7 @@
         <item>
          <spacer name="horizontalSpacer">
           <property name="orientation">
-           <enum>Qt::Horizontal</enum>
+           <enum>Qt::Orientation::Horizontal</enum>
           </property>
           <property name="sizeHint" stdset="0">
            <size>
@@ -194,7 +194,7 @@
            <string>→</string>
           </property>
           <property name="alignment">
-           <set>Qt::AlignCenter</set>
+           <set>Qt::AlignmentFlag::AlignCenter</set>
           </property>
          </widget>
         </item>
@@ -323,7 +323,7 @@ QHeaderView::section {
           <bool>true</bool>
          </property>
          <property name="rowCount">
-          <number>0</number>
+          <number>1</number>
          </property>
          <property name="columnCount">
           <number>5</number>
@@ -397,7 +397,7 @@ QHeaderView::section {
       <item>
        <spacer name="horizontalSpacer_2">
         <property name="orientation">
-         <enum>Qt::Horizontal</enum>
+         <enum>Qt::Orientation::Horizontal</enum>
         </property>
         <property name="sizeHint" stdset="0">
          <size>

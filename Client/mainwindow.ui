@@ -21,8 +21,31 @@
   </property>
   <widget class="QWidget" name="centralwidget">
    <layout class="QVBoxLayout" name="verticalLayout">
+    <property name="spacing">
+     <number>0</number>
+    </property>
+    <property name="leftMargin">
+     <number>0</number>
+    </property>
+    <property name="topMargin">
+     <number>0</number>
+    </property>
+    <property name="rightMargin">
+     <number>0</number>
+    </property>
+    <property name="bottomMargin">
+     <number>0</number>
+    </property>
+
+    <!-- 1. 顶部标题栏 -->
     <item>
      <widget class="QFrame" name="headerFrame">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="minimumSize">
        <size>
         <width>0</width>
@@ -61,8 +84,16 @@
       </layout>
      </widget>
     </item>
+
+    <!-- 2. 中间内容区 -->
     <item>
      <widget class="QFrame" name="contentFrame">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+        <horstretch>0</horstretch>
+        <verstretch>1</verstretch>
+       </sizepolicy>
+      </property>
       <property name="styleSheet">
        <string notr="true">QFrame {
     background: transparent;
@@ -72,6 +103,12 @@
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
         <widget class="QStackedWidget" name="stackedWidget">
+         <property name="minimumSize">
+          <size>
+           <width>400</width>
+           <height>400</height>
+          </size>
+         </property>
          <property name="styleSheet">
           <string notr="true">QStackedWidget {
     background: transparent;
@@ -81,6 +118,8 @@
          <property name="currentIndex">
           <number>0</number>
          </property>
+
+         <!-- ====== 预订页面 ====== -->
          <widget class="QWidget" name="bookingPage">
           <layout class="QVBoxLayout" name="verticalLayout_4">
            <item>
@@ -110,6 +149,7 @@
                 </property>
                </widget>
               </item>
+              <!-- 日期行 -->
               <item>
                <layout class="QHBoxLayout" name="dateSelectionLayout">
                 <item>
@@ -139,6 +179,7 @@ QPushButton:pressed {
                   </property>
                  </widget>
                 </item>
+                <!-- 今天 ... 周六 按钮省略，与原来一致 -->
                 <item>
                  <widget class="QPushButton" name="dateButton_0">
                   <property name="styleSheet">
@@ -434,6 +475,7 @@ QPushButton:pressed {
                 </item>
                </layout>
               </item>
+              <!-- 搜索框 / 航司筛选 / 航班列表 省略，与原来一致 -->
               <item>
                <layout class="QHBoxLayout" name="searchLayout">
                 <item>
@@ -614,13 +656,10 @@ QComboBox:focus {
                 </item>
                </layout>
               </item>
-             </layout>
-            </widget>
-           </item>
-           <item>
-            <widget class="QListWidget" name="flightListWidget">
-             <property name="styleSheet">
-              <string notr="true">QListWidget {
+              <item>
+               <widget class="QListWidget" name="flightListWidget">
+                <property name="styleSheet">
+                 <string notr="true">QListWidget {
     background: white;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
@@ -641,15 +680,26 @@ QListWidget::item:selected {
 QListWidget::item:hover {
     background-color: #f8f9fa;
 }</string>
-             </property>
+                </property>
+               </widget>
+              </item>
+             </layout>
             </widget>
            </item>
           </layout>
          </widget>
+
+         <!-- ====== 我的页面 ====== -->
          <widget class="QWidget" name="myPage">
           <layout class="QVBoxLayout" name="verticalLayout_5">
            <item>
             <widget class="QFrame" name="userInfoFrame">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
+               <horstretch>0</horstretch>
+               <verstretch>0</verstretch>
+              </sizepolicy>
+             </property>
              <property name="styleSheet">
               <string notr="true">QFrame {
     background: white;
@@ -702,6 +752,12 @@ QListWidget::item:hover {
                  <layout class="QVBoxLayout" name="verticalLayout_7">
                   <item>
                    <widget class="QLabel" name="userNameLabel">
+                    <property name="minimumSize">
+                     <size>
+                      <width>0</width>
+                      <height>0</height>
+                     </size>
+                    </property>
                     <property name="styleSheet">
                      <string notr="true">QLabel {
     color: #333;
@@ -751,6 +807,8 @@ QListWidget::item:hover {
              </layout>
             </widget>
            </item>
+
+           <!-- 钱包 -->
            <item>
             <widget class="QFrame" name="walletFrame">
              <property name="styleSheet">
@@ -836,8 +894,16 @@ QPushButton:pressed {
              </layout>
             </widget>
            </item>
+
+           <!-- 订单列表 -->
            <item>
             <widget class="QFrame" name="ordersFrame">
+             <property name="sizePolicy">
+              <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+               <horstretch>0</horstretch>
+               <verstretch>1</verstretch>
+              </sizepolicy>
+             </property>
              <property name="styleSheet">
               <string notr="true">QFrame {
     background: white;
@@ -865,6 +931,12 @@ QPushButton:pressed {
               </item>
               <item>
                <widget class="QListWidget" name="ordersListWidget">
+                <property name="sizePolicy">
+                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
+                  <horstretch>0</horstretch>
+                  <verstretch>1</verstretch>
+                 </sizepolicy>
+                </property>
                 <property name="styleSheet">
                  <string notr="true">QListWidget {
     background: white;
@@ -938,6 +1010,8 @@ QPushButton:pressed {
              </layout>
             </widget>
            </item>
+
+           <!-- 退出登录 -->
            <item>
             <widget class="QFrame" name="actionFrame">
              <property name="styleSheet">
@@ -1000,18 +1074,26 @@ QPushButton:pressed {
       </layout>
      </widget>
     </item>
+
+    <!-- 3. 底部导航：整体 50 高，按钮再上移一个自身高度 -->
     <item>
      <widget class="QFrame" name="navigationFrame">
+      <property name="sizePolicy">
+       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+        <horstretch>0</horstretch>
+        <verstretch>0</verstretch>
+       </sizepolicy>
+      </property>
       <property name="minimumSize">
        <size>
         <width>0</width>
-        <height>60</height>
+        <height>50</height>
        </size>
       </property>
       <property name="maximumSize">
        <size>
         <width>16777215</width>
-        <height>60</height>
+        <height>50</height>
        </size>
       </property>
       <property name="styleSheet">
@@ -1026,7 +1108,7 @@ QPushButton:pressed {
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>50</height>
+           <height>46</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -1036,12 +1118,11 @@ QPushButton:pressed {
     border: none;
     font-size: 16px;
     font-weight: bold;
+    padding: 7px;
 }
-
 QPushButton:hover {
     background: #1976d2;
 }
-
 QPushButton:checked {
     background: #0d47a1;
     border-top: 3px solid #ff9800;
@@ -1063,7 +1144,7 @@ QPushButton:checked {
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>50</height>
+           <height>46</height>
           </size>
          </property>
          <property name="styleSheet">
@@ -1073,12 +1154,11 @@ QPushButton:checked {
     border: none;
     font-size: 16px;
     font-weight: bold;
+    padding: 7px;
 }
-
 QPushButton:hover {
     background: #e0e0e0;
 }
-
 QPushButton:checked {
     background: #ffffff;
     color: #1e88e5;

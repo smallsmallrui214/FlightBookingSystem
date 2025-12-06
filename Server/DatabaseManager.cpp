@@ -17,7 +17,7 @@ bool DatabaseManager::openDatabase()
     QSqlDatabase db = QSqlDatabase::addDatabase("QODBC");
     db.setDatabaseName("flight_booking_system"); // 数据库名
     db.setUserName("root");                      // 用户名
-    db.setPassword("LR20060214");                    // 密码
+    db.setPassword("24681357Du");                    // 密码
 
     if (!db.open()) {
         qDebug() << "数据库连接失败:" << db.lastError().text();

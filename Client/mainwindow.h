@@ -38,6 +38,12 @@ private slots:
     void onPrevWeekClicked();
     void onNextWeekClicked();
     void onCalendarButtonClicked();
+    // 新增的导航按钮槽函数
+    void onBookingNavButtonClicked();
+    void onMyNavButtonClicked();
+    // 新增的其他槽函数
+    void onRechargeButtonClicked();
+    void onViewAllOrdersButtonClicked();
 
 private:
     void setupConnections();
@@ -50,6 +56,12 @@ private:
     void searchFlightsByDate(const QDate &date);
     void showCalendarDialog();
     QString getSearchConditions() const;
+    // 新增的导航相关函数
+    void setupNavigation();
+    void updateNavButtonStyles();
+    // 新增的"我的"页面函数
+    void loadUserInfo();
+    void loadOrders();
 
     Ui::MainWindow *ui;
     QString currentUsername;
@@ -60,6 +72,8 @@ private:
     QButtonGroup *dateButtonGroup;
     QList<QPushButton*> dateButtons;
     QDate currentStartDate;
+    // 新增的导航按钮组
+    QButtonGroup *navButtonGroup;
 };
 
 #endif // MAINWINDOW_H

@@ -6,8 +6,8 @@
    <rect>
     <x>0</x>
     <y>0</y>
-    <width>1200</width>
-    <height>800</height>
+    <width>1144</width>
+    <height>1198</height>
    </rect>
   </property>
   <property name="windowTitle">
@@ -26,7 +26,13 @@
       <property name="minimumSize">
        <size>
         <width>0</width>
-        <height>80</height>
+        <height>60</height>
+       </size>
+      </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>60</height>
        </size>
       </property>
       <property name="styleSheet">
@@ -42,7 +48,7 @@
          <property name="styleSheet">
           <string notr="true">QLabel {
     color: white;
-    font-size: 20px;
+    font-size: 18px;
     font-weight: bold;
     padding: 5px;
 }</string>
@@ -52,97 +58,64 @@
          </property>
         </widget>
        </item>
-       <item>
-        <spacer name="horizontalSpacer">
-         <property name="orientation">
-          <enum>Qt::Orientation::Horizontal</enum>
-         </property>
-         <property name="sizeHint" stdset="0">
-          <size>
-           <width>40</width>
-           <height>20</height>
-          </size>
-         </property>
-        </spacer>
-       </item>
-       <item>
-        <widget class="QLabel" name="userLabel">
-         <property name="styleSheet">
-          <string notr="true">QLabel {
-    color: rgba(255,255,255,0.9);
-    font-size: 14px;
-    background: rgba(255,255,255,0.1);
-    padding: 8px 15px;
-    border-radius: 15px;
-}</string>
-         </property>
-         <property name="text">
-          <string>欢迎，用户</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="logoutButton">
-         <property name="styleSheet">
-          <string notr="true">QPushButton {
-    background-color: rgba(255,255,255,0.2);
-    color: white;
-    border: 1px solid rgba(255,255,255,0.3);
-    border-radius: 6px;
-    padding: 8px 20px;
-    font-size: 14px;
-    font-weight: bold;
-}
-
-QPushButton:hover {
-    background-color: rgba(255,255,255,0.3);
-}
-
-QPushButton:pressed {
-    background-color: rgba(255,255,255,0.4);
-}</string>
-         </property>
-         <property name="text">
-          <string>退出登录</string>
-         </property>
-        </widget>
-       </item>
       </layout>
      </widget>
     </item>
     <item>
-     <widget class="QFrame" name="searchFrame">
+     <widget class="QFrame" name="contentFrame">
       <property name="styleSheet">
        <string notr="true">QFrame {
+    background: transparent;
+    border: none;
+}</string>
+      </property>
+      <layout class="QVBoxLayout" name="verticalLayout_3">
+       <item>
+        <widget class="QStackedWidget" name="stackedWidget">
+         <property name="styleSheet">
+          <string notr="true">QStackedWidget {
+    background: transparent;
+    border: none;
+}</string>
+         </property>
+         <property name="currentIndex">
+          <number>0</number>
+         </property>
+         <widget class="QWidget" name="bookingPage">
+          <layout class="QVBoxLayout" name="verticalLayout_4">
+           <item>
+            <widget class="QFrame" name="searchFrame">
+             <property name="styleSheet">
+              <string notr="true">QFrame {
     background: white;
     border: 2px solid #e3f2fd;
     border-radius: 12px;
-    padding: 25px;
-    margin: 15px;
+    padding: 20px;
+    margin: 10px;
 }</string>
-      </property>
-      <layout class="QVBoxLayout" name="verticalLayout_2">
-       <item>
-        <widget class="QLabel" name="searchTitleLabel">
-         <property name="styleSheet">
-          <string notr="true">QLabel {
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_2">
+              <item>
+               <widget class="QLabel" name="searchTitleLabel">
+                <property name="styleSheet">
+                 <string notr="true">QLabel {
     color: #1e88e5;
-    font-size: 18px;
+    font-size: 16px;
     font-weight: bold;
     padding: 5px 0px;
 }</string>
-         </property>
-         <property name="text">
-          <string>🔍 机票查询</string>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="dateSelectionLayout">
-         <item>
-          <widget class="QPushButton" name="prevWeekButton">
-           <property name="styleSheet">
-            <string notr="true">QPushButton {
+                </property>
+                <property name="text">
+                 <string>🔍 机票查询</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="dateSelectionLayout">
+                <item>
+                 <widget class="QPushButton" name="prevWeekButton">
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton {
     background: #f0f0f0;
     border: 1px solid #ddd;
     border-radius: 6px;
@@ -160,16 +133,16 @@ QPushButton:hover {
 QPushButton:pressed {
     background: #d0d0d0;
 }</string>
-           </property>
-           <property name="text">
-            <string>‹</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="dateButton_0">
-           <property name="styleSheet">
-            <string notr="true">QPushButton {
+                  </property>
+                  <property name="text">
+                   <string>‹</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="dateButton_0">
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton {
     background: white;
     color: #333;
     border: 2px solid #e0e0e0;
@@ -191,19 +164,19 @@ QPushButton:checked {
     color: #1e88e5;
     font-weight: bold;
 }</string>
-           </property>
-           <property name="text">
-            <string>今天\nMM/dd</string>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="dateButton_1">
-           <property name="styleSheet">
-            <string notr="true">QPushButton {
+                  </property>
+                  <property name="text">
+                   <string>今天\nMM/dd</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="dateButton_1">
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton {
     background: white;
     color: #333;
     border: 2px solid #e0e0e0;
@@ -225,19 +198,19 @@ QPushButton:checked {
     color: #1e88e5;
     font-weight: bold;
 }</string>
-           </property>
-           <property name="text">
-            <string>周一\nMM/dd</string>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="dateButton_2">
-           <property name="styleSheet">
-            <string notr="true">QPushButton {
+                  </property>
+                  <property name="text">
+                   <string>周一\nMM/dd</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="dateButton_2">
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton {
     background: white;
     color: #333;
     border: 2px solid #e0e0e0;
@@ -259,19 +232,19 @@ QPushButton:checked {
     color: #1e88e5;
     font-weight: bold;
 }</string>
-           </property>
-           <property name="text">
-            <string>周二\nMM/dd</string>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="dateButton_3">
-           <property name="styleSheet">
-            <string notr="true">QPushButton {
+                  </property>
+                  <property name="text">
+                   <string>周二\nMM/dd</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="dateButton_3">
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton {
     background: white;
     color: #333;
     border: 2px solid #e0e0e0;
@@ -293,19 +266,19 @@ QPushButton:checked {
     color: #1e88e5;
     font-weight: bold;
 }</string>
-           </property>
-           <property name="text">
-            <string>周三\nMM/dd</string>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="dateButton_4">
-           <property name="styleSheet">
-            <string notr="true">QPushButton {
+                  </property>
+                  <property name="text">
+                   <string>周三\nMM/dd</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="dateButton_4">
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton {
     background: white;
     color: #333;
     border: 2px solid #e0e0e0;
@@ -327,19 +300,19 @@ QPushButton:checked {
     color: #1e88e5;
     font-weight: bold;
 }</string>
-           </property>
-           <property name="text">
-            <string>周四\nMM/dd</string>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="dateButton_5">
-           <property name="styleSheet">
-            <string notr="true">QPushButton {
+                  </property>
+                  <property name="text">
+                   <string>周四\nMM/dd</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="dateButton_5">
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton {
     background: white;
     color: #333;
     border: 2px solid #e0e0e0;
@@ -361,19 +334,19 @@ QPushButton:checked {
     color: #1e88e5;
     font-weight: bold;
 }</string>
-           </property>
-           <property name="text">
-            <string>周五\nMM/dd</string>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="dateButton_6">
-           <property name="styleSheet">
-            <string notr="true">QPushButton {
+                  </property>
+                  <property name="text">
+                   <string>周五\nMM/dd</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="dateButton_6">
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton {
     background: white;
     color: #333;
     border: 2px solid #e0e0e0;
@@ -395,19 +368,19 @@ QPushButton:checked {
     color: #1e88e5;
     font-weight: bold;
 }</string>
-           </property>
-           <property name="text">
-            <string>周六\nMM/dd</string>
-           </property>
-           <property name="checkable">
-            <bool>true</bool>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="nextWeekButton">
-           <property name="styleSheet">
-            <string notr="true">QPushButton {
+                  </property>
+                  <property name="text">
+                   <string>周六\nMM/dd</string>
+                  </property>
+                  <property name="checkable">
+                   <bool>true</bool>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="nextWeekButton">
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton {
     background: #f0f0f0;
     border: 1px solid #ddd;
     border-radius: 6px;
@@ -425,16 +398,16 @@ QPushButton:hover {
 QPushButton:pressed {
     background: #d0d0d0;
 }</string>
-           </property>
-           <property name="text">
-            <string>›</string>
-           </property>
-          </widget>
-         </item>
-         <item alignment="Qt::AlignmentFlag::AlignRight">
-          <widget class="QPushButton" name="calendarButton">
-           <property name="styleSheet">
-            <string notr="true">QPushButton {
+                  </property>
+                  <property name="text">
+                   <string>›</string>
+                  </property>
+                 </widget>
+                </item>
+                <item alignment="Qt::AlignmentFlag::AlignRight">
+                 <widget class="QPushButton" name="calendarButton">
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton {
     background: #1e88e5;
     color: white;
     border: none;
@@ -453,20 +426,20 @@ QPushButton:hover {
 QPushButton:pressed {
     background: #1565c0;
 }</string>
-           </property>
-           <property name="text">
-            <string>📅 日历</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="searchLayout">
-         <item>
-          <widget class="QLineEdit" name="departureEdit">
-           <property name="styleSheet">
-            <string notr="true">QLineEdit {
+                  </property>
+                  <property name="text">
+                   <string>📅 日历</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="searchLayout">
+                <item>
+                 <widget class="QLineEdit" name="departureEdit">
+                  <property name="styleSheet">
+                   <string notr="true">QLineEdit {
     background: white;
     border: 2px solid #e0e0e0;
     border-radius: 8px;
@@ -480,16 +453,16 @@ QLineEdit:focus {
     border-color: #1e88e5;
     background-color: #f8fdff;
 }</string>
-           </property>
-           <property name="placeholderText">
-            <string>出发城市</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="swapButton">
-           <property name="styleSheet">
-            <string notr="true">QPushButton {
+                  </property>
+                  <property name="placeholderText">
+                   <string>出发城市</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="swapButton">
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton {
     background: #1e88e5;
     color: white;
     border: none;
@@ -508,16 +481,16 @@ QPushButton:hover {
 QPushButton:pressed {
     background: #1565c0;
 }</string>
-           </property>
-           <property name="text">
-            <string>⇄</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QLineEdit" name="arrivalEdit">
-           <property name="styleSheet">
-            <string notr="true">QLineEdit {
+                  </property>
+                  <property name="text">
+                   <string>⇄</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QLineEdit" name="arrivalEdit">
+                  <property name="styleSheet">
+                   <string notr="true">QLineEdit {
     background: white;
     border: 2px solid #e0e0e0;
     border-radius: 8px;
@@ -531,16 +504,16 @@ QLineEdit:focus {
     border-color: #1e88e5;
     background-color: #f8fdff;
 }</string>
-           </property>
-           <property name="placeholderText">
-            <string>到达城市</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QPushButton" name="searchButton">
-           <property name="styleSheet">
-            <string notr="true">QPushButton {
+                  </property>
+                  <property name="placeholderText">
+                   <string>到达城市</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QPushButton" name="searchButton">
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton {
     background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #ff5722, stop:1 #e64a19);
     color: white;
     border: none;
@@ -559,34 +532,34 @@ QPushButton:hover {
 QPushButton:pressed {
     background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #d84315, stop:1 #c62828);
 }</string>
-           </property>
-           <property name="text">
-            <string>查询</string>
-           </property>
-          </widget>
-         </item>
-        </layout>
-       </item>
-       <item>
-        <layout class="QHBoxLayout" name="filterLayout">
-         <item>
-          <widget class="QLabel" name="airlineLabel">
-           <property name="styleSheet">
-            <string notr="true">QLabel {
+                  </property>
+                  <property name="text">
+                   <string>查询</string>
+                  </property>
+                 </widget>
+                </item>
+               </layout>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="filterLayout">
+                <item>
+                 <widget class="QLabel" name="airlineLabel">
+                  <property name="styleSheet">
+                   <string notr="true">QLabel {
     color: #666;
     font-size: 13px;
     padding: 8px 5px;
 }</string>
-           </property>
-           <property name="text">
-            <string>航空公司:</string>
-           </property>
-          </widget>
-         </item>
-         <item>
-          <widget class="QComboBox" name="airlineComboBox">
-           <property name="styleSheet">
-            <string notr="true">QComboBox {
+                  </property>
+                  <property name="text">
+                   <string>航空公司:</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <widget class="QComboBox" name="airlineComboBox">
+                  <property name="styleSheet">
+                   <string notr="true">QComboBox {
     background: white;
     border: 1px solid #e0e0e0;
     border-radius: 6px;
@@ -598,60 +571,60 @@ QPushButton:pressed {
 QComboBox:focus {
     border-color: #1e88e5;
 }</string>
-           </property>
-           <item>
-            <property name="text">
-             <string>所有</string>
-            </property>
+                  </property>
+                  <item>
+                   <property name="text">
+                    <string>所有</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>中国国航</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>东方航空</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>南方航空</string>
+                   </property>
+                  </item>
+                  <item>
+                   <property name="text">
+                    <string>海南航空</string>
+                   </property>
+                  </item>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_2">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
            </item>
            <item>
-            <property name="text">
-             <string>中国国航</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>东方航空</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>南方航空</string>
-            </property>
-           </item>
-           <item>
-            <property name="text">
-             <string>海南航空</string>
-            </property>
-           </item>
-          </widget>
-         </item>
-         <item>
-          <spacer name="horizontalSpacer_2">
-           <property name="orientation">
-            <enum>Qt::Orientation::Horizontal</enum>
-           </property>
-           <property name="sizeHint" stdset="0">
-            <size>
-             <width>40</width>
-             <height>20</height>
-            </size>
-           </property>
-          </spacer>
-         </item>
-        </layout>
-       </item>
-      </layout>
-     </widget>
-    </item>
-    <item>
-     <widget class="QListWidget" name="flightListWidget">
-      <property name="styleSheet">
-       <string notr="true">QListWidget {
+            <widget class="QListWidget" name="flightListWidget">
+             <property name="styleSheet">
+              <string notr="true">QListWidget {
     background: white;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
-    margin: 15px;
+    margin: 10px;
     outline: none;
 }
 
@@ -668,7 +641,459 @@ QListWidget::item:selected {
 QListWidget::item:hover {
     background-color: #f8f9fa;
 }</string>
+             </property>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+         <widget class="QWidget" name="myPage">
+          <layout class="QVBoxLayout" name="verticalLayout_5">
+           <item>
+            <widget class="QFrame" name="userInfoFrame">
+             <property name="styleSheet">
+              <string notr="true">QFrame {
+    background: white;
+    border: 2px solid #e3f2fd;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 10px;
+}</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_6">
+              <item>
+               <widget class="QLabel" name="myTitleLabel">
+                <property name="styleSheet">
+                 <string notr="true">QLabel {
+    color: #1e88e5;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 5px 0px;
+}</string>
+                </property>
+                <property name="text">
+                 <string>👤 账号信息</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="userInfoLayout">
+                <item>
+                 <widget class="QLabel" name="userAvatarLabel">
+                  <property name="styleSheet">
+                   <string notr="true">QLabel {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1e88e5, stop:1 #1565c0);
+    border-radius: 40px;
+    min-width: 80px;
+    max-width: 80px;
+    min-height: 80px;
+    max-height: 80px;
+    color: white;
+    font-size: 30px;
+    font-weight: bold;
+    qproperty-alignment: AlignCenter;
+}</string>
+                  </property>
+                  <property name="text">
+                   <string>U</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QVBoxLayout" name="verticalLayout_7">
+                  <item>
+                   <widget class="QLabel" name="userNameLabel">
+                    <property name="styleSheet">
+                     <string notr="true">QLabel {
+    color: #333;
+    font-size: 20px;
+    font-weight: bold;
+}</string>
+                    </property>
+                    <property name="text">
+                     <string>欢迎，用户</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QLabel" name="userLevelLabel">
+                    <property name="styleSheet">
+                     <string notr="true">QLabel {
+    color: #ff9800;
+    font-size: 14px;
+    background: #fff3e0;
+    padding: 4px 12px;
+    border-radius: 12px;
+    max-width: 100px;
+}</string>
+                    </property>
+                    <property name="text">
+                     <string>普通会员</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_3">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QFrame" name="walletFrame">
+             <property name="styleSheet">
+              <string notr="true">QFrame {
+    background: white;
+    border: 2px solid #e3f2fd;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 10px;
+}</string>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_2">
+              <item>
+               <widget class="QLabel" name="walletTitleLabel">
+                <property name="styleSheet">
+                 <string notr="true">QLabel {
+    color: #1e88e5;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 5px 0px;
+}</string>
+                </property>
+                <property name="text">
+                 <string>💰 钱包</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_4">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QLabel" name="balanceLabel">
+                <property name="styleSheet">
+                 <string notr="true">QLabel {
+    color: #ff5722;
+    font-size: 22px;
+    font-weight: bold;
+    font-family: 'Microsoft YaHei';
+}</string>
+                </property>
+                <property name="text">
+                 <string>¥ 0.00</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QPushButton" name="rechargeButton">
+                <property name="styleSheet">
+                 <string notr="true">QPushButton {
+    background: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    min-width: 80px;
+}
+
+QPushButton:hover {
+    background: #43a047;
+}
+
+QPushButton:pressed {
+    background: #388e3c;
+}</string>
+                </property>
+                <property name="text">
+                 <string>充值</string>
+                </property>
+               </widget>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QFrame" name="ordersFrame">
+             <property name="styleSheet">
+              <string notr="true">QFrame {
+    background: white;
+    border: 2px solid #e3f2fd;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 10px;
+}</string>
+             </property>
+             <layout class="QVBoxLayout" name="verticalLayout_8">
+              <item>
+               <widget class="QLabel" name="ordersTitleLabel">
+                <property name="styleSheet">
+                 <string notr="true">QLabel {
+    color: #1e88e5;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 5px 0px;
+}</string>
+                </property>
+                <property name="text">
+                 <string>📋 订单列表</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <widget class="QListWidget" name="ordersListWidget">
+                <property name="styleSheet">
+                 <string notr="true">QListWidget {
+    background: white;
+    border: 1px solid #e0e0e0;
+    border-radius: 8px;
+    margin: 10px 0px;
+    outline: none;
+    min-height: 150px;
+}
+
+QListWidget::item {
+    border-bottom: 1px solid #f5f5f5;
+    padding: 0px;
+}
+
+QListWidget::item:selected {
+    background-color: #e3f2fd;
+    border: none;
+}
+
+QListWidget::item:hover {
+    background-color: #f8f9fa;
+}</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <layout class="QHBoxLayout" name="horizontalLayout_3">
+                <item>
+                 <widget class="QPushButton" name="viewAllOrdersButton">
+                  <property name="styleSheet">
+                   <string notr="true">QPushButton {
+    background: #bbdefb;
+    color: #1565c0;
+    border: none;
+    border-radius: 6px;
+    padding: 10px 20px;
+    font-size: 14px;
+    font-weight: bold;
+    min-width: 120px;
+}
+
+QPushButton:hover {
+    background: #90caf9;
+}
+
+QPushButton:pressed {
+    background: #64b5f6;
+}</string>
+                  </property>
+                  <property name="text">
+                   <string>查看全部订单</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <spacer name="horizontalSpacer_5">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Horizontal</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>40</width>
+                    <height>20</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+               </layout>
+              </item>
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QFrame" name="actionFrame">
+             <property name="styleSheet">
+              <string notr="true">QFrame {
+    background: white;
+    border: 2px solid #e3f2fd;
+    border-radius: 12px;
+    padding: 20px;
+    margin: 10px;
+}</string>
+             </property>
+             <layout class="QHBoxLayout" name="horizontalLayout_4">
+              <item>
+               <widget class="QPushButton" name="logoutButton">
+                <property name="styleSheet">
+                 <string notr="true">QPushButton {
+    background: #f44336;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 12px 30px;
+    font-size: 16px;
+    font-weight: bold;
+    min-width: 150px;
+}
+
+QPushButton:hover {
+    background: #e53935;
+}
+
+QPushButton:pressed {
+    background: #d32f2f;
+}</string>
+                </property>
+                <property name="text">
+                 <string>退出登录</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_6">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+             </layout>
+            </widget>
+           </item>
+          </layout>
+         </widget>
+        </widget>
+       </item>
+      </layout>
+     </widget>
+    </item>
+    <item>
+     <widget class="QFrame" name="navigationFrame">
+      <property name="minimumSize">
+       <size>
+        <width>0</width>
+        <height>60</height>
+       </size>
       </property>
+      <property name="maximumSize">
+       <size>
+        <width>16777215</width>
+        <height>60</height>
+       </size>
+      </property>
+      <property name="styleSheet">
+       <string notr="true">QFrame {
+    background: white;
+    border-top: 2px solid #e0e0e0;
+}</string>
+      </property>
+      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <item>
+        <widget class="QPushButton" name="bookingNavButton">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>50</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+    background: #1565c0;
+    color: white;
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background: #1976d2;
+}
+
+QPushButton:checked {
+    background: #0d47a1;
+    border-top: 3px solid #ff9800;
+}</string>
+         </property>
+         <property name="text">
+          <string>✈️ 预订</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+         <property name="checked">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+       <item>
+        <widget class="QPushButton" name="myNavButton">
+         <property name="minimumSize">
+          <size>
+           <width>0</width>
+           <height>50</height>
+          </size>
+         </property>
+         <property name="styleSheet">
+          <string notr="true">QPushButton {
+    background: #f5f5f5;
+    color: #666;
+    border: none;
+    font-size: 16px;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background: #e0e0e0;
+}
+
+QPushButton:checked {
+    background: #ffffff;
+    color: #1e88e5;
+    border-top: 3px solid #1e88e5;
+}</string>
+         </property>
+         <property name="text">
+          <string>👤 我的</string>
+         </property>
+         <property name="checkable">
+          <bool>true</bool>
+         </property>
+        </widget>
+       </item>
+      </layout>
      </widget>
     </item>
    </layout>

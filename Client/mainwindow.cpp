@@ -239,7 +239,7 @@ MainWindow::MainWindow(const QString &username, ClientNetworkManager* networkMan
     ui->setupUi(this);
 
     // 设置用户信息
-    ui->userLabel->setText(QString("欢迎，%1").arg(username));
+    ui->userNameLabel->setText(QString("欢迎，%1").arg(username));
 
     // 设置默认城市
     ui->departureEdit->setText("广州");
@@ -249,6 +249,11 @@ MainWindow::MainWindow(const QString &username, ClientNetworkManager* networkMan
 
     // 初始化日期选择系统
     setupDateSelection();
+
+    setupConnections();
+
+    // 初始化导航系统
+    setupNavigation();
 
     setupConnections();
 
@@ -386,8 +391,15 @@ void MainWindow::updateDateButtons()
     }
 }
 
+//在析构函数中添加对 navButtonGroup 的清理
 MainWindow::~MainWindow()
 {
+    if (navButtonGroup) {
+        delete navButtonGroup;
+    }
+    if (dateButtonGroup) {
+        delete dateButtonGroup;
+    }
     if (ui) {
         delete ui;
     }
@@ -419,6 +431,14 @@ void MainWindow::setupConnections()
                 updateDateButtons();
                 searchFlightsByDate(selected);
             });
+
+    // 新增：导航按钮连接
+    connect(ui->bookingNavButton, &QPushButton::clicked, this, &MainWindow::onBookingNavButtonClicked);
+    connect(ui->myNavButton, &QPushButton::clicked, this, &MainWindow::onMyNavButtonClicked);
+
+    // 新增："我的"页面按钮连接
+    connect(ui->rechargeButton, &QPushButton::clicked, this, &MainWindow::onRechargeButtonClicked);
+    connect(ui->viewAllOrdersButton, &QPushButton::clicked, this, &MainWindow::onViewAllOrdersButtonClicked);
 
     if (networkManager) {
         connect(networkManager, &ClientNetworkManager::messageReceived, this, &MainWindow::onMessageReceived);
@@ -709,7 +729,154 @@ void MainWindow::addFlightItem(const Flight &flight)
     ui->flightListWidget->addItem(item);
     ui->flightListWidget->setItemWidget(item, widget);
 }
+//新增导航按钮
+void MainWindow::setupNavigation()
+{
+    // 创建导航按钮组，确保只有一个按钮被选中
+    navButtonGroup = new QButtonGroup(this);
+    navButtonGroup->setExclusive(true);
 
+    navButtonGroup->addButton(ui->bookingNavButton, 0);
+    navButtonGroup->addButton(ui->myNavButton, 1);
+
+    // 设置初始状态："预订"页面被选中
+    ui->bookingNavButton->setChecked(true);
+    ui->stackedWidget->setCurrentWidget(ui->bookingPage);
+
+    // 更新导航按钮样式
+    updateNavButtonStyles();
+}
+void MainWindow::updateNavButtonStyles()
+{
+    if (ui->bookingNavButton->isChecked()) {
+        ui->bookingNavButton->setStyleSheet(
+            "QPushButton {"
+            "    background: #1565c0;"
+            "    color: white;"
+            "    border: none;"
+            "    border-radius: 0px;"
+            "    padding: 20px 0px;"
+            "    font-size: 16px;"
+            "    font-weight: bold;"
+            "    min-width: 200px;"
+            "    border-top: 3px solid #ff9800;"
+            "}"
+            "QPushButton:hover {"
+            "    background: #1976d2;"
+            "}"
+            );
+
+        ui->myNavButton->setStyleSheet(
+            "QPushButton {"
+            "    background: #f5f5f5;"
+            "    color: #666;"
+            "    border: none;"
+            "    border-radius: 0px;"
+            "    padding: 20px 0px;"
+            "    font-size: 16px;"
+            "    font-weight: bold;"
+            "    min-width: 200px;"
+            "}"
+            "QPushButton:hover {"
+            "    background: #e0e0e0;"
+            "}"
+            "QPushButton:checked {"
+            "    background: #ffffff;"
+            "    color: #1e88e5;"
+            "    border-top: 3px solid #1e88e5;"
+            "}"
+            );
+    } else {
+        ui->myNavButton->setStyleSheet(
+            "QPushButton {"
+            "    background: #1565c0;"
+            "    color: white;"
+            "    border: none;"
+            "    border-radius: 0px;"
+            "    padding: 20px 0px;"
+            "    font-size: 16px;"
+            "    font-weight: bold;"
+            "    min-width: 200px;"
+            "    border-top: 3px solid #ff9800;"
+            "}"
+            "QPushButton:hover {"
+            "    background: #1976d2;"
+            "}"
+            );
+
+        ui->bookingNavButton->setStyleSheet(
+            "QPushButton {"
+            "    background: #f5f5f5;"
+            "    color: #666;"
+            "    border: none;"
+            "    border-radius: 0px;"
+            "    padding: 20px 0px;"
+            "    font-size: 16px;"
+            "    font-weight: bold;"
+            "    min-width: 200px;"
+            "}"
+            "QPushButton:hover {"
+            "    background: #e0e0e0;"
+            "}"
+            "QPushButton:checked {"
+            "    background: #ffffff;"
+            "    color: #1e88e5;"
+            "    border-top: 3px solid #1e88e5;"
+            "}"
+            );
+    }
+}
+//添加导航按钮的槽函数
+void MainWindow::onBookingNavButtonClicked()
+{
+    ui->stackedWidget->setCurrentWidget(ui->bookingPage);
+    updateNavButtonStyles();
+}
+
+void MainWindow::onMyNavButtonClicked()
+{
+    ui->stackedWidget->setCurrentWidget(ui->myPage);
+    updateNavButtonStyles();
+
+    // 切换到"我的"页面时，加载用户信息和订单
+    loadUserInfo();
+    loadOrders();
+}
+void MainWindow::loadUserInfo()
+{
+    // 设置用户头像的首字母（这里取用户名的第一个字符）
+    if (!currentUsername.isEmpty()) {
+        QString firstChar = currentUsername.left(1).toUpper();
+        ui->userAvatarLabel->setText(firstChar);
+    }
+}
+
+void MainWindow::loadOrders()
+{
+    // 清空订单列表
+    ui->ordersListWidget->clear();
+
+    // TODO: 这里应该从服务器获取用户的订单数据
+    // 目前先添加一个示例订单
+    //QListWidgetItem *item = new QListWidgetItem("📅 示例订单 - 广州 → 宜宾 - 2023-10-01 - ¥680");
+    // ui->ordersListWidget->addItem(item);
+
+    if (ui->ordersListWidget->count() == 0) {
+        ui->ordersListWidget->addItem("暂无订单");
+    }
+}
+//添加"我的"页面的相关函数
+void MainWindow::onRechargeButtonClicked()
+{
+    // TODO: 实现充值功能
+    QMessageBox::information(this, "充值", "充值功能暂未实现");
+}
+
+void MainWindow::onViewAllOrdersButtonClicked()
+{
+    // TODO: 实现查看全部订单功能
+    QMessageBox::information(this, "查看全部订单", "查看全部订单功能暂未实现");
+}
 void MainWindow::onDateButtonClicked()
 {
     // 功能已经在lambda表达式中实现

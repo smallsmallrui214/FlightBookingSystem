@@ -6,16 +6,18 @@
 #include <QDebug>
 #include <QTableWidgetItem>
 #include <QPushButton>
-#include <QHeaderView>  // 添加这个头文件
-#include <QJsonArray>   // 添加这个头文件
-#include <QJsonDocument> // 添加这个头文件
+#include <QHeaderView>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QHBoxLayout>
 
 FlightDetailDialog::FlightDetailDialog(const Flight &flight,
                                        ClientNetworkManager *networkManager,
                                        const QString &username,
                                        QWidget *parent)
     : QDialog(parent), ui(new Ui::FlightDetailDialog),
-    flight(flight), networkManager(networkManager), currentUsername(username)
+    flight(flight), networkManager(networkManager), currentUsername(username),
+    selectedCabinType(-1)  // 初始化为-1，表示未选择
 {
     ui->setupUi(this);
     setupUI();
@@ -43,18 +45,17 @@ void FlightDetailDialog::setupUI()
     ui->flightNumberLabel->setText(flight.getFlightNumber());
     ui->airlineLabel->setText(flight.getAirline());
 
-
     // 判断飞机型号并添加分类
     QString aircraftType = flight.getAircraftType();
     QString aircraftDisplay = aircraftType;
 
     if (aircraftType == "A330" || aircraftType == "B787" || aircraftType == "B777") {
-        aircraftDisplay += "（宽）";  // 宽体机
+        aircraftDisplay += "（宽）";
     } else if (aircraftType == "A320" || aircraftType == "A319" ||
                aircraftType == "B737" || aircraftType == "ARJ21") {
-        aircraftDisplay += "（窄）";  // 窄体机
+        aircraftDisplay += "（窄）";
     } else {
-        aircraftDisplay += "（中）";  // 中型机或其他
+        aircraftDisplay += "（中）";
     }
 
     ui->aircraftTypeLabel->setText(aircraftDisplay);
@@ -86,7 +87,7 @@ void FlightDetailDialog::setupUI()
                            "剩余座位: %12个"
                            ).arg(flight.getFlightNumber())
                            .arg(flight.getAirline())
-                           .arg(aircraftDisplay)  // 使用带分类的机型
+                           .arg(aircraftDisplay)
                            .arg(flight.getDepartureCity())
                            .arg(flight.getDepartureTime().toString("hh:mm"))
                            .arg(flight.getDepartureTime().toString("yyyy-MM-dd"))
@@ -99,30 +100,157 @@ void FlightDetailDialog::setupUI()
 
     ui->flightInfoText->setText(infoText);
 
-    // 1. 缩小航班信息区域（通过减小字体和内边距）
+    // 1. 缩小航班信息区域
     ui->flightInfoText->setStyleSheet(
-        "font-size: 10px;"          // 减小字体大小
-        "padding: 5px;"             // 减小内边距
-        "line-height: 1.2;"         // 减小行高
+        "font-size: 10px;"
+        "padding: 5px;"
+        "line-height: 1.2;"
         );
 
     // 2. 给购票表格预留更多空间
-    ui->cabinTable->setMinimumHeight(350);  // 设置表格最小高度
+    ui->cabinTable->setMinimumHeight(350);
 
-    // 3. 调整窗口大小，让表格有更多显示空间
-    this->resize(700, 550);  // 增加窗口高度
+    // 3. 禁止表格内数据双击修改
+    ui->cabinTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
 
-    // 4. 如果有垂直布局，调整拉伸比例
-    // 尝试找到布局并调整比例
-    QLayout *layout = this->layout();
-    if (layout && layout->inherits("QVBoxLayout")) {
-        QVBoxLayout *vLayout = qobject_cast<QVBoxLayout*>(layout);
-        // 简单方法：找到包含航班信息的widget和表格，设置拉伸比例
-        // 假设航班信息在索引0，表格在索引1
-        if (vLayout->count() >= 2) {
-            vLayout->setStretch(0, 1);  // 航班信息占1份
-            vLayout->setStretch(1, 3);  // 表格占3份（更多空间）
+    // 4. 调整窗口大小，让表格有更多显示空间
+    this->resize(700, 600);  // 增加窗口高度
+
+    // 5. 在"舱位选择"标签页中，表格上面添加仓位选择按钮
+    createCabinSelectionButtons();
+}
+
+void FlightDetailDialog::createCabinSelectionButtons()
+{
+    // 创建仓位选择按钮容器
+    QWidget *cabinSelectionWidget = new QWidget();
+    cabinSelectionWidget->setObjectName("cabinSelectionWidget");
+
+    QHBoxLayout *cabinLayout = new QHBoxLayout(cabinSelectionWidget);
+    cabinLayout->setContentsMargins(15, 15, 15, 15);
+    cabinLayout->setSpacing(20);
+
+    // 创建标题标签
+    QLabel *titleLabel = new QLabel("选择仓位类型:");
+    titleLabel->setStyleSheet(
+        "QLabel {"
+        "    font-size: 16px;"
+        "    font-weight: bold;"
+        "    color: #333;"
+        "    font-family: 'Microsoft YaHei';"
+        "}"
+        );
+    cabinLayout->addWidget(titleLabel);
+
+    // 使用已有的cabinTypes来映射按钮类型
+    // 1: 经济舱, 2: 商务舱, 3: 头等舱
+    cabinTypes[1] = "经济舱";
+    cabinTypes[2] = "商务舱";
+    cabinTypes[3] = "头等舱";
+
+    // 创建三个筛选按钮
+    QPushButton *economyButton = new QPushButton(cabinTypes[1]);
+    QPushButton *businessButton = new QPushButton(cabinTypes[2]);
+    QPushButton *firstClassButton = new QPushButton(cabinTypes[3]);
+
+    // 设置按钮属性，用于识别按钮类型
+    economyButton->setProperty("cabinType", 1);
+    businessButton->setProperty("cabinType", 2);
+    firstClassButton->setProperty("cabinType", 3);
+
+    // 设置按钮尺寸
+    economyButton->setMinimumSize(120, 45);
+    businessButton->setMinimumSize(120, 45);
+    firstClassButton->setMinimumSize(120, 45);
+
+    // 设置按钮样式
+    QString normalStyle =
+        "QPushButton {"
+        "    background: white;"
+        "    color: #333;"
+        "    border: 2px solid #e0e0e0;"
+        "    border-radius: 8px;"
+        "    padding: 10px 20px;"
+        "    font-size: 14px;"
+        "    font-weight: bold;"
+        "    font-family: 'Microsoft YaHei';"
+        "}"
+        "QPushButton:hover {"
+        "    background: #f5f5f5;"
+        "    border-color: #1e88e5;"
+        "}";
+
+    QString selectedStyle =
+        "QPushButton {"
+        "    background: #e3f2fd;"
+        "    color: #1e88e5;"
+        "    border: 2px solid #1e88e5;"
+        "    border-radius: 8px;"
+        "    padding: 10px 20px;"
+        "    font-size: 14px;"
+        "    font-weight: bold;"
+        "    font-family: 'Microsoft YaHei';"
+        "}"
+        "QPushButton:hover {"
+        "    background: #d3eafc;"
+        "    border-color: #1565c0;"
+        "}";
+
+    // 默认选中经济舱
+    selectedCabinType = 1;
+    economyButton->setStyleSheet(selectedStyle);
+    businessButton->setStyleSheet(normalStyle);
+    firstClassButton->setStyleSheet(normalStyle);
+
+    // 连接按钮点击信号
+    connect(economyButton, &QPushButton::clicked, [this, economyButton, businessButton, firstClassButton, normalStyle, selectedStyle]() {
+        selectedCabinType = 1;  // 经济舱
+        economyButton->setStyleSheet(selectedStyle);
+        businessButton->setStyleSheet(normalStyle);
+        firstClassButton->setStyleSheet(normalStyle);
+
+        // 重新显示数据
+        if (!currentCabins.isEmpty()) {
+            displayFilteredCabins();
         }
+    });
+
+    connect(businessButton, &QPushButton::clicked, [this, economyButton, businessButton, firstClassButton, normalStyle, selectedStyle]() {
+        selectedCabinType = 2;  // 商务舱
+        economyButton->setStyleSheet(normalStyle);
+        businessButton->setStyleSheet(selectedStyle);
+        firstClassButton->setStyleSheet(normalStyle);
+
+        // 重新显示数据
+        if (!currentCabins.isEmpty()) {
+            displayFilteredCabins();
+        }
+    });
+
+    connect(firstClassButton, &QPushButton::clicked, [this, economyButton, businessButton, firstClassButton, normalStyle, selectedStyle]() {
+        selectedCabinType = 3;  // 头等舱
+        economyButton->setStyleSheet(normalStyle);
+        businessButton->setStyleSheet(normalStyle);
+        firstClassButton->setStyleSheet(selectedStyle);
+
+        // 重新显示数据
+        if (!currentCabins.isEmpty()) {
+            displayFilteredCabins();
+        }
+    });
+
+    // 添加到布局
+    cabinLayout->addWidget(economyButton);
+    cabinLayout->addWidget(businessButton);
+    cabinLayout->addWidget(firstClassButton);
+    cabinLayout->addStretch();
+
+    // 关键：将仓位选择按钮添加到"舱位选择"标签页的布局中（表格上面）
+    // 获取cabinTab的布局（verticalLayout_3）
+    QVBoxLayout *cabinTabLayout = qobject_cast<QVBoxLayout*>(ui->cabinTab->layout());
+    if (cabinTabLayout) {
+        // 在表格前面插入仓位选择widget
+        cabinTabLayout->insertWidget(0, cabinSelectionWidget);
     }
 }
 
@@ -145,46 +273,70 @@ void FlightDetailDialog::loadCabinData()
 void FlightDetailDialog::displayCabinData(const QList<Cabin> &cabins)
 {
     currentCabins = cabins;
-    ui->cabinTable->setRowCount(cabins.size());
 
-    // 先设置表格列宽和行高 - 增大整体尺寸
-    ui->cabinTable->horizontalHeader()->setStretchLastSection(false);
+    // 直接调用显示筛选后的数据
+    displayFilteredCabins();
+}
 
-    // 增大所有列宽，让表格看起来更舒适
-    ui->cabinTable->setColumnWidth(0, 100);   // 舱位类型 - 加宽
-    ui->cabinTable->setColumnWidth(1, 110);   // 价格 - 加宽
-    ui->cabinTable->setColumnWidth(2, 100);   // 行李额度 - 加宽
-    ui->cabinTable->setColumnWidth(3, 120);   // 可用座位 - 加宽
-    ui->cabinTable->setColumnWidth(4, 100);   // 操作列 - 加到100px，按钮有足够空间
+// 新增函数：显示筛选后的舱位数据
+void FlightDetailDialog::displayFilteredCabins()
+{
+    if (currentCabins.isEmpty() || selectedCabinType == -1) {
+        return;
+    }
 
-    for (int i = 0; i < cabins.size(); ++i) {
-        const Cabin &cabin = cabins[i];
+    // 清空表格
+    ui->cabinTable->setRowCount(0);
 
-        // 设置合适的行高
-        ui->cabinTable->setRowHeight(i, 48);  // 增加行高，让内容有呼吸空间
+    // 根据selectedCabinType筛选舱位
+    int rowCount = 0;
 
-        // 舱位类型 - 使用稍大字体
+    for (const Cabin &cabin : currentCabins) {
+        QString cabinType = cabin.getCabinType();
+        bool shouldDisplay = false;
+
+        // 根据选择的仓位类型筛选
+        if (selectedCabinType == 1 && cabinType.contains("经济")) {
+            shouldDisplay = true;
+        } else if (selectedCabinType == 2 && cabinType.contains("商务")) {
+            shouldDisplay = true;
+        } else if (selectedCabinType == 3 && cabinType.contains("头等")) {
+            shouldDisplay = true;
+        }
+
+        if (!shouldDisplay) {
+            continue;
+        }
+
+        // 添加行
+        ui->cabinTable->insertRow(rowCount);
+        ui->cabinTable->setRowHeight(rowCount, 48);
+
+        // 舱位类型 - 禁止编辑
         QTableWidgetItem *typeItem = new QTableWidgetItem(cabin.getCabinType());
         typeItem->setTextAlignment(Qt::AlignCenter);
-        typeItem->setFont(QFont("Microsoft YaHei", 11));  // 增大字体
-        ui->cabinTable->setItem(i, 0, typeItem);
+        typeItem->setFont(QFont("Microsoft YaHei", 11));
+        typeItem->setFlags(typeItem->flags() & ~Qt::ItemIsEditable);
+        ui->cabinTable->setItem(rowCount, 0, typeItem);
 
-        // 价格 - 只保留整数，但显示清晰
+        // 价格 - 禁止编辑
         double price = cabin.getPrice();
         QString priceText = QString("¥%1").arg(static_cast<int>(price));
         QTableWidgetItem *priceItem = new QTableWidgetItem(priceText);
         priceItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
         priceItem->setForeground(QColor(220, 53, 69));
-        priceItem->setFont(QFont("Microsoft YaHei", 12, QFont::Bold));  // 增大并加粗
-        ui->cabinTable->setItem(i, 1, priceItem);
+        priceItem->setFont(QFont("Microsoft YaHei", 12, QFont::Bold));
+        priceItem->setFlags(priceItem->flags() & ~Qt::ItemIsEditable);
+        ui->cabinTable->setItem(rowCount, 1, priceItem);
 
-        // 行李额度 - 清晰显示
+        // 行李额度 - 禁止编辑
         QTableWidgetItem *baggageItem = new QTableWidgetItem(cabin.getBaggageAllowance());
         baggageItem->setTextAlignment(Qt::AlignCenter);
-        baggageItem->setFont(QFont("Microsoft YaHei", 11));  // 增大字体
-        ui->cabinTable->setItem(i, 2, baggageItem);
+        baggageItem->setFont(QFont("Microsoft YaHei", 11));
+        baggageItem->setFlags(baggageItem->flags() & ~Qt::ItemIsEditable);
+        ui->cabinTable->setItem(rowCount, 2, baggageItem);
 
-        // 可用座位 - 完整显示
+        // 可用座位 - 禁止编辑
         int availableSeats = cabin.getAvailableSeats();
         int totalSeats = cabin.getTotalSeats();
         QString seatsText;
@@ -192,7 +344,7 @@ void FlightDetailDialog::displayCabinData(const QList<Cabin> &cabins)
         if (availableSeats <= 0) {
             seatsText = "已售罄";
         } else if (availableSeats < 5) {
-            seatsText = QString("仅剩%1座").arg(availableSeats);  // 恢复完整文字
+            seatsText = QString("仅剩%1座").arg(availableSeats);
         } else {
             seatsText = QString("%1/%2").arg(availableSeats).arg(totalSeats);
         }
@@ -200,6 +352,7 @@ void FlightDetailDialog::displayCabinData(const QList<Cabin> &cabins)
         QTableWidgetItem *seatsItem = new QTableWidgetItem(seatsText);
         seatsItem->setTextAlignment(Qt::AlignCenter);
         seatsItem->setFont(QFont("Microsoft YaHei", 11));
+        seatsItem->setFlags(seatsItem->flags() & ~Qt::ItemIsEditable);
 
         // 根据座位情况设置颜色
         if (availableSeats <= 0) {
@@ -213,13 +366,11 @@ void FlightDetailDialog::displayCabinData(const QList<Cabin> &cabins)
             seatsItem->setForeground(QColor(40, 167, 69));
         }
 
-        ui->cabinTable->setItem(i, 3, seatsItem);
+        ui->cabinTable->setItem(rowCount, 3, seatsItem);
 
-        // 预订按钮 - 适当大小，有足够空间
+        // 预订按钮
         QString buttonText = availableSeats > 0 ? "预订" : "已售罄";
         QPushButton *bookButton = new QPushButton(buttonText);
-
-        // 按钮大小适中，适合100px列宽
         bookButton->setFixedSize(85, 34);
 
         if (availableSeats > 0) {
@@ -228,8 +379,8 @@ void FlightDetailDialog::displayCabinData(const QList<Cabin> &cabins)
                 "    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #28a745, stop:1 #20c997);"
                 "    color: white;"
                 "    border: none;"
-                "    border-radius: 4px;"   // 适当圆角
-                "    font-size: 12px;"      // 增大字体
+                "    border-radius: 4px;"
+                "    font-size: 12px;"
                 "    font-weight: bold;"
                 "    font-family: 'Microsoft YaHei';"
                 "}"
@@ -248,7 +399,7 @@ void FlightDetailDialog::displayCabinData(const QList<Cabin> &cabins)
                 "    color: white;"
                 "    border: none;"
                 "    border-radius: 4px;"
-                "    font-size: 12px;"      // 增大字体
+                "    font-size: 12px;"
                 "    font-weight: bold;"
                 "    font-family: 'Microsoft YaHei';"
                 "}"
@@ -257,36 +408,51 @@ void FlightDetailDialog::displayCabinData(const QList<Cabin> &cabins)
 
         bookButton->setEnabled(availableSeats > 0);
 
-        connect(bookButton, &QPushButton::clicked, this, [this, i]() {
-            onBookButtonClicked(i);
+        connect(bookButton, &QPushButton::clicked, [this, rowCount]() {
+            onBookButtonClicked(rowCount);
         });
 
-        ui->cabinTable->setCellWidget(i, 4, bookButton);
+        ui->cabinTable->setCellWidget(rowCount, 4, bookButton);
+
+        rowCount++;
     }
 
-    // 设置表格样式 - 更清晰的表头
+    // 如果没有数据，显示提示
+    if (rowCount == 0) {
+        ui->cabinTable->setRowCount(1);
+        ui->cabinTable->setRowHeight(0, 50);
+
+        QTableWidgetItem *noDataItem = new QTableWidgetItem("该仓位暂无票源");
+        noDataItem->setTextAlignment(Qt::AlignCenter);
+        noDataItem->setForeground(QColor(108, 117, 125));
+        noDataItem->setFont(QFont("Microsoft YaHei", 12));
+        noDataItem->setFlags(noDataItem->flags() & ~Qt::ItemIsEditable);
+        ui->cabinTable->setSpan(0, 0, 1, 5);
+        ui->cabinTable->setItem(0, 0, noDataItem);
+    }
+
+    // 设置表格样式
     ui->cabinTable->horizontalHeader()->setStyleSheet(
         "QHeaderView::section {"
         "    background-color: #f8f9fa;"
-        "    padding: 10px 8px;"           // 增加内边距
+        "    padding: 10px 8px;"
         "    border: 1px solid #dee2e6;"
         "    font-weight: bold;"
-        "    font-size: 12px;"             // 增大表头字体
+        "    font-size: 12px;"
         "    font-family: 'Microsoft YaHei';"
         "    color: #495057;"
         "}"
         );
 
-    // 设置表格整体样式
     ui->cabinTable->setStyleSheet(
         "QTableWidget {"
         "    gridline-color: #dee2e6;"
         "    background-color: white;"
-        "    alternate-background-color: #f8f9fa;"  // 隔行变色
+        "    alternate-background-color: #f8f9fa;"
         "    selection-background-color: #e3f2fd;"
         "}"
         "QTableWidget::item {"
-        "    padding: 6px 8px;"            // 增加格子内边距
+        "    padding: 6px 8px;"
         "    border-bottom: 1px solid #f1f3f4;"
         "}"
         "QTableWidget::item:selected {"
@@ -295,15 +461,25 @@ void FlightDetailDialog::displayCabinData(const QList<Cabin> &cabins)
         "}"
         );
 
-    // 启用隔行变色
     ui->cabinTable->setAlternatingRowColors(true);
 }
 
 void FlightDetailDialog::onBookButtonClicked(int row)
 {
-    if (row >= 0 && row < currentCabins.size()) {
-        const Cabin &cabin = currentCabins[row];
-        showBookingDialog(cabin);
+    if (row >= 0 && row < ui->cabinTable->rowCount()) {
+        // 获取当前显示的舱位
+        QTableWidgetItem *typeItem = ui->cabinTable->item(row, 0);
+        if (typeItem) {
+            QString cabinType = typeItem->text();
+
+            // 在currentCabins中查找对应的舱位
+            for (const Cabin &cabin : currentCabins) {
+                if (cabin.getCabinType() == cabinType) {
+                    showBookingDialog(cabin);
+                    return;
+                }
+            }
+        }
     }
 }
 
@@ -317,7 +493,7 @@ void FlightDetailDialog::showBookingDialog(const Cabin &cabin)
 
 void FlightDetailDialog::onCloseButtonClicked()
 {
-    this->accept();  // 关闭对话框
+    this->accept();
 }
 
 void FlightDetailDialog::onMessageReceived(const NetworkMessage &message)

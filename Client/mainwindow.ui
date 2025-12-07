@@ -36,8 +36,6 @@
     <property name="bottomMargin">
      <number>0</number>
     </property>
-
-    <!-- 1. 顶部标题栏 -->
     <item>
      <widget class="QFrame" name="headerFrame">
       <property name="sizePolicy">
@@ -84,8 +82,6 @@
       </layout>
      </widget>
     </item>
-
-    <!-- 2. 中间内容区 -->
     <item>
      <widget class="QFrame" name="contentFrame">
       <property name="sizePolicy">
@@ -116,10 +112,8 @@
 }</string>
          </property>
          <property name="currentIndex">
-          <number>0</number>
+          <number>1</number>
          </property>
-
-         <!-- ====== 预订页面 ====== -->
          <widget class="QWidget" name="bookingPage">
           <layout class="QVBoxLayout" name="verticalLayout_4">
            <item>
@@ -149,7 +143,6 @@
                 </property>
                </widget>
               </item>
-              <!-- 日期行 -->
               <item>
                <layout class="QHBoxLayout" name="dateSelectionLayout">
                 <item>
@@ -179,7 +172,6 @@ QPushButton:pressed {
                   </property>
                  </widget>
                 </item>
-                <!-- 今天 ... 周六 按钮省略，与原来一致 -->
                 <item>
                  <widget class="QPushButton" name="dateButton_0">
                   <property name="styleSheet">
@@ -475,7 +467,6 @@ QPushButton:pressed {
                 </item>
                </layout>
               </item>
-              <!-- 搜索框 / 航司筛选 / 航班列表 省略，与原来一致 -->
               <item>
                <layout class="QHBoxLayout" name="searchLayout">
                 <item>
@@ -656,10 +647,13 @@ QComboBox:focus {
                 </item>
                </layout>
               </item>
-              <item>
-               <widget class="QListWidget" name="flightListWidget">
-                <property name="styleSheet">
-                 <string notr="true">QListWidget {
+             </layout>
+            </widget>
+           </item>
+           <item>
+            <widget class="QListWidget" name="flightListWidget">
+             <property name="styleSheet">
+              <string notr="true">QListWidget {
     background: white;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
@@ -680,26 +674,15 @@ QListWidget::item:selected {
 QListWidget::item:hover {
     background-color: #f8f9fa;
 }</string>
-                </property>
-               </widget>
-              </item>
-             </layout>
+             </property>
             </widget>
            </item>
           </layout>
          </widget>
-
-         <!-- ====== 我的页面 ====== -->
          <widget class="QWidget" name="myPage">
           <layout class="QVBoxLayout" name="verticalLayout_5">
            <item>
             <widget class="QFrame" name="userInfoFrame">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Preferred">
-               <horstretch>0</horstretch>
-               <verstretch>0</verstretch>
-              </sizepolicy>
-             </property>
              <property name="styleSheet">
               <string notr="true">QFrame {
     background: white;
@@ -752,23 +735,31 @@ QListWidget::item:hover {
                  <layout class="QVBoxLayout" name="verticalLayout_7">
                   <item>
                    <widget class="QLabel" name="userNameLabel">
-                    <property name="minimumSize">
-                     <size>
-                      <width>0</width>
-                      <height>0</height>
-                     </size>
-                    </property>
                     <property name="styleSheet">
                      <string notr="true">QLabel {
     color: #333;
     font-size: 20px;
     font-weight: bold;
+    padding: 5px 0px;
 }</string>
                     </property>
                     <property name="text">
                      <string>欢迎，用户</string>
                     </property>
                    </widget>
+                  </item>
+                  <item>
+                   <spacer name="verticalSpacer">
+                    <property name="orientation">
+                     <enum>Qt::Orientation::Vertical</enum>
+                    </property>
+                    <property name="sizeHint" stdset="0">
+                     <size>
+                      <width>20</width>
+                      <height>10</height>
+                     </size>
+                    </property>
+                   </spacer>
                   </item>
                   <item>
                    <widget class="QLabel" name="userLevelLabel">
@@ -804,11 +795,22 @@ QListWidget::item:hover {
                 </item>
                </layout>
               </item>
+              <item>
+               <spacer name="verticalSpacer_2">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>10</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
              </layout>
             </widget>
            </item>
-
-           <!-- 钱包 -->
            <item>
             <widget class="QFrame" name="walletFrame">
              <property name="styleSheet">
@@ -894,16 +896,8 @@ QPushButton:pressed {
              </layout>
             </widget>
            </item>
-
-           <!-- 订单列表 -->
            <item>
             <widget class="QFrame" name="ordersFrame">
-             <property name="sizePolicy">
-              <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
-               <horstretch>0</horstretch>
-               <verstretch>1</verstretch>
-              </sizepolicy>
-             </property>
              <property name="styleSheet">
               <string notr="true">QFrame {
     background: white;
@@ -931,12 +925,6 @@ QPushButton:pressed {
               </item>
               <item>
                <widget class="QListWidget" name="ordersListWidget">
-                <property name="sizePolicy">
-                 <sizepolicy hsizetype="Expanding" vsizetype="Expanding">
-                  <horstretch>0</horstretch>
-                  <verstretch>1</verstretch>
-                 </sizepolicy>
-                </property>
                 <property name="styleSheet">
                  <string notr="true">QListWidget {
     background: white;
@@ -962,6 +950,19 @@ QListWidget::item:hover {
 }</string>
                 </property>
                </widget>
+              </item>
+              <item>
+               <spacer name="verticalSpacer_3">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>10</height>
+                 </size>
+                </property>
+               </spacer>
               </item>
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_3">
@@ -1007,11 +1008,22 @@ QPushButton:pressed {
                 </item>
                </layout>
               </item>
+              <item>
+               <spacer name="verticalSpacer_5">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Vertical</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>20</width>
+                  <height>10</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
              </layout>
             </widget>
            </item>
-
-           <!-- 退出登录 -->
            <item>
             <widget class="QFrame" name="actionFrame">
              <property name="styleSheet">
@@ -1067,58 +1079,73 @@ QPushButton:pressed {
              </layout>
             </widget>
            </item>
+           <item>
+            <spacer name="verticalSpacer_4">
+             <property name="orientation">
+              <enum>Qt::Orientation::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>20</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
           </layout>
          </widget>
         </widget>
        </item>
-      </layout>
-     </widget>
-    </item>
 
-    <!-- 3. 底部导航：整体 50 高，按钮再上移一个自身高度 -->
-    <item>
-     <widget class="QFrame" name="navigationFrame">
-      <property name="sizePolicy">
-       <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
-        <horstretch>0</horstretch>
-        <verstretch>0</verstretch>
-       </sizepolicy>
-      </property>
-      <property name="minimumSize">
-       <size>
-        <width>0</width>
-        <height>50</height>
-       </size>
-      </property>
-      <property name="maximumSize">
-       <size>
-        <width>16777215</width>
-        <height>50</height>
-       </size>
-      </property>
-      <property name="styleSheet">
-       <string notr="true">QFrame {
-    background: white;
-    border-top: 2px solid #e0e0e0;
-}</string>
-      </property>
-      <layout class="QHBoxLayout" name="horizontalLayout_5">
+       <!-- 导航按钮 - 按照查询按钮的样式修改 -->
        <item>
-        <widget class="QPushButton" name="bookingNavButton">
+        <widget class="QFrame" name="navigationFrame">
          <property name="minimumSize">
           <size>
            <width>0</width>
-           <height>46</height>
+           <height>60</height>
+          </size>
+         </property>
+         <property name="maximumSize">
+          <size>
+           <width>16777215</width>
+           <height>60</height>
           </size>
          </property>
          <property name="styleSheet">
-          <string notr="true">QPushButton {
+          <string notr="true">QFrame {
+    background: white;
+    border-top: 2px solid #1e88e5;
+    border-radius: 0px;
+    margin: 0px;
+}</string>
+         </property>
+         <layout class="QHBoxLayout" name="horizontalLayout_5">
+          <item>
+           <widget class="QPushButton" name="bookingNavButton">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>1</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>50</height>
+             </size>
+            </property>
+            <!-- 按照查询按钮的样式修改 -->
+            <property name="styleSheet">
+             <string notr="true">QPushButton {
     background: #1565c0;
     color: white;
     border: none;
     font-size: 16px;
     font-weight: bold;
-    padding: 7px;
+    margin: 5px;
+    border-radius: 8px;
+    padding: 10px 20px;
 }
 QPushButton:hover {
     background: #1976d2;
@@ -1127,34 +1154,43 @@ QPushButton:checked {
     background: #0d47a1;
     border-top: 3px solid #ff9800;
 }</string>
-         </property>
-         <property name="text">
-          <string>✈️ 预订</string>
-         </property>
-         <property name="checkable">
-          <bool>true</bool>
-         </property>
-         <property name="checked">
-          <bool>true</bool>
-         </property>
-        </widget>
-       </item>
-       <item>
-        <widget class="QPushButton" name="myNavButton">
-         <property name="minimumSize">
-          <size>
-           <width>0</width>
-           <height>46</height>
-          </size>
-         </property>
-         <property name="styleSheet">
-          <string notr="true">QPushButton {
+            </property>
+            <property name="text">
+             <string>✈️ 预订</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+            <property name="checked">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+          <item>
+           <widget class="QPushButton" name="myNavButton">
+            <property name="sizePolicy">
+             <sizepolicy hsizetype="Expanding" vsizetype="Fixed">
+              <horstretch>1</horstretch>
+              <verstretch>0</verstretch>
+             </sizepolicy>
+            </property>
+            <property name="minimumSize">
+             <size>
+              <width>0</width>
+              <height>50</height>
+             </size>
+            </property>
+            <!-- 按照查询按钮的样式修改 -->
+            <property name="styleSheet">
+             <string notr="true">QPushButton {
     background: #f5f5f5;
     color: #666;
     border: none;
     font-size: 16px;
     font-weight: bold;
-    padding: 7px;
+    margin: 5px;
+    border-radius: 8px;
+    padding: 10px 20px;
 }
 QPushButton:hover {
     background: #e0e0e0;
@@ -1163,14 +1199,18 @@ QPushButton:checked {
     background: #ffffff;
     color: #1e88e5;
     border-top: 3px solid #1e88e5;
+    font-weight: bold;
 }</string>
-         </property>
-         <property name="text">
-          <string>👤 我的</string>
-         </property>
-         <property name="checkable">
-          <bool>true</bool>
-         </property>
+            </property>
+            <property name="text">
+             <string>👤 我的</string>
+            </property>
+            <property name="checkable">
+             <bool>true</bool>
+            </property>
+           </widget>
+          </item>
+         </layout>
         </widget>
        </item>
       </layout>

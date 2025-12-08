@@ -63,6 +63,7 @@ private:
     // 新增的"我的"页面函数
     void loadUserInfo();
     void loadOrders();
+    void displayOrders(const QJsonArray &orders);
 
     Ui::MainWindow *ui;
     QString currentUsername;

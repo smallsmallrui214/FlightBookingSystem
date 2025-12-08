@@ -402,6 +402,96 @@ private slots:
             networkManager.sendMessage(reply, client);
             break;
         }
+        case ORDER_LIST_REQUEST: {
+            QString username = message.data["username"].toString();
+            qDebug() << "查询用户订单，用户名:" << username;
+
+            NetworkMessage reply;
+            reply.type = ORDER_LIST_RESPONSE;
+
+            // 1. 查询用户ID
+            QSqlQuery userIdQuery;
+            userIdQuery.prepare("SELECT id FROM users WHERE username = ?");
+            userIdQuery.addBindValue(username);
+
+            if (!userIdQuery.exec() || !userIdQuery.next()) {
+                reply.data["success"] = false;
+                reply.data["message"] = "用户不存在";
+                networkManager.sendMessage(reply, client);
+                break;
+            }
+
+            int userId = userIdQuery.value(0).toInt();
+            qDebug() << "用户ID:" << userId;
+
+            // 2. 根据您的实际表结构修改查询
+            // 方案A：JOIN flights 表获取信息
+            QString sql = QString(
+                              "SELECT "
+                              "b.id, "                                // 订单ID
+                              "CONCAT('BK', DATE_FORMAT(b.booking_time, '%%Y%%m%%d'), b.id) AS booking_number, "
+                              "f.departure_city, "                    // 出发城市
+                              "f.arrival_city, "                      // 到达城市
+                              "DATE(f.departure_time) AS travel_date, "  // 旅行日期
+                              "b.total_price, "                       // 总价格
+                              "CASE b.status "
+                              "    WHEN '已预订' THEN 1 "
+                              "    WHEN '已取消' THEN 2 "
+                              "    ELSE 0 "
+                              "END AS status "
+                              "FROM bookings b "
+                              "JOIN flights f ON b.flight_id = f.id "
+                              "WHERE b.user_id = %1 "
+                              "ORDER BY b.booking_time DESC"
+                              ).arg(userId);
+
+            qDebug() << "执行SQL:" << sql;
+
+            QSqlQuery query;
+            if (query.exec(sql)) {
+                QJsonArray ordersArray;
+                int count = 0;
+
+                while (query.next()) {
+                    QJsonObject orderObj;
+
+                    orderObj["order_id"] = query.value(0).toInt();           // b.id
+                    orderObj["booking_number"] = query.value(1).toString();  // 生成的订单号
+
+                    QString departure = query.value(2).toString();           // departure_city
+                    QString arrival = query.value(3).toString();             // arrival_city
+                    orderObj["flight_info"] = departure + " → " + arrival;
+
+                    QDate travelDate = query.value(4).toDate();              // travel_date
+                    orderObj["date"] = travelDate.toString("yyyy-MM-dd");
+
+                    orderObj["price"] = query.value(5).toDouble();           // total_price
+                    orderObj["status"] = query.value(6).toInt();             // 转换后的状态
+
+                    ordersArray.append(orderObj);
+                    count++;
+
+                    qDebug() << "订单" << count << ":"
+                             << orderObj["booking_number"].toString()
+                             << orderObj["flight_info"].toString();
+                }
+
+                reply.data["success"] = true;
+                reply.data["orders"] = ordersArray;
+                reply.data["count"] = count;
+                qDebug() << "查询成功，找到" << count << "个订单";
+
+            } else {
+                QString errorText = query.lastError().text();
+                qDebug() << "查询失败:" << errorText;
+
+                reply.data["success"] = false;
+                reply.data["message"] = "查询订单失败: " + errorText;
+            }
+
+            networkManager.sendMessage(reply, client);
+            break;
+        }
         default:
             qDebug() << "未知消息类型:" << message.type;
         }

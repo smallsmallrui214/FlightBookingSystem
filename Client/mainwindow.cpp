@@ -251,7 +251,6 @@ MainWindow::MainWindow(const QString &username, ClientNetworkManager* networkMan
     // 初始化日期选择系统
     setupDateSelection();
 
-    setupConnections();
 
     // 初始化导航系统
     setupNavigation();
@@ -605,29 +604,47 @@ void MainWindow::onSwapButtonClicked()
 
 void MainWindow::onMessageReceived(const NetworkMessage &message)
 {
-    if (message.type == FLIGHT_SEARCH_RESPONSE) {
+    switch (message.type) {
+    case FLIGHT_SEARCH_RESPONSE:
+    {
         bool success = message.data["success"].toBool();
-
         if (success) {
             QJsonArray flightsArray = message.data["flights"].toArray();
             QList<Flight> flights;
-
             for (auto it = flightsArray.constBegin(); it != flightsArray.constEnd(); ++it) {
                 Flight flight = Flight::fromJson((*it).toObject());
                 flights.append(flight);
             }
-
             currentFlights = flights;
             displayFlights(flights);
 
             if (!flights.isEmpty()) {
-                ui->flightListWidget->insertItem(0, "📅 搜索日期: " + selectedDate.toString("yyyy年MM月dd日"));
+                ui->flightListWidget->insertItem(0,
+                                                 "📅 搜索日期: " + selectedDate.toString("yyyy年MM月dd日"));
             }
         } else {
             QMessageBox::warning(this, "搜索失败", message.data["message"].toString());
             ui->flightListWidget->clear();
-            ui->flightListWidget->addItem("搜索" + selectedDate.toString("yyyy年MM月dd日") + "的航班失败");
+            ui->flightListWidget->addItem("搜索"
+                                          + selectedDate.toString("yyyy年MM月dd日") + "的航班失败");
         }
+        break;
+    }
+
+    case ORDER_LIST_RESPONSE:
+    {
+        bool ok = message.data["success"].toBool();
+        if (ok) {
+            displayOrders(message.data["orders"].toArray());
+        } else {
+            QMessageBox::warning(this, "获取订单失败",
+                                 message.data["message"].toString());
+        }
+        break;
+    }
+
+    default:
+        break;
     }
 }
 
@@ -877,8 +894,49 @@ void MainWindow::onRechargeButtonClicked()
 
 void MainWindow::onViewAllOrdersButtonClicked()
 {
-    // TODO: 实现查看全部订单功能
-    QMessageBox::information(this, "查看全部订单", "查看全部订单功能暂未实现");
+    if (!networkManager || !networkManager->isConnected()) {
+        QMessageBox::warning(this, "错误", "未连接到服务器");
+        return;
+    }
+
+    NetworkMessage msg;
+    msg.type = ORDER_LIST_REQUEST;
+    msg.data["username"] = currentUsername;
+
+    networkManager->sendMessage(msg);
+}
+void MainWindow::displayOrders(const QJsonArray &orders)
+{
+    ui->ordersListWidget->clear();
+
+    if (orders.isEmpty()) {
+        ui->ordersListWidget->addItem("暂无订单");
+        return;
+    }
+
+    for (const QJsonValue &val : orders) {
+        QJsonObject obj = val.toObject();
+        QString orderId = obj["order_id"].toString();
+        QString flightInfo = obj["flight_info"].toString();
+        QString date = obj["date"].toString();
+        double price = obj["price"].toDouble();
+        int status = obj["status"].toInt(); // 0:未支付 1:已支付 2:已取消
+
+        QString statusStr;
+        switch (status) {
+        case 0: statusStr = "未支付"; break;
+        case 1: statusStr = "已支付"; break;
+        case 2: statusStr = "已取消"; break;
+        default: statusStr = "未知";
+        }
+
+        QString itemText = QString("订单号：%1 | %2 | %3 | ¥%4 | %5")
+                               .arg(orderId, flightInfo, date)
+                               .arg(static_cast<int>(price))
+                               .arg(statusStr);
+
+        ui->ordersListWidget->addItem(itemText);
+    }
 }
 void MainWindow::onDateButtonClicked()
 {

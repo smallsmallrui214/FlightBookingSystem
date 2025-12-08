@@ -31,6 +31,9 @@ enum MessageType {
     // 订单相关
     BOOKING_REQUEST = 300,
     BOOKING_RESPONSE = 301,
+    // 新增：订单列表
+    ORDER_LIST_REQUEST = 302,
+    ORDER_LIST_RESPONSE = 303,
     // 新增的钱包相关消息类型
     WALLET_QUERY_REQUEST,      // 钱包查询请求
     WALLET_QUERY_RESPONSE,     // 钱包查询响应

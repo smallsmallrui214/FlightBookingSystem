@@ -14,9 +14,11 @@ SOURCES += \
     SplashScreen.cpp \
     flightdetaildialog.cpp \
     bookingdialog.cpp \
+    walletdialog.cpp \  # 新增
     ../Common/flight.cpp \
     ../Common/cabin.cpp \
-    ../Common/booking.cpp
+    ../Common/booking.cpp \
+    ../Common/wallet.cpp  # 新增
 
 HEADERS += \
     calendardialog.h \
@@ -27,13 +29,16 @@ HEADERS += \
     SplashScreen.h \
     flightdetaildialog.h \
     bookingdialog.h \
+    walletdialog.h \  # 新增
     ../Common/protocol.h \
     ../Common/flight.h \
     ../Common/cabin.h \
-    ../Common/booking.h
+    ../Common/booking.h \
+    ../Common/wallet.h  # 新增
 
 FORMS += \
     testclient.ui \
     mainwindow.ui \
     flightdetaildialog.ui \
-    bookingdialog.ui
+    bookingdialog.ui \
+    walletdialog.ui  # 新增

@@ -1,0 +1,398 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<ui version="4.0">
+ <class>WalletDialog</class>
+ <widget class="QDialog" name="WalletDialog">
+  <property name="geometry">
+   <rect>
+    <x>0</x>
+    <y>0</y>
+    <width>500</width>
+    <height>450</height>
+   </rect>
+  </property>
+  <property name="windowTitle">
+   <string>我的钱包</string>
+  </property>
+  <property name="styleSheet">
+   <string notr="true">QDialog {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #f8f9fa, stop:1 #e9ecef);
+    font-family: &quot;Microsoft YaHei&quot;, &quot;PingFang SC&quot;, sans-serif;
+}</string>
+  </property>
+  <layout class="QVBoxLayout" name="verticalLayout">
+   <property name="spacing">
+    <number>10</number>
+   </property>
+   <property name="leftMargin">
+    <number>15</number>
+   </property>
+   <property name="topMargin">
+    <number>15</number>
+   </property>
+   <property name="rightMargin">
+    <number>15</number>
+   </property>
+   <property name="bottomMargin">
+    <number>15</number>
+   </property>
+   <item>
+    <widget class="QFrame" name="headerFrame">
+     <property name="styleSheet">
+      <string notr="true">QFrame {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1e88e5, stop:1 #1565c0);
+    border-radius: 10px;
+}</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Raised</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout">
+      <item>
+       <widget class="QLabel" name="titleLabel">
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    color: white;
+    font-size: 20px;
+    font-weight: bold;
+    padding: 15px;
+}</string>
+        </property>
+        <property name="text">
+         <string>💰 我的钱包</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="infoFrame">
+     <property name="styleSheet">
+      <string notr="true">QFrame {
+    background: white;
+    border: 2px solid #e3f2fd;
+    border-radius: 10px;
+    padding: 20px;
+}</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Raised</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_2">
+      <item>
+       <widget class="QLabel" name="welcomeLabel">
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    color: #333;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 5px 0px;
+}</string>
+        </property>
+        <property name="text">
+         <string>欢迎您，用户！</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="lastUpdateLabel">
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    color: #666;
+    font-size: 12px;
+    padding: 2px 0px;
+}</string>
+        </property>
+        <property name="text">
+         <string>最近更新: --</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="balanceFrame">
+     <property name="styleSheet">
+      <string notr="true">QFrame {
+    background: white;
+    border: 2px solid #81c784;
+    border-radius: 10px;
+    padding: 25px;
+}</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Raised</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <item>
+       <widget class="QLabel" name="balanceTitleLabel">
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    color: #2e7d32;
+    font-size: 16px;
+    font-weight: bold;
+}</string>
+        </property>
+        <property name="text">
+         <string>当前余额</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QLabel" name="balanceLabel">
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    color: #ff5722;
+    font-size: 32px;
+    font-weight: bold;
+    font-family: 'Microsoft YaHei';
+    padding: 10px 0px;
+}</string>
+        </property>
+        <property name="text">
+         <string>¥ 0.00</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="rechargeFrame">
+     <property name="styleSheet">
+      <string notr="true">QFrame {
+    background: white;
+    border: 2px solid #ffeaa7;
+    border-radius: 10px;
+    padding: 20px;
+}</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Raised</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_4">
+      <item>
+       <widget class="QLabel" name="rechargeTitleLabel">
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    color: #ff9800;
+    font-size: 16px;
+    font-weight: bold;
+    padding: 5px 0px;
+}</string>
+        </property>
+        <property name="text">
+         <string>💰 钱包充值</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <layout class="QHBoxLayout" name="rechargeLayout">
+        <item>
+         <widget class="QLabel" name="amountLabel">
+          <property name="minimumSize">
+           <size>
+            <width>60</width>
+            <height>0</height>
+           </size>
+          </property>
+          <property name="styleSheet">
+           <string notr="true">QLabel {
+    color: #555;
+    font-size: 14px;
+}</string>
+          </property>
+          <property name="text">
+           <string>充值金额：</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLineEdit" name="rechargeAmountEdit">
+          <property name="styleSheet">
+           <string notr="true">QLineEdit {
+    background: white;
+    border: 2px solid #e0e0e0;
+    border-radius: 6px;
+    padding: 10px 12px;
+    font-size: 14px;
+    color: #333;
+}
+QLineEdit:focus {
+    border-color: #1e88e5;
+    background-color: #f8fdff;
+}</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="yuanLabel">
+          <property name="styleSheet">
+           <string notr="true">QLabel {
+    color: #555;
+    font-size: 14px;
+    padding: 0px 5px;
+}</string>
+          </property>
+          <property name="text">
+           <string>元</string>
+          </property>
+         </widget>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="newBalanceLabel">
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    color: #666;
+    font-size: 14px;
+    padding: 8px 0px;
+}</string>
+        </property>
+        <property name="text">
+         <string>充值后余额: --</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+   <item>
+    <widget class="QFrame" name="buttonFrame">
+     <property name="styleSheet">
+      <string notr="true">QFrame {
+    background: transparent;
+}</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Raised</enum>
+     </property>
+     <layout class="QHBoxLayout" name="horizontalLayout_2">
+      <item>
+       <spacer name="horizontalSpacer">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="closeButton">
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>40</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+    background: #f5f5f5;
+    color: #666;
+    border: 1px solid #ddd;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: bold;
+}
+QPushButton:hover {
+    background: #e0e0e0;
+}
+QPushButton:pressed {
+    background: #d0d0d0;
+}</string>
+        </property>
+        <property name="text">
+         <string>关闭</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_2">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>20</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+      <item>
+       <widget class="QPushButton" name="rechargeButton">
+        <property name="minimumSize">
+         <size>
+          <width>100</width>
+          <height>40</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #4caf50, stop:1 #2e7d32);
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px;
+    font-size: 14px;
+    font-weight: bold;
+}
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #2e7d32, stop:1 #1b5e20);
+}
+QPushButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1b5e20, stop:1 #003300);
+}
+QPushButton:disabled {
+    background: #cccccc;
+    color: #888888;
+}</string>
+        </property>
+        <property name="text">
+         <string>确认充值</string>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <spacer name="horizontalSpacer_3">
+        <property name="orientation">
+         <enum>Qt::Orientation::Horizontal</enum>
+        </property>
+        <property name="sizeHint" stdset="0">
+         <size>
+          <width>40</width>
+          <height>20</height>
+         </size>
+        </property>
+       </spacer>
+      </item>
+     </layout>
+    </widget>
+   </item>
+  </layout>
+ </widget>
+ <resources/>
+ <connections/>
+</ui>

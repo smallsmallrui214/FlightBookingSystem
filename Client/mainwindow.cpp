@@ -3,6 +3,7 @@
 #include "../Common/protocol.h"
 #include "calendardialog.h"
 #include "flightdetaildialog.h"  // 新增头文件
+#include "walletdialog.h"  // 新增头文件
 #include <QListWidgetItem>
 #include <QLabel>
 #include <QPushButton>
@@ -868,8 +869,10 @@ void MainWindow::loadOrders()
 //添加"我的"页面的相关函数
 void MainWindow::onRechargeButtonClicked()
 {
-    // TODO: 实现充值功能
-    QMessageBox::information(this, "充值", "充值功能暂未实现");
+    // 打开钱包对话框
+    WalletDialog *dialog = new WalletDialog(currentUsername, networkManager, this);
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->exec();
 }
 
 void MainWindow::onViewAllOrdersButtonClicked()

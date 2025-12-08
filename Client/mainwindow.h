@@ -11,6 +11,7 @@
 #include <QPushButton>
 #include "clientnetworkmanager.h"
 #include "../Common/flight.h"
+#include "walletdialog.h"  // 新增
 
 namespace Ui {
 class MainWindow;

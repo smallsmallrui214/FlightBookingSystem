@@ -99,6 +99,12 @@
       <layout class="QVBoxLayout" name="verticalLayout_3">
        <item>
         <widget class="QStackedWidget" name="stackedWidget">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Expanding">
+           <horstretch>0</horstretch>
+           <verstretch>1</verstretch>
+          </sizepolicy>
+         </property>
          <property name="minimumSize">
           <size>
            <width>400</width>
@@ -681,47 +687,85 @@ QListWidget::item:hover {
          </widget>
          <widget class="QWidget" name="myPage">
           <layout class="QVBoxLayout" name="verticalLayout_5">
+           <property name="spacing">
+            <number>0</number>
+           </property>
+           <property name="leftMargin">
+            <number>10</number>
+           </property>
+           <property name="topMargin">
+            <number>10</number>
+           </property>
+           <property name="rightMargin">
+            <number>10</number>
+           </property>
+           <property name="bottomMargin">
+            <number>10</number>
+           </property>
            <item>
             <widget class="QFrame" name="userInfoFrame">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>180</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>220</height>
+              </size>
+             </property>
              <property name="styleSheet">
               <string notr="true">QFrame {
     background: white;
     border: 2px solid #e3f2fd;
     border-radius: 12px;
     padding: 20px;
-    margin: 10px;
 }</string>
              </property>
-             <layout class="QVBoxLayout" name="verticalLayout_6">
+             <layout class="QHBoxLayout" name="horizontalLayout_7">
               <item>
-               <widget class="QLabel" name="myTitleLabel">
-                <property name="styleSheet">
-                 <string notr="true">QLabel {
+               <layout class="QVBoxLayout" name="verticalLayout_12">
+                <property name="spacing">
+                 <number>8</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="myTitleLabel">
+                  <property name="styleSheet">
+                   <string notr="true">QLabel {
     color: #1e88e5;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: bold;
     padding: 5px 0px;
+    qproperty-alignment: AlignCenter;
 }</string>
-                </property>
-                <property name="text">
-                 <string>👤 账号信息</string>
-                </property>
-               </widget>
-              </item>
-              <item>
-               <layout class="QHBoxLayout" name="userInfoLayout">
+                  </property>
+                  <property name="text">
+                   <string>👤 账号信息</string>
+                  </property>
+                 </widget>
+                </item>
                 <item>
                  <widget class="QLabel" name="userAvatarLabel">
+                  <property name="minimumSize">
+                   <size>
+                    <width>100</width>
+                    <height>100</height>
+                   </size>
+                  </property>
+                  <property name="maximumSize">
+                   <size>
+                    <width>100</width>
+                    <height>100</height>
+                   </size>
+                  </property>
                   <property name="styleSheet">
                    <string notr="true">QLabel {
     background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1e88e5, stop:1 #1565c0);
-    border-radius: 40px;
-    min-width: 80px;
-    max-width: 80px;
-    min-height: 80px;
-    max-height: 80px;
+    border-radius: 50px;
     color: white;
-    font-size: 30px;
+    font-size: 40px;
     font-weight: bold;
     qproperty-alignment: AlignCenter;
 }</string>
@@ -732,63 +776,27 @@ QListWidget::item:hover {
                  </widget>
                 </item>
                 <item>
-                 <layout class="QVBoxLayout" name="verticalLayout_7">
-                  <item>
-                   <widget class="QLabel" name="userNameLabel">
-                    <property name="styleSheet">
-                     <string notr="true">QLabel {
-    color: #333;
-    font-size: 20px;
-    font-weight: bold;
-    padding: 5px 0px;
-}</string>
-                    </property>
-                    <property name="text">
-                     <string>欢迎，用户</string>
-                    </property>
-                   </widget>
-                  </item>
-                  <item>
-                   <spacer name="verticalSpacer">
-                    <property name="orientation">
-                     <enum>Qt::Orientation::Vertical</enum>
-                    </property>
-                    <property name="sizeHint" stdset="0">
-                     <size>
-                      <width>20</width>
-                      <height>10</height>
-                     </size>
-                    </property>
-                   </spacer>
-                  </item>
-                  <item>
-                   <widget class="QLabel" name="userLevelLabel">
-                    <property name="styleSheet">
-                     <string notr="true">QLabel {
-    color: #ff9800;
-    font-size: 14px;
-    background: #fff3e0;
-    padding: 4px 12px;
-    border-radius: 12px;
-    max-width: 100px;
-}</string>
-                    </property>
-                    <property name="text">
-                     <string>普通会员</string>
-                    </property>
-                   </widget>
-                  </item>
-                 </layout>
-                </item>
-                <item>
-                 <spacer name="horizontalSpacer_3">
+                 <spacer name="verticalSpacer_14">
                   <property name="orientation">
-                   <enum>Qt::Orientation::Horizontal</enum>
+                   <enum>Qt::Orientation::Vertical</enum>
                   </property>
                   <property name="sizeHint" stdset="0">
                    <size>
-                    <width>40</width>
-                    <height>20</height>
+                    <width>20</width>
+                    <height>5</height>
+                   </size>
+                  </property>
+                 </spacer>
+                </item>
+                <item>
+                 <spacer name="verticalSpacer_15">
+                  <property name="orientation">
+                   <enum>Qt::Orientation::Vertical</enum>
+                  </property>
+                  <property name="sizeHint" stdset="0">
+                   <size>
+                    <width>20</width>
+                    <height>8</height>
                    </size>
                   </property>
                  </spacer>
@@ -796,14 +804,60 @@ QListWidget::item:hover {
                </layout>
               </item>
               <item>
-               <spacer name="verticalSpacer_2">
+               <widget class="QLabel" name="userLevelLabel">
+                <property name="styleSheet">
+                 <string notr="true">QLabel {
+    color: #ff9800;
+    font-size: 16px;
+    background: #fff3e0;
+    padding: 8px 18px;
+    border-radius: 18px;
+    max-width: 150px;
+    qproperty-alignment: AlignCenter;
+}</string>
+                </property>
+                <property name="text">
+                 <string>普通会员</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_11">
                 <property name="orientation">
-                 <enum>Qt::Orientation::Vertical</enum>
+                 <enum>Qt::Orientation::Horizontal</enum>
                 </property>
                 <property name="sizeHint" stdset="0">
                  <size>
-                  <width>20</width>
-                  <height>10</height>
+                  <width>40</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
+               <widget class="QLabel" name="userNameLabel">
+                <property name="styleSheet">
+                 <string notr="true">QLabel {
+    color: #333;
+    font-size: 26px;
+    font-weight: bold;
+    padding: 5px 0px;
+}</string>
+                </property>
+                <property name="text">
+                 <string>欢迎，用户</string>
+                </property>
+               </widget>
+              </item>
+              <item>
+               <spacer name="horizontalSpacer_12">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>40</width>
+                  <height>20</height>
                  </size>
                 </property>
                </spacer>
@@ -812,14 +866,38 @@ QListWidget::item:hover {
             </widget>
            </item>
            <item>
+            <spacer name="verticalSpacer_7">
+             <property name="orientation">
+              <enum>Qt::Orientation::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>12</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
             <widget class="QFrame" name="walletFrame">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>90</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>110</height>
+              </size>
+             </property>
              <property name="styleSheet">
               <string notr="true">QFrame {
     background: white;
     border: 2px solid #e3f2fd;
     border-radius: 12px;
     padding: 20px;
-    margin: 10px;
 }</string>
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_2">
@@ -828,7 +906,7 @@ QListWidget::item:hover {
                 <property name="styleSheet">
                  <string notr="true">QLabel {
     color: #1e88e5;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: bold;
     padding: 5px 0px;
 }</string>
@@ -856,9 +934,10 @@ QListWidget::item:hover {
                 <property name="styleSheet">
                  <string notr="true">QLabel {
     color: #ff5722;
-    font-size: 22px;
+    font-size: 26px;
     font-weight: bold;
-    font-family: 'Microsoft YaHei';
+    padding: 5px 0px;
+    min-width: 150px;
 }</string>
                 </property>
                 <property name="text">
@@ -867,17 +946,41 @@ QListWidget::item:hover {
                </widget>
               </item>
               <item>
+               <spacer name="horizontalSpacer_10">
+                <property name="orientation">
+                 <enum>Qt::Orientation::Horizontal</enum>
+                </property>
+                <property name="sizeHint" stdset="0">
+                 <size>
+                  <width>30</width>
+                  <height>20</height>
+                 </size>
+                </property>
+               </spacer>
+              </item>
+              <item>
                <widget class="QPushButton" name="rechargeButton">
+                <property name="minimumSize">
+                 <size>
+                  <width>110</width>
+                  <height>40</height>
+                 </size>
+                </property>
+                <property name="maximumSize">
+                 <size>
+                  <width>110</width>
+                  <height>40</height>
+                 </size>
+                </property>
                 <property name="styleSheet">
                  <string notr="true">QPushButton {
     background: #4caf50;
     color: white;
     border: none;
-    border-radius: 6px;
-    padding: 8px 20px;
-    font-size: 14px;
+    border-radius: 8px;
+    padding: 10px 20px;
+    font-size: 16px;
     font-weight: bold;
-    min-width: 80px;
 }
 
 QPushButton:hover {
@@ -897,6 +1000,19 @@ QPushButton:pressed {
             </widget>
            </item>
            <item>
+            <spacer name="verticalSpacer_8">
+             <property name="orientation">
+              <enum>Qt::Orientation::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>12</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
             <widget class="QFrame" name="ordersFrame">
              <property name="styleSheet">
               <string notr="true">QFrame {
@@ -904,7 +1020,6 @@ QPushButton:pressed {
     border: 2px solid #e3f2fd;
     border-radius: 12px;
     padding: 20px;
-    margin: 10px;
 }</string>
              </property>
              <layout class="QVBoxLayout" name="verticalLayout_8">
@@ -913,7 +1028,7 @@ QPushButton:pressed {
                 <property name="styleSheet">
                  <string notr="true">QLabel {
     color: #1e88e5;
-    font-size: 16px;
+    font-size: 18px;
     font-weight: bold;
     padding: 5px 0px;
 }</string>
@@ -930,14 +1045,13 @@ QPushButton:pressed {
     background: white;
     border: 1px solid #e0e0e0;
     border-radius: 8px;
-    margin: 10px 0px;
     outline: none;
-    min-height: 150px;
 }
 
 QListWidget::item {
     border-bottom: 1px solid #f5f5f5;
-    padding: 0px;
+    padding: 12px;
+    min-height: 65px;
 }
 
 QListWidget::item:selected {
@@ -952,14 +1066,14 @@ QListWidget::item:hover {
                </widget>
               </item>
               <item>
-               <spacer name="verticalSpacer_3">
+               <spacer name="verticalSpacer_9">
                 <property name="orientation">
                  <enum>Qt::Orientation::Vertical</enum>
                 </property>
                 <property name="sizeHint" stdset="0">
                  <size>
                   <width>20</width>
-                  <height>10</height>
+                  <height>12</height>
                  </size>
                 </property>
                </spacer>
@@ -968,16 +1082,21 @@ QListWidget::item:hover {
                <layout class="QHBoxLayout" name="horizontalLayout_3">
                 <item>
                  <widget class="QPushButton" name="viewAllOrdersButton">
+                  <property name="minimumSize">
+                   <size>
+                    <width>0</width>
+                    <height>45</height>
+                   </size>
+                  </property>
                   <property name="styleSheet">
                    <string notr="true">QPushButton {
     background: #bbdefb;
     color: #1565c0;
     border: none;
-    border-radius: 6px;
-    padding: 10px 20px;
-    font-size: 14px;
+    border-radius: 8px;
+    padding: 12px 25px;
+    font-size: 16px;
     font-weight: bold;
-    min-width: 120px;
 }
 
 QPushButton:hover {
@@ -1008,46 +1127,62 @@ QPushButton:pressed {
                 </item>
                </layout>
               </item>
-              <item>
-               <spacer name="verticalSpacer_5">
-                <property name="orientation">
-                 <enum>Qt::Orientation::Vertical</enum>
-                </property>
-                <property name="sizeHint" stdset="0">
-                 <size>
-                  <width>20</width>
-                  <height>10</height>
-                 </size>
-                </property>
-               </spacer>
-              </item>
              </layout>
             </widget>
            </item>
            <item>
+            <spacer name="verticalSpacer_10">
+             <property name="orientation">
+              <enum>Qt::Orientation::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>20</width>
+               <height>12</height>
+              </size>
+             </property>
+            </spacer>
+           </item>
+           <item>
             <widget class="QFrame" name="actionFrame">
+             <property name="minimumSize">
+              <size>
+               <width>0</width>
+               <height>80</height>
+              </size>
+             </property>
+             <property name="maximumSize">
+              <size>
+               <width>16777215</width>
+               <height>90</height>
+              </size>
+             </property>
              <property name="styleSheet">
               <string notr="true">QFrame {
     background: white;
     border: 2px solid #e3f2fd;
     border-radius: 12px;
     padding: 20px;
-    margin: 10px;
 }</string>
              </property>
              <layout class="QHBoxLayout" name="horizontalLayout_4">
               <item>
                <widget class="QPushButton" name="logoutButton">
+                <property name="minimumSize">
+                 <size>
+                  <width>0</width>
+                  <height>50</height>
+                 </size>
+                </property>
                 <property name="styleSheet">
                  <string notr="true">QPushButton {
     background: #f44336;
     color: white;
     border: none;
-    border-radius: 6px;
-    padding: 12px 30px;
-    font-size: 16px;
+    border-radius: 8px;
+    padding: 14px 35px;
+    font-size: 18px;
     font-weight: bold;
-    min-width: 150px;
 }
 
 QPushButton:hover {
@@ -1080,7 +1215,7 @@ QPushButton:pressed {
             </widget>
            </item>
            <item>
-            <spacer name="verticalSpacer_4">
+            <spacer name="verticalSpacer_11">
              <property name="orientation">
               <enum>Qt::Orientation::Vertical</enum>
              </property>
@@ -1096,10 +1231,14 @@ QPushButton:pressed {
          </widget>
         </widget>
        </item>
-
-       <!-- 导航按钮 - 按照查询按钮的样式修改 -->
        <item>
         <widget class="QFrame" name="navigationFrame">
+         <property name="sizePolicy">
+          <sizepolicy hsizetype="Preferred" vsizetype="Fixed">
+           <horstretch>0</horstretch>
+           <verstretch>0</verstretch>
+          </sizepolicy>
+         </property>
          <property name="minimumSize">
           <size>
            <width>0</width>
@@ -1132,27 +1271,28 @@ QPushButton:pressed {
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>50</height>
+              <height>55</height>
              </size>
             </property>
-            <!-- 按照查询按钮的样式修改 -->
             <property name="styleSheet">
              <string notr="true">QPushButton {
     background: #1565c0;
     color: white;
     border: none;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: bold;
     margin: 5px;
     border-radius: 8px;
-    padding: 10px 20px;
+    padding: 8px 5px;
+    qproperty-alignment: AlignCenter;
 }
 QPushButton:hover {
     background: #1976d2;
 }
 QPushButton:checked {
     background: #0d47a1;
-    border-top: 3px solid #ff9800;
+    border-top: 2px solid #ff9800;
+    padding: 6px 5px 10px 5px;
 }</string>
             </property>
             <property name="text">
@@ -1177,20 +1317,20 @@ QPushButton:checked {
             <property name="minimumSize">
              <size>
               <width>0</width>
-              <height>50</height>
+              <height>55</height>
              </size>
             </property>
-            <!-- 按照查询按钮的样式修改 -->
             <property name="styleSheet">
              <string notr="true">QPushButton {
     background: #f5f5f5;
     color: #666;
     border: none;
-    font-size: 16px;
+    font-size: 14px;
     font-weight: bold;
     margin: 5px;
     border-radius: 8px;
-    padding: 10px 20px;
+    padding: 8px 5px;
+    qproperty-alignment: AlignCenter;
 }
 QPushButton:hover {
     background: #e0e0e0;
@@ -1198,8 +1338,9 @@ QPushButton:hover {
 QPushButton:checked {
     background: #ffffff;
     color: #1e88e5;
-    border-top: 3px solid #1e88e5;
+    border-top: 2px solid #1e88e5;
     font-weight: bold;
+    padding: 6px 5px 10px 5px;
 }</string>
             </property>
             <property name="text">

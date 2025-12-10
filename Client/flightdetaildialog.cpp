@@ -27,6 +27,15 @@ FlightDetailDialog::FlightDetailDialog(const Flight &flight,
     connect(networkManager, &ClientNetworkManager::messageReceived,
             this, &FlightDetailDialog::onMessageReceived);
 
+    // ======================= 添加的关键代码 =======================
+    // 确保表格正确初始化
+    ui->cabinTable->setShowGrid(true);
+    ui->cabinTable->setGridStyle(Qt::SolidLine);
+    ui->cabinTable->setAlternatingRowColors(true);
+    ui->cabinTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->cabinTable->setSelectionMode(QAbstractItemView::SingleSelection);
+    // ==========================================================
+
     // 加载舱位数据
     loadCabinData();
 }
@@ -276,9 +285,14 @@ void FlightDetailDialog::displayCabinData(const QList<Cabin> &cabins)
 
     // 直接调用显示筛选后的数据
     displayFilteredCabins();
+
+    // 添加额外的刷新代码
+    if (ui->cabinTable->rowCount() > 0) {
+        ui->cabinTable->viewport()->update();
+        ui->cabinTable->repaint();
+    }
 }
 
-// 新增函数：显示筛选后的舱位数据
 void FlightDetailDialog::displayFilteredCabins()
 {
     if (currentCabins.isEmpty() || selectedCabinType == -1) {
@@ -371,7 +385,7 @@ void FlightDetailDialog::displayFilteredCabins()
         // 预订按钮
         QString buttonText = availableSeats > 0 ? "预订" : "已售罄";
         QPushButton *bookButton = new QPushButton(buttonText);
-        bookButton->setFixedSize(85, 34);
+        bookButton->setFixedSize(70, 34);
 
         if (availableSeats > 0) {
             bookButton->setStyleSheet(
@@ -462,6 +476,20 @@ void FlightDetailDialog::displayFilteredCabins()
         );
 
     ui->cabinTable->setAlternatingRowColors(true);
+
+    // ======================= 添加的关键代码 =======================
+    // 强制表格刷新显示
+    ui->cabinTable->viewport()->update();
+
+    // 调整列宽以适应内容
+    ui->cabinTable->resizeColumnsToContents();
+
+    // 可选：设置最小列宽，确保内容可见
+    ui->cabinTable->horizontalHeader()->setMinimumSectionSize(80);
+
+    // 可选：刷新整个表格，确保所有内容重绘
+    ui->cabinTable->repaint();
+    // ==========================================================
 }
 
 void FlightDetailDialog::onBookButtonClicked(int row)

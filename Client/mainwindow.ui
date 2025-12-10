@@ -165,6 +165,7 @@
     max-width: 40px;
     min-height: 40px;
     max-height: 40px;
+    color: #333333;
 }
 QPushButton:hover {
     background: #e0e0e0;
@@ -430,6 +431,7 @@ QPushButton:checked {
     max-width: 40px;
     min-height: 40px;
     max-height: 40px;
+    color: #333333;
 }
 QPushButton:hover {
     background: #e0e0e0;
@@ -484,7 +486,7 @@ QPushButton:pressed {
     border-radius: 8px;
     padding: 12px 15px;
     font-size: 14px;
-    color: #333;
+    color: #333333;
     min-width: 140px;
 }
 
@@ -535,7 +537,7 @@ QPushButton:pressed {
     border-radius: 8px;
     padding: 12px 15px;
     font-size: 14px;
-    color: #333;
+    color: #333333;
     min-width: 140px;
 }
 
@@ -605,10 +607,29 @@ QPushButton:pressed {
     padding: 8px 12px;
     font-size: 13px;
     min-width: 120px;
+    color: #333333;
 }
 
 QComboBox:focus {
     border-color: #1e88e5;
+}
+
+QComboBox::item {
+    color: #333333;
+    background: white;
+}
+
+QComboBox::item:selected {
+    background: #e3f2fd;
+    color: #1e88e5;
+}
+
+QComboBox QAbstractItemView {
+    background: white;
+    border: 1px solid #e0e0e0;
+    selection-background-color: #e3f2fd;
+    selection-color: #1e88e5;
+    color: #333333;
 }</string>
                   </property>
                   <item>
@@ -665,20 +686,24 @@ QComboBox:focus {
     border-radius: 8px;
     margin: 10px;
     outline: none;
+    color: #333333;
 }
 
 QListWidget::item {
     border-bottom: 1px solid #f5f5f5;
     padding: 0px;
+    color: #333333;
 }
 
 QListWidget::item:selected {
     background-color: #e3f2fd;
     border: none;
+    color: #333333;
 }
 
 QListWidget::item:hover {
     background-color: #f8f9fa;
+    color: #333333;
 }</string>
              </property>
             </widget>
@@ -1046,21 +1071,25 @@ QPushButton:pressed {
     border: 1px solid #e0e0e0;
     border-radius: 8px;
     outline: none;
+    color: #333333;
 }
 
 QListWidget::item {
     border-bottom: 1px solid #f5f5f5;
     padding: 12px;
     min-height: 65px;
+    color: #333333;
 }
 
 QListWidget::item:selected {
     background-color: #e3f2fd;
     border: none;
+    color: #333333;
 }
 
 QListWidget::item:hover {
     background-color: #f8f9fa;
+    color: #333333;
 }</string>
                 </property>
                </widget>

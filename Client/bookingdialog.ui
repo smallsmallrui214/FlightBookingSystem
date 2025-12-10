@@ -7,7 +7,7 @@
     <x>0</x>
     <y>0</y>
     <width>500</width>
-    <height>626</height>
+    <height>700</height>  <!-- 增加高度 -->
    </rect>
   </property>
   <property name="windowTitle">
@@ -102,6 +102,124 @@
      </layout>
     </widget>
    </item>
+
+   <!-- 新增：余额信息框架 -->
+   <item>
+    <widget class="QFrame" name="balanceFrame">
+     <property name="styleSheet">
+      <string notr="true">QFrame {
+    background: white;
+    border: 2px solid #bbdefb;
+    border-radius: 8px;
+    padding: 12px;
+}</string>
+     </property>
+     <property name="frameShape">
+      <enum>QFrame::Shape::StyledPanel</enum>
+     </property>
+     <property name="frameShadow">
+      <enum>QFrame::Shadow::Raised</enum>
+     </property>
+     <layout class="QVBoxLayout" name="verticalLayout_3">
+      <property name="spacing">
+       <number>8</number>
+      </property>
+      <item>
+       <layout class="QHBoxLayout" name="balanceInfoLayout">
+        <item>
+         <widget class="QLabel" name="balanceTitleLabel">
+          <property name="styleSheet">
+           <string notr="true">QLabel {
+    color: #555;
+    font-size: 14px;
+    font-weight: bold;
+}</string>
+          </property>
+          <property name="text">
+           <string>账户余额：</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <widget class="QLabel" name="balanceLabel">
+          <property name="styleSheet">
+           <string notr="true">QLabel {
+    color: #1976d2;
+    font-size: 16px;
+    font-weight: bold;
+}</string>
+          </property>
+          <property name="text">
+           <string>正在查询...</string>
+          </property>
+         </widget>
+        </item>
+        <item>
+         <spacer name="horizontalSpacer_5">
+          <property name="orientation">
+           <enum>Qt::Orientation::Horizontal</enum>
+          </property>
+          <property name="sizeHint" stdset="0">
+           <size>
+            <width>40</width>
+            <height>20</height>
+           </size>
+          </property>
+         </spacer>
+        </item>
+       </layout>
+      </item>
+      <item>
+       <widget class="QLabel" name="balanceStatusLabel">
+        <property name="styleSheet">
+         <string notr="true">QLabel {
+    font-size: 13px;
+    font-weight: bold;
+    padding: 4px 8px;
+    border-radius: 4px;
+}</string>
+        </property>
+        <property name="text">
+         <string/>
+        </property>
+       </widget>
+      </item>
+      <item>
+       <widget class="QPushButton" name="rechargeButton">
+        <property name="minimumSize">
+         <size>
+          <width>0</width>
+          <height>35</height>
+         </size>
+        </property>
+        <property name="styleSheet">
+         <string notr="true">QPushButton {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #4CAF50, stop:1 #2E7D32);
+    color: white;
+    border: none;
+    border-radius: 6px;
+    padding: 8px 16px;
+    font-size: 13px;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #43A047, stop:1 #1B5E20);
+}
+
+QPushButton:pressed {
+    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #388E3C, stop:1 #0D47A1);
+}</string>
+        </property>
+        <property name="text">
+         <string>立即充值</string>
+        </property>
+       </widget>
+      </item>
+     </layout>
+    </widget>
+   </item>
+
    <item>
     <widget class="QGroupBox" name="passengerGroupBox">
      <property name="styleSheet">
@@ -291,6 +409,35 @@ QLineEdit:focus {
      </layout>
     </widget>
    </item>
+
+   <!-- 新增：状态提示标签 -->
+   <item>
+    <widget class="QLabel" name="statusLabel">
+     <property name="minimumSize">
+      <size>
+       <width>0</width>
+       <height>25</height>
+      </size>
+     </property>
+     <property name="styleSheet">
+      <string notr="true">QLabel {
+    color: #666;
+    font-size: 13px;
+    font-weight: bold;
+    padding: 6px;
+    border-radius: 4px;
+    background-color: #f5f5f5;
+}</string>
+     </property>
+     <property name="text">
+      <string>请填写完整的乘客信息</string>
+     </property>
+     <property name="alignment">
+      <set>Qt::AlignmentFlag::AlignCenter</set>
+     </property>
+    </widget>
+   </item>
+
    <item>
     <widget class="QFrame" name="priceFrame">
      <property name="styleSheet">
@@ -338,6 +485,7 @@ QLineEdit:focus {
      </layout>
     </widget>
    </item>
+
    <item>
     <widget class="QFrame" name="buttonFrame">
      <property name="styleSheet">

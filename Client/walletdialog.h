@@ -18,6 +18,9 @@ public:
                           QWidget *parent = nullptr);
     ~WalletDialog();
 
+signals:  // 添加信号声明
+    void balanceUpdated();  // 余额更新信号
+
 private slots:
     void onRechargeButtonClicked();
     void onCloseButtonClicked();

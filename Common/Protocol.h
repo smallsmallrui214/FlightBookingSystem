@@ -28,17 +28,21 @@ enum MessageType {
     CABIN_SEARCH_REQUEST = 204,
     CABIN_SEARCH_RESPONSE = 205,
 
-    // 订单相关
-    BOOKING_REQUEST = 300,
-    BOOKING_RESPONSE = 301,
-    // 新增：订单列表
-    ORDER_LIST_REQUEST = 302,
-    ORDER_LIST_RESPONSE = 303,
-    // 新增的钱包相关消息类型
-    WALLET_QUERY_REQUEST,      // 钱包查询请求
-    WALLET_QUERY_RESPONSE,     // 钱包查询响应
-    RECHARGE_REQUEST,          // 充值请求
-    RECHARGE_RESPONSE,         // 充值响应
+    // 预订和订单相关 (300-399)
+    BOOKING_REQUEST = 300,         // 预订请求
+    BOOKING_RESPONSE = 301,        // 预订响应
+    ORDER_LIST_REQUEST = 302,      // 订单列表请求
+    ORDER_LIST_RESPONSE = 303,     // 订单列表响应
+    ORDER_CANCEL_REQUEST = 304,    // 取消订单请求
+    ORDER_CANCEL_RESPONSE = 305,   // 取消订单响应
+
+    // 钱包和支付相关 (400-499)
+    WALLET_QUERY_REQUEST = 400,    // 钱包查询请求
+    WALLET_QUERY_RESPONSE = 401,   // 钱包查询响应
+    RECHARGE_REQUEST = 402,        // 充值请求
+    RECHARGE_RESPONSE = 403,       // 充值响应
+    PAYMENT_REQUEST = 404,         // 支付请求（用于预订时扣款）
+    PAYMENT_RESPONSE = 405,        // 支付响应
 };
 
 // 基础消息结构

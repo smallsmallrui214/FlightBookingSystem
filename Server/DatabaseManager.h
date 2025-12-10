@@ -22,6 +22,21 @@ public:
     int getUserId(const QString &username);
     bool updateLastLogin(const QString &username);
 
+    // 钱包相关
+    bool queryUserBalance(const QString &username, double &balance);
+    bool rechargeUserWallet(const QString &username, double amount, double &newBalance);
+    bool deductFromWallet(const QString &username, double amount, double &newBalance);
+
+    // 预订相关
+    bool processBooking(const QString &username, int flightId, int cabinId,
+                        const QString &passengerName, const QString &passengerId,
+                        const QString &passengerPhone, double totalPrice,
+                        QString &bookingNumber, double &newBalance);
+
+    // 航班和舱位查询
+    bool getFlightAvailableSeats(int flightId, int &availableSeats);
+    bool getCabinAvailableSeats(int cabinId, int &availableSeats);
+
 private:
     DatabaseManager(QObject *parent = nullptr);
     bool openDatabase();

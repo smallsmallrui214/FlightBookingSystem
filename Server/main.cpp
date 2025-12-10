@@ -3,6 +3,7 @@
 #include <QJsonArray>
 #include <QRandomGenerator>
 #include <QTime>
+#include <QDateTime>
 #include <cstdlib>
 #include <ctime>
 #include "servernetworkmanager.h"
@@ -269,14 +270,12 @@ private slots:
                     int availableSeats = availSeatsStr.toInt();
                     int totalSeats = totalSeatsStr.toInt();
 
-
                     // 创建Cabin对象
                     Cabin cabin(id, dbFlightId, cabinType, price, availableSeats, totalSeats,
                                 baggageAllowance, amenities);
 
                     cabinsArray.append(cabin.toJson());
                 }
-
 
                 reply.data["success"] = true;
                 reply.data["cabins"] = cabinsArray;
@@ -290,36 +289,199 @@ private slots:
             networkManager.sendMessage(reply, client);
             break;
         }
-        case BOOKING_REQUEST: {
-            int flightId = message.data["flight_id"].toInt();
-            int cabinId = message.data["cabin_id"].toInt();
-            QString passengerName = message.data["passenger_name"].toString();
-            QString passengerId = message.data["passenger_id"].toString();
-            QString passengerPhone = message.data["passenger_phone"].toString();
-            double totalPrice = message.data["total_price"].toDouble();
 
-            int userId = message.data["user_id"].toInt();
-            if (userId <= 0) {
-                userId = 1;
-            }
-
-            qDebug() << "=== 预订请求 ===";
-            qDebug() << "航班ID:" << flightId;
-            qDebug() << "舱位ID:" << cabinId;
-            qDebug() << "乘客:" << passengerName;
-            qDebug() << "用户ID:" << userId;
+        // =============== 新增：钱包查询处理 ===============
+        case WALLET_QUERY_REQUEST: {  // 400
+            QString username = message.data["username"].toString();
+            qDebug() << "处理钱包查询请求，用户名:" << username;
 
             NetworkMessage reply;
-            reply.type = BOOKING_RESPONSE;
+            reply.type = WALLET_QUERY_RESPONSE;  // 401
+
+            // 查询数据库
+            QSqlQuery query;
+            query.prepare("SELECT w.balance FROM wallets w "
+                          "JOIN users u ON w.user_id = u.id "
+                          "WHERE u.username = ?");
+            query.addBindValue(username);
+
+            if (query.exec() && query.next()) {
+                double balance = query.value(0).toDouble();
+                reply.data["success"] = true;
+                reply.data["balance"] = balance;
+                reply.data["message"] = "查询成功";
+                qDebug() << "用户" << username << "余额查询成功:" << balance;
+            } else {
+                reply.data["success"] = false;
+                reply.data["message"] = "查询余额失败，用户不存在或钱包未初始化";
+                qDebug() << "用户" << username << "余额查询失败:" << query.lastError().text();
+            }
+
+            networkManager.sendMessage(reply, client);
+            break;
+        }
+
+        // =============== 新增：充值处理 ===============
+        case RECHARGE_REQUEST: {  // 402
+            QString username = message.data["username"].toString();
+            double amount = message.data["amount"].toDouble();
+
+            qDebug() << "处理充值请求，用户:" << username << "，金额:" << amount;
+
+            if (amount <= 0) {
+                NetworkMessage reply;
+                reply.type = RECHARGE_RESPONSE;  // 403
+                reply.data["success"] = false;
+                reply.data["message"] = "充值金额必须大于0";
+                networkManager.sendMessage(reply, client);
+                break;
+            }
+
+            NetworkMessage reply;
+            reply.type = RECHARGE_RESPONSE;
 
             // 开始事务
             QSqlDatabase::database().transaction();
 
             try {
-                // 1. 检查舱位可用性
+                // 1. 查询用户ID
+                QSqlQuery userQuery;
+                userQuery.prepare("SELECT id FROM users WHERE username = ?");
+                userQuery.addBindValue(username);
+
+                if (!userQuery.exec() || !userQuery.next()) {
+                    throw std::runtime_error("用户不存在");
+                }
+
+                int userId = userQuery.value(0).toInt();
+
+                // 2. 查询当前余额（如果没有钱包记录，创建一条）
+                QSqlQuery balanceQuery;
+                balanceQuery.prepare("SELECT balance FROM wallets WHERE user_id = ?");
+                balanceQuery.addBindValue(userId);
+
+                double oldBalance = 0.0;
+                if (!balanceQuery.exec() || !balanceQuery.next()) {
+                    // 如果钱包不存在，创建钱包
+                    QSqlQuery createWalletQuery;
+                    createWalletQuery.prepare("INSERT INTO wallets (user_id, balance) VALUES (?, 0.00)");
+                    createWalletQuery.addBindValue(userId);
+
+                    if (!createWalletQuery.exec()) {
+                        throw std::runtime_error("创建钱包失败");
+                    }
+
+                    oldBalance = 0.0;
+                } else {
+                    oldBalance = balanceQuery.value(0).toDouble();
+                }
+
+                double newBalance = oldBalance + amount;
+
+                // 3. 更新余额
+                QSqlQuery updateQuery;
+                updateQuery.prepare("UPDATE wallets SET balance = ? WHERE user_id = ?");
+                updateQuery.addBindValue(newBalance);
+                updateQuery.addBindValue(userId);
+
+                if (!updateQuery.exec()) {
+                    throw std::runtime_error("更新余额失败");
+                }
+
+                // 4. 记录充值历史
+                QSqlQuery recordQuery;
+                recordQuery.prepare("INSERT INTO recharge_records (user_id, amount, old_balance, new_balance) "
+                                    "VALUES (?, ?, ?, ?)");
+                recordQuery.addBindValue(userId);
+                recordQuery.addBindValue(amount);
+                recordQuery.addBindValue(oldBalance);
+                recordQuery.addBindValue(newBalance);
+
+                if (!recordQuery.exec()) {
+                    throw std::runtime_error("记录充值历史失败");
+                }
+
+                // 提交事务
+                QSqlDatabase::database().commit();
+
+                reply.data["success"] = true;
+                reply.data["message"] = "充值成功";
+                reply.data["new_balance"] = newBalance;
+                reply.data["recharged_amount"] = amount;
+
+                qDebug() << "用户" << username << "充值成功，金额:" << amount
+                         << "，旧余额:" << oldBalance << "，新余额:" << newBalance;
+
+            } catch (const std::exception &e) {
+                // 回滚事务
+                QSqlDatabase::database().rollback();
+
+                reply.data["success"] = false;
+                reply.data["message"] = QString("充值失败: %1").arg(e.what());
+                qDebug() << "充值失败:" << e.what();
+            }
+
+            networkManager.sendMessage(reply, client);
+            break;
+        }
+
+        // =============== 修改：预订请求处理（带余额检查） ===============
+        case BOOKING_REQUEST: {  // 300
+            int flightId = message.data["flight_id"].toInt();
+            int cabinId = message.data["cabin_id"].toInt();
+            QString username = message.data["username"].toString();
+            QString passengerName = message.data["passenger_name"].toString();
+            QString passengerId = message.data["passenger_id"].toString();
+            QString passengerPhone = message.data["passenger_phone"].toString();
+            double totalPrice = message.data["total_price"].toDouble();
+
+            qDebug() << "=== 预订请求（带余额检查）===";
+            qDebug() << "用户名:" << username;
+            qDebug() << "航班ID:" << flightId;
+            qDebug() << "舱位ID:" << cabinId;
+            qDebug() << "乘客:" << passengerName;
+            qDebug() << "总价:" << totalPrice;
+
+            NetworkMessage reply;
+            reply.type = BOOKING_RESPONSE;  // 301
+
+            // 开始事务
+            QSqlDatabase::database().transaction();
+
+            try {
+                // 1. 查询用户ID
+                QSqlQuery userQuery;
+                userQuery.prepare("SELECT id FROM users WHERE username = ?");
+                userQuery.addBindValue(username);
+
+                if (!userQuery.exec() || !userQuery.next()) {
+                    throw std::runtime_error("用户不存在");
+                }
+
+                int userId = userQuery.value(0).toInt();
+
+                // 2. 检查余额是否足够
+                QSqlQuery balanceQuery;
+                balanceQuery.prepare("SELECT balance FROM wallets WHERE user_id = ?");
+                balanceQuery.addBindValue(userId);
+
+                if (!balanceQuery.exec() || !balanceQuery.next()) {
+                    throw std::runtime_error("钱包不存在，请先充值");
+                }
+
+                double currentBalance = balanceQuery.value(0).toDouble();
+                if (currentBalance < totalPrice) {
+                    throw std::runtime_error(QString("余额不足，需要¥%1，当前余额¥%2")
+                                                 .arg(totalPrice, 0, 'f', 2)
+                                                 .arg(currentBalance, 0, 'f', 2).toStdString());
+                }
+
+                double newBalance = currentBalance - totalPrice;
+
+                // 3. 检查舱位可用性
                 QSqlQuery checkQuery;
                 checkQuery.prepare("SELECT available_seats FROM cabins WHERE id = ?");
-                checkQuery.bindValue(0, cabinId);
+                checkQuery.addBindValue(cabinId);
 
                 if (!checkQuery.exec() || !checkQuery.next()) {
                     throw std::runtime_error("舱位不存在");
@@ -330,54 +492,109 @@ private slots:
                     throw std::runtime_error("该舱位已无可用座位");
                 }
 
-                // 2. 生成订单号 - 使用QRandomGenerator
+                // 4. 扣款
+                QSqlQuery deductQuery;
+                deductQuery.prepare("UPDATE wallets SET balance = ? WHERE user_id = ?");
+                deductQuery.addBindValue(newBalance);
+                deductQuery.addBindValue(userId);
+
+                if (!deductQuery.exec()) {
+                    throw std::runtime_error("扣款失败");
+                }
+
+                // 5. 生成订单号
                 QString dateStr = QDateTime::currentDateTime().toString("yyyyMMdd");
                 int randomNum = QRandomGenerator::global()->bounded(10000);
                 QString bookingNumber = "BK" + dateStr + QString("%1").arg(randomNum, 4, 10, QChar('0'));
 
-                // 3. 创建预订
+                // 6. 查询航班信息
+                QSqlQuery flightQuery;
+                flightQuery.prepare("SELECT departure_city, arrival_city, departure_time, "
+                                    "arrival_time, flight_number, airline "
+                                    "FROM flights WHERE id = ?");
+                flightQuery.addBindValue(flightId);
+
+                if (!flightQuery.exec() || !flightQuery.next()) {
+                    throw std::runtime_error("航班不存在");
+                }
+
+                QString departureCity = flightQuery.value("departure_city").toString();
+                QString arrivalCity = flightQuery.value("arrival_city").toString();
+                QDateTime departureTime = flightQuery.value("departure_time").toDateTime();
+                QDateTime arrivalTime = flightQuery.value("arrival_time").toDateTime();
+                QString flightNumber = flightQuery.value("flight_number").toString();
+                QString airline = flightQuery.value("airline").toString();
+
+                // 7. 创建预订记录
                 QSqlQuery insertQuery;
                 insertQuery.prepare(
-                    "INSERT INTO bookings (booking_number, user_id, flight_id, cabin_id, "
-                    "passenger_name, passenger_id, passenger_phone, total_price, "
-                    "departure_city, arrival_city, departure_time, arrival_time, "
-                    "flight_number, airline, travel_date) "
-                    "SELECT ?, ?, f.id, ?, ?, ?, ?, ?, "
-                    "f.departure_city, f.arrival_city, f.departure_time, f.arrival_time, "
-                    "f.flight_number, f.airline, DATE(f.departure_time) "
-                    "FROM flights f WHERE f.id = ?"
+                    "INSERT INTO bookings (user_id, flight_id, cabin_id, "
+                    "passenger_name, passenger_id, passenger_phone, total_price, status, booking_time) "
+                    "VALUES (?, ?, ?, ?, ?, ?, ?, '已预订', NOW())"
                     );
 
-                insertQuery.bindValue(0, bookingNumber);
-                insertQuery.bindValue(1, userId);
-                insertQuery.bindValue(2, cabinId);
-                insertQuery.bindValue(3, passengerName);
-                insertQuery.bindValue(4, passengerId);
-                insertQuery.bindValue(5, passengerPhone);
-                insertQuery.bindValue(6, totalPrice);
-                insertQuery.bindValue(7, flightId);
+
+                insertQuery.addBindValue(userId);               // user_id
+                insertQuery.addBindValue(flightId);             // flight_id
+                insertQuery.addBindValue(cabinId);              // cabin_id
+                insertQuery.addBindValue(passengerName);        // passenger_name
+                insertQuery.addBindValue(passengerId);          // passenger_id
+                insertQuery.addBindValue(passengerPhone);       // passenger_phone
+                insertQuery.addBindValue(totalPrice);           // total_price
+
+                qDebug() << "插入预订记录，参数:";
+                qDebug() << "user_id:" << userId;
+                qDebug() << "flight_id:" << flightId;
+                qDebug() << "cabin_id:" << cabinId;
+                qDebug() << "passenger_name:" << passengerName;
+                qDebug() << "total_price:" << totalPrice;
 
                 if (!insertQuery.exec()) {
-                    throw std::runtime_error("创建订单失败: " + insertQuery.lastError().text().toStdString());
+                    QString error = insertQuery.lastError().text();
+                    QString driverError = insertQuery.lastError().driverText();
+
+                    qDebug() << "=== 插入预订失败详细信息 ===";
+                    qDebug() << "错误信息:" << error;
+                    qDebug() << "驱动程序错误:" << driverError;
+
+                    // 调试：检查实际插入的SQL
+                    QString executedQuery = insertQuery.executedQuery();
+                    if (!executedQuery.isEmpty()) {
+                        qDebug() << "执行的SQL:" << executedQuery;
+                    }
+
+                    // 测试是否能执行简单查询
+                    QSqlQuery testQuery("SELECT COUNT(*) FROM bookings");
+                    if (testQuery.exec() && testQuery.next()) {
+                        qDebug() << "测试查询成功，bookings表记录数:" << testQuery.value(0).toInt();
+                    } else {
+                        qDebug() << "测试查询失败:" << testQuery.lastError().text();
+                    }
+
+                    throw std::runtime_error("创建订单失败: " + error.toStdString());
                 }
 
                 int bookingId = insertQuery.lastInsertId().toInt();
+                qDebug() << "预订创建成功，ID:" << bookingId;
 
-                // 4. 更新舱位可用座位数
+
+                // 8. 更新舱位可用座位数
                 QSqlQuery updateCabinQuery;
                 updateCabinQuery.prepare("UPDATE cabins SET available_seats = available_seats - 1 WHERE id = ?");
-                updateCabinQuery.bindValue(0, cabinId);
+                updateCabinQuery.addBindValue(cabinId);
 
                 if (!updateCabinQuery.exec()) {
+                    qDebug() << "更新舱位座位数失败:" << updateCabinQuery.lastError().text();
                     throw std::runtime_error("更新舱位座位数失败");
                 }
 
-                // 5. 更新航班可用座位数
+                // 9. 更新航班可用座位数
                 QSqlQuery updateFlightQuery;
                 updateFlightQuery.prepare("UPDATE flights SET available_seats = available_seats - 1 WHERE id = ?");
-                updateFlightQuery.bindValue(0, flightId);
+                updateFlightQuery.addBindValue(flightId);
 
                 if (!updateFlightQuery.exec()) {
+                    qDebug() << "更新航班座位数失败:" << updateFlightQuery.lastError().text();
                     throw std::runtime_error("更新航班座位数失败");
                 }
 
@@ -388,7 +605,12 @@ private slots:
                 reply.data["message"] = "预订成功";
                 reply.data["booking_number"] = bookingNumber;
                 reply.data["booking_id"] = bookingId;
-                qDebug() << "预订成功，订单号:" << bookingNumber << "订单ID:" << bookingId;
+                reply.data["new_balance"] = newBalance;  // 返回新余额
+
+                qDebug() << "预订成功，用户:" << username
+                         << "，订单号:" << bookingNumber
+                         << "，扣款:" << totalPrice
+                         << "，新余额:" << newBalance;
 
             } catch (const std::exception &e) {
                 // 回滚事务
@@ -402,6 +624,7 @@ private slots:
             networkManager.sendMessage(reply, client);
             break;
         }
+
         case ORDER_LIST_REQUEST: {
             QString username = message.data["username"].toString();
             qDebug() << "查询用户订单，用户名:" << username;

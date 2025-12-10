@@ -173,6 +173,9 @@ void WalletDialog::onMessageReceived(const NetworkMessage &message)
             // 清空输入框
             ui->rechargeAmountEdit->clear();
 
+            // 发射余额更新信号
+            emit balanceUpdated();
+
             // 显示成功消息
             QString successMsg = QString(
                                      "✅ 充值成功！\n\n"

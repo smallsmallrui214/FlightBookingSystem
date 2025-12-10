@@ -76,6 +76,20 @@ void FlightDetailDialog::setupUI()
     ui->arrivalTimeLabel->setText(flight.getArrivalTime().toString("hh:mm"));
     ui->durationLabel->setText(flight.getDurationString());
 
+    QString departureAirport = flight.getDepartureAirport();
+    QString arrivalAirport = flight.getArrivalAirport();
+
+    // 如果航班对象中没有机场信息，使用默认方法获取
+    if (departureAirport.isEmpty()) {
+        departureAirport = Flight::getDefaultAirport(flight.getDepartureCity());
+    }
+    if (arrivalAirport.isEmpty()) {
+        arrivalAirport = Flight::getDefaultAirport(flight.getArrivalCity());
+    }
+
+    ui->departureAirportLabel->setText(departureAirport);
+    ui->arrivalAirportLabel->setText(arrivalAirport);
+
     // 设置航班信息文本
     QString infoText = QString(
                            "✈️ 航班信息\n"

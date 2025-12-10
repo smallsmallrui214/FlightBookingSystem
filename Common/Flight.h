@@ -4,6 +4,7 @@
 #include <QString>
 #include <QDateTime>
 #include <QJsonObject>
+#include <QMap>
 
 class Flight
 {
@@ -40,6 +41,13 @@ public:
     QString getDepartureTimeString() const;
     QString getArrivalTimeString() const;
 
+    // 添加机场相关的getter和setter
+    QString getDepartureAirport() const { return departureAirport; }
+    QString getArrivalAirport() const { return arrivalAirport; }
+    void setDepartureAirport(const QString &airport) { departureAirport = airport; }
+    void setArrivalAirport(const QString &airport) { arrivalAirport = airport; }
+    static QString getDefaultAirport(const QString &city);
+
 private:
     int id;
     QString flightNumber;
@@ -54,6 +62,9 @@ private:
     int availableSeats;
     QString aircraftType;
     QString status;
+
+    QString departureAirport;  // 出发机场
+    QString arrivalAirport;    // 到达机场
 };
 
 #endif // FLIGHT_H

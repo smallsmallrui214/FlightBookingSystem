@@ -239,6 +239,27 @@ MainWindow::MainWindow(const QString &username, ClientNetworkManager* networkMan
 {
     ui->setupUi(this);
 
+    // 设置订单列表样式
+    ui->ordersListWidget->setStyleSheet(
+        "QListWidget {"
+        "    background: #f8f9fa;"          // 浅灰色背景
+        "    border: 1px solid #dee2e6;"    // 边框
+        "    border-radius: 5px;"
+        "    outline: 0;"                   // 去掉焦点边框
+        "}"
+        "QListWidget::item {"
+        "    border-bottom: 1px solid #e9ecef;"  // 项之间的分隔线
+        "    padding: 2px;"
+        "}"
+        "QListWidget::item:selected {"
+        "    background: #e3f2fd;"          // 选中项背景色
+        "    color: #1e88e5;"
+        "}"
+        "QListWidget::item:hover {"
+        "    background: #f1f8ff;"          // 悬停背景色
+        "}"
+        );
+
     // 设置用户信息
     ui->userNameLabel->setText(QString("欢迎，%1").arg(username));
 
@@ -874,15 +895,24 @@ void MainWindow::loadOrders()
     // 清空订单列表
     ui->ordersListWidget->clear();
 
-    // TODO: 这里应该从服务器获取用户的订单数据
-    // 目前先添加一个示例订单
-    //QListWidgetItem *item = new QListWidgetItem("📅 示例订单 - 广州 → 宜宾 - 2023-10-01 - ¥680");
-    // ui->ordersListWidget->addItem(item);
+    // 添加加载提示
+    ui->ordersListWidget->addItem("正在加载订单...");
 
-    if (ui->ordersListWidget->count() == 0) {
-        ui->ordersListWidget->addItem("暂无订单");
+    if (!networkManager || !networkManager->isConnected()) {
+        ui->ordersListWidget->clear();
+        ui->ordersListWidget->addItem("未连接到服务器");
+        return;
     }
+
+    // 发送订单列表请求到服务器
+    NetworkMessage msg;
+    msg.type = ORDER_LIST_REQUEST;
+    msg.data["username"] = currentUsername;
+
+    networkManager->sendMessage(msg);
+    qDebug() << "自动发送订单列表请求，用户名:" << currentUsername;
 }
+
 //添加"我的"页面的相关函数
 void MainWindow::onRechargeButtonClicked()
 {
@@ -914,30 +944,169 @@ void MainWindow::displayOrders(const QJsonArray &orders)
         return;
     }
 
-    for (const QJsonValue &val : orders) {
-        QJsonObject obj = val.toObject();
-        QString orderId = obj["order_id"].toString();
+    for (int i = 0; i < orders.size(); i++) {
+        QJsonObject obj = orders[i].toObject();
+        int orderId = obj["order_id"].toInt();
+        QString bookingNumber = obj["booking_number"].toString();
         QString flightInfo = obj["flight_info"].toString();
         QString date = obj["date"].toString();
         double price = obj["price"].toDouble();
-        int status = obj["status"].toInt(); // 0:未支付 1:已支付 2:已取消
+        int status = obj["status"].toInt();
 
+        // 创建自定义Widget
+        QWidget *orderWidget = new QWidget();
+        orderWidget->setObjectName(QString("orderWidget_%1").arg(orderId));
+
+        // 设置Widget样式
+        orderWidget->setStyleSheet("background: white; border: none;");
+        orderWidget->setMinimumHeight(40);
+        orderWidget->setMaximumHeight(45);
+
+        QHBoxLayout *layout = new QHBoxLayout(orderWidget);
+        layout->setContentsMargins(8, 4, 8, 4);  // 减少内边距
+        layout->setSpacing(8);
+
+        // 订单状态信息
         QString statusStr;
+        QString statusIcon;
+        QColor statusColor;
+
         switch (status) {
-        case 0: statusStr = "未支付"; break;
-        case 1: statusStr = "已支付"; break;
-        case 2: statusStr = "已取消"; break;
-        default: statusStr = "未知";
+        case 1:
+            statusStr = "已预订";
+            statusIcon = "✅";
+            statusColor = QColor(0, 128, 0);
+            break;
+        case 2:
+            statusStr = "已取消";
+            statusIcon = "❌";
+            statusColor = QColor(128, 0, 0);
+            break;
+        default:
+            statusStr = "未知";
+            statusIcon = "❓";
+            statusColor = Qt::darkGray;
         }
 
-        QString itemText = QString("订单号：%1 | %2 | %3 | ¥%4 | %5")
-                               .arg(orderId, flightInfo, date)
-                               .arg(static_cast<int>(price))
-                               .arg(statusStr);
+        // 信息标签 - 紧凑显示
+        QLabel *infoLabel = new QLabel();
+        infoLabel->setText(QString("<span style='font-size: 10px;'>%1 %2</span> | "
+                                   "<span style='color: #1e88e5; font-size: 10px;'>%3</span> | "
+                                   "<span style='color: #666; font-size: 10px;'>%4</span> | "
+                                   "<span style='color: #ff5722; font-size: 10px;'>¥%5</span> | "
+                                   "<span style='color: %6; font-size: 10px;'>%7</span>")
+                               .arg(statusIcon, bookingNumber, flightInfo, date)
+                               .arg(price, 0, 'f', 0)
+                               .arg(statusColor.name(), statusStr));
 
-        ui->ordersListWidget->addItem(itemText);
+        infoLabel->setStyleSheet("QLabel {"
+                                 "    background: transparent;"
+                                 "    color: #333;"
+                                 "    font-size: 10px;"  // 更小的字体
+                                 "    padding: 1px;"
+                                 "    margin: 0;"
+                                 "}");
+        infoLabel->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
+
+        // 信息标签占据大部分空间
+        layout->addWidget(infoLabel, 1);
+
+        // 只有"已预订"状态显示取消按钮
+        if (status == 1) {
+            QPushButton *cancelButton = new QPushButton("取消订单");
+            cancelButton->setObjectName(QString("cancelBtn_%1").arg(orderId));
+
+            // 固定按钮大小
+            cancelButton->setFixedSize(75, 26);
+
+            // 简化按钮样式，确保文字显示
+            cancelButton->setStyleSheet(
+                "QPushButton {"
+                "    background: #f44336;"      // 纯色背景
+                "    color: white;"
+                "    border: none;"
+                "    border-radius: 3px;"
+                "    font-size: 10px;"
+                "    font-weight: bold;"
+                "    padding: 3px 6px;"
+                "    margin: 0;"
+                "}"
+                "QPushButton:hover {"
+                "    background: #d32f2f;"
+                "}"
+                "QPushButton:pressed {"
+                "    background: #b71c1c;"
+                "}"
+                );
+
+
+            connect(cancelButton, &QPushButton::clicked, this, [this, orderId, bookingNumber]() {
+                onCancelOrderClicked(orderId, bookingNumber);
+            });
+
+            layout->addWidget(cancelButton);
+
+        } else {
+            // 其他状态显示状态标签
+            QLabel *statusLabel = new QLabel(statusStr);
+            statusLabel->setStyleSheet(QString(
+                                           "QLabel {"
+                                           "    color: %1;"
+                                           "    font-size: 10px;"
+                                           "    font-weight: bold;"
+                                           "    background: transparent;"
+                                           "    padding: 3px 8px;"
+                                           "    margin: 0;"
+                                           "}"
+                                           ).arg(statusColor.name()));
+            statusLabel->setAlignment(Qt::AlignCenter);
+            statusLabel->setFixedSize(75, 26);
+            layout->addWidget(statusLabel);
+        }
+
+        // 创建列表项
+        QListWidgetItem *item = new QListWidgetItem();
+        item->setSizeHint(QSize(ui->ordersListWidget->width() - 20, 42));
+        item->setData(Qt::UserRole, orderId);
+        item->setData(Qt::UserRole + 1, bookingNumber);
+        item->setBackground(Qt::white);
+
+        ui->ordersListWidget->addItem(item);
+        ui->ordersListWidget->setItemWidget(item, orderWidget);
     }
 }
+
+void MainWindow::onCancelOrderClicked(int orderId, const QString &bookingNumber)
+{
+    // 确认对话框
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "确认取消",
+                                  QString("确定要取消订单 %1 吗？\n取消后金额将退回钱包。").arg(bookingNumber),
+                                  QMessageBox::Yes | QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+        if (!networkManager || !networkManager->isConnected()) {
+            QMessageBox::warning(this, "错误", "未连接到服务器");
+            return;
+        }
+
+        // TODO: 发送取消订单请求到服务器
+        // 需要服务器端添加 ORDER_CANCEL_REQUEST 处理
+        // NetworkMessage msg;
+        // msg.type = ORDER_CANCEL_REQUEST;
+        // msg.data["order_id"] = orderId;
+        // msg.data["username"] = currentUsername;
+        // networkManager->sendMessage(msg);
+
+        // 临时提示
+        QMessageBox::information(this, "提示",
+                                 QString("取消订单 %1 的请求已发送\n\n此功能需要服务器端支持。").arg(bookingNumber));
+
+        // 刷新订单列表
+        loadOrders();
+    }
+}
+
 void MainWindow::onDateButtonClicked()
 {
     // 功能已经在lambda表达式中实现

@@ -45,6 +45,7 @@ private slots:
     // 新增的其他槽函数
     void onRechargeButtonClicked();
     void onViewAllOrdersButtonClicked();
+    void onCancelOrderClicked(int orderId, const QString &bookingNumber);
 
 private:
     void setupConnections();

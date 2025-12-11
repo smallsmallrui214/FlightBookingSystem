@@ -530,6 +530,14 @@ void FlightDetailDialog::showBookingDialog(const Cabin &cabin)
     BookingDialog *dialog = new BookingDialog(flight, cabin, currentUsername,
                                               networkManager, this);
     dialog->setAttribute(Qt::WA_DeleteOnClose);
+    // 连接 bookingSuccess 信号
+    connect(dialog, &BookingDialog::bookingSuccess, this, [this]() {
+        qDebug() << "收到 bookingSuccess 信号，关闭详情窗口";
+
+        // 关闭当前详情窗口
+        this->accept();
+
+    });
     dialog->exec();
 }
 

@@ -334,12 +334,25 @@ void BookingDialog::onMessageReceived(const NetworkMessage &message)
                                      .arg(cabin.getPrice(), 0, 'f', 2)
                                      .arg(newBalance, 0, 'f', 2);
 
-            QMessageBox::information(this, "预订成功", successMsg);
+            // 使用 QMessageBox 的标准按钮，确保对话框能关闭
+            QMessageBox msgBox(this);
+            msgBox.setWindowTitle("预订成功");
+            msgBox.setText(successMsg);
+            msgBox.setStandardButtons(QMessageBox::Ok);
+            msgBox.setDefaultButton(QMessageBox::Ok);
+            msgBox.setIcon(QMessageBox::Information);
+
+            // 连接按钮点击信号
+            connect(&msgBox, &QMessageBox::finished, this, [this](int result) {
+                // 无论如何都关闭对话框
+                this->accept();
+            });
+
+            msgBox.exec();
 
             // 发送预订成功信号
             emit bookingSuccess();
 
-            accept();
         } else {
             QMessageBox::warning(this, "预订失败", resultMsg);
 

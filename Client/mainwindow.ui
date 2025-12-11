@@ -813,38 +813,7 @@ QListWidget::item:hover {
                   </property>
                  </spacer>
                 </item>
-                <item>
-                 <spacer name="verticalSpacer_15">
-                  <property name="orientation">
-                   <enum>Qt::Orientation::Vertical</enum>
-                  </property>
-                  <property name="sizeHint" stdset="0">
-                   <size>
-                    <width>20</width>
-                    <height>8</height>
-                   </size>
-                  </property>
-                 </spacer>
-                </item>
                </layout>
-              </item>
-              <item>
-               <widget class="QLabel" name="userLevelLabel">
-                <property name="styleSheet">
-                 <string notr="true">QLabel {
-    color: #ff9800;
-    font-size: 16px;
-    background: #fff3e0;
-    padding: 8px 18px;
-    border-radius: 18px;
-    max-width: 150px;
-    qproperty-alignment: AlignCenter;
-}</string>
-                </property>
-                <property name="text">
-                 <string>普通会员</string>
-                </property>
-               </widget>
               </item>
               <item>
                <spacer name="horizontalSpacer_11">
@@ -860,19 +829,109 @@ QListWidget::item:hover {
                </spacer>
               </item>
               <item>
-               <widget class="QLabel" name="userNameLabel">
-                <property name="styleSheet">
-                 <string notr="true">QLabel {
+               <layout class="QVBoxLayout" name="verticalLayout_13">
+                <property name="spacing">
+                 <number>15</number>
+                </property>
+                <item>
+                 <widget class="QLabel" name="userNameLabel">
+                  <property name="styleSheet">
+                   <string notr="true">QLabel {
     color: #333;
     font-size: 26px;
     font-weight: bold;
     padding: 5px 0px;
 }</string>
-                </property>
-                <property name="text">
-                 <string>欢迎，用户</string>
-                </property>
-               </widget>
+                  </property>
+                  <property name="text">
+                   <string>用户名</string>
+                  </property>
+                 </widget>
+                </item>
+                <item>
+                 <layout class="QHBoxLayout" name="horizontalLayout_8">
+                  <property name="spacing">
+                   <number>15</number>
+                  </property>
+                  <item>
+                   <widget class="QPushButton" name="modifyUsernameButton">
+                    <property name="minimumSize">
+                     <size>
+                      <width>130</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>130</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">QPushButton {
+    background: #2196f3;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background: #1976d2;
+}
+
+QPushButton:pressed {
+    background: #1565c0;
+}</string>
+                    </property>
+                    <property name="text">
+                     <string>修改用户名</string>
+                    </property>
+                   </widget>
+                  </item>
+                  <item>
+                   <widget class="QPushButton" name="modifyPasswordButton">
+                    <property name="minimumSize">
+                     <size>
+                      <width>130</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                    <property name="maximumSize">
+                     <size>
+                      <width>130</width>
+                      <height>40</height>
+                     </size>
+                    </property>
+                    <property name="styleSheet">
+                     <string notr="true">QPushButton {
+    background: #4caf50;
+    color: white;
+    border: none;
+    border-radius: 8px;
+    padding: 10px 15px;
+    font-size: 14px;
+    font-weight: bold;
+}
+
+QPushButton:hover {
+    background: #43a047;
+}
+
+QPushButton:pressed {
+    background: #388e3c;
+}</string>
+                    </property>
+                    <property name="text">
+                     <string>修改密码</string>
+                    </property>
+                   </widget>
+                  </item>
+                 </layout>
+                </item>
+               </layout>
               </item>
               <item>
                <spacer name="horizontalSpacer_12">
@@ -1215,12 +1274,6 @@ QPushButton:pressed {
             <spacer name="verticalSpacer_11">
              <property name="orientation">
               <enum>Qt::Orientation::Vertical</enum>
-             </property>
-             <property name="sizeHint" stdset="0">
-              <size>
-               <width>20</width>
-               <height>20</height>
-              </size>
              </property>
             </spacer>
            </item>

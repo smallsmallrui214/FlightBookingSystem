@@ -459,7 +459,6 @@ void MainWindow::setupConnections()
 
     // 新增："我的"页面按钮连接
     connect(ui->rechargeButton, &QPushButton::clicked, this, &MainWindow::onRechargeButtonClicked);
-    connect(ui->viewAllOrdersButton, &QPushButton::clicked, this, &MainWindow::onViewAllOrdersButtonClicked);
 
     if (networkManager) {
         connect(networkManager, &ClientNetworkManager::messageReceived, this, &MainWindow::onMessageReceived);

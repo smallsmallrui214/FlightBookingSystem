@@ -1110,38 +1110,6 @@ QListWidget::item:hover {
               <item>
                <layout class="QHBoxLayout" name="horizontalLayout_3">
                 <item>
-                 <widget class="QPushButton" name="viewAllOrdersButton">
-                  <property name="minimumSize">
-                   <size>
-                    <width>0</width>
-                    <height>45</height>
-                   </size>
-                  </property>
-                  <property name="styleSheet">
-                   <string notr="true">QPushButton {
-    background: #bbdefb;
-    color: #1565c0;
-    border: none;
-    border-radius: 8px;
-    padding: 12px 25px;
-    font-size: 16px;
-    font-weight: bold;
-}
-
-QPushButton:hover {
-    background: #90caf9;
-}
-
-QPushButton:pressed {
-    background: #64b5f6;
-}</string>
-                  </property>
-                  <property name="text">
-                   <string>查看全部订单</string>
-                  </property>
-                 </widget>
-                </item>
-                <item>
                  <spacer name="horizontalSpacer_5">
                   <property name="orientation">
                    <enum>Qt::Orientation::Horizontal</enum>

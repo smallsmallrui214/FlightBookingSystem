@@ -651,8 +651,12 @@ private slots:
             // 方案A：JOIN flights 表获取信息
             QString sql = QString(
                               "SELECT "
-                              "CONCAT('BK', DATE_FORMAT(b.booking_time, '%%Y%%m%%d'), LPAD(b.id, 4, '0')) AS booking_number, "
-                              "b.id, "                                // 订单ID - 现在放在第2位
+                              "b.id, "                                // 订单ID
+                              "CONCAT('BK', "
+                              "YEAR(b.booking_time), "                // 使用YEAR函数
+                              "LPAD(MONTH(b.booking_time), 2, '0'), " // 使用MONTH函数
+                              "LPAD(DAY(b.booking_time), 2, '0'), "   // 使用DAY函数
+                              "LPAD(b.id, 4, '0')) AS booking_number, "
                               "f.departure_city, "                    // 出发城市
                               "f.arrival_city, "                      // 到达城市
                               "DATE(f.departure_time) AS travel_date, "  // 旅行日期

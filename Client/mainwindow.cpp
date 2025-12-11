@@ -511,9 +511,34 @@ void MainWindow::onNextWeekClicked()
     searchFlightsByDate(selectedDate);
 }
 
-void MainWindow::onCalendarButtonClicked()
+void MainWindow::onCancelOrderClicked(int orderId, const QString &bookingNumber)
 {
-    showCalendarDialog();
+    // 确认对话框
+    QMessageBox::StandardButton reply;
+    reply = QMessageBox::question(this, "确认取消",
+                                  QString("确定要取消订单 %1 吗？\n取消后金额将退回钱包。").arg(bookingNumber),
+                                  QMessageBox::Yes | QMessageBox::No);
+
+    if (reply == QMessageBox::Yes) {
+        if (!networkManager || !networkManager->isConnected()) {
+            QMessageBox::warning(this, "错误", "未连接到服务器");
+            return;
+        }
+
+        // 发送取消订单请求到服务器
+        NetworkMessage msg;
+        msg.type = ORDER_CANCEL_REQUEST;  // 使用已定义的协议类型
+        msg.data["order_id"] = orderId;
+        msg.data["username"] = currentUsername;
+
+        networkManager->sendMessage(msg);
+
+        // 显示处理中提示
+        QMessageBox::information(this, "处理中",
+                                 QString("正在处理订单 %1 的取消请求...").arg(bookingNumber));
+
+        // 注意：不要在这里刷新订单列表，等服务器响应后再刷新
+    }
 }
 
 void MainWindow::showCalendarDialog()
@@ -659,6 +684,38 @@ void MainWindow::onMessageReceived(const NetworkMessage &message)
         } else {
             QMessageBox::warning(this, "获取订单失败",
                                  message.data["message"].toString());
+        }
+        break;
+    }
+
+    case ORDER_CANCEL_RESPONSE:
+    {
+        bool success = message.data["success"].toBool();
+        QString resultMsg = message.data["message"].toString();
+
+        if (success) {
+            double refundAmount = message.data["refund_amount"].toDouble();
+            double newBalance = message.data["new_balance"].toDouble();
+            QString bookingNumber = message.data["booking_number"].toString();
+
+            // 显示成功消息
+            QString successMsg = QString(
+                                     "✅ 订单取消成功！\n\n"
+                                     "订单号：%1\n"
+                                     "退回金额：¥%2\n"
+                                     "当前余额：¥%3\n\n"
+                                     "座位已释放，金额已退回钱包。"
+                                     ).arg(bookingNumber)
+                                     .arg(refundAmount, 0, 'f', 2)
+                                     .arg(newBalance, 0, 'f', 2);
+
+            QMessageBox::information(this, "取消成功", successMsg);
+
+            // 刷新订单列表
+            loadOrders();
+
+        } else {
+            QMessageBox::warning(this, "取消失败", resultMsg);
         }
         break;
     }
@@ -1075,43 +1132,16 @@ void MainWindow::displayOrders(const QJsonArray &orders)
     }
 }
 
-void MainWindow::onCancelOrderClicked(int orderId, const QString &bookingNumber)
-{
-    // 确认对话框
-    QMessageBox::StandardButton reply;
-    reply = QMessageBox::question(this, "确认取消",
-                                  QString("确定要取消订单 %1 吗？\n取消后金额将退回钱包。").arg(bookingNumber),
-                                  QMessageBox::Yes | QMessageBox::No);
-
-    if (reply == QMessageBox::Yes) {
-        if (!networkManager || !networkManager->isConnected()) {
-            QMessageBox::warning(this, "错误", "未连接到服务器");
-            return;
-        }
-
-        // TODO: 发送取消订单请求到服务器
-        // 需要服务器端添加 ORDER_CANCEL_REQUEST 处理
-        // NetworkMessage msg;
-        // msg.type = ORDER_CANCEL_REQUEST;
-        // msg.data["order_id"] = orderId;
-        // msg.data["username"] = currentUsername;
-        // networkManager->sendMessage(msg);
-
-        // 临时提示
-        QMessageBox::information(this, "提示",
-                                 QString("取消订单 %1 的请求已发送\n\n此功能需要服务器端支持。").arg(bookingNumber));
-
-        // 刷新订单列表
-        loadOrders();
-    }
-}
 
 void MainWindow::onDateButtonClicked()
 {
     // 功能已经在lambda表达式中实现
 }
 
-
+void MainWindow::onCalendarButtonClicked()
+{
+    showCalendarDialog();
+}
 
 #include "mainwindow.moc"
 

@@ -625,6 +625,151 @@ private slots:
             break;
         }
 
+
+        case ORDER_CANCEL_REQUEST: {  // 304
+            int orderId = message.data["order_id"].toInt();
+            QString username = message.data["username"].toString();
+
+            qDebug() << "=== 取消订单请求 ===";
+            qDebug() << "用户名:" << username;
+            qDebug() << "订单ID:" << orderId;
+
+            NetworkMessage reply;
+            reply.type = ORDER_CANCEL_RESPONSE;  // 305
+
+            // 开始事务
+            QSqlDatabase::database().transaction();
+
+            try {
+                // 1. 查询用户ID
+                QSqlQuery userQuery;
+                userQuery.prepare("SELECT id FROM users WHERE username = ?");
+                userQuery.addBindValue(username);
+
+                if (!userQuery.exec() || !userQuery.next()) {
+                    throw std::runtime_error("用户不存在");
+                }
+
+                int userId = userQuery.value(0).toInt();
+
+                // 2. 查询订单信息
+                QSqlQuery orderQuery;
+                orderQuery.prepare("SELECT flight_id, cabin_id, total_price, status FROM bookings "
+                                   "WHERE id = ? AND user_id = ? AND status = '已预订'");
+                orderQuery.addBindValue(orderId);
+                orderQuery.addBindValue(userId);
+
+                if (!orderQuery.exec() || !orderQuery.next()) {
+                    throw std::runtime_error("订单不存在、状态不正确或已取消");
+                }
+
+                int flightId = orderQuery.value("flight_id").toInt();
+                int cabinId = orderQuery.value("cabin_id").toInt();
+                double refundAmount = orderQuery.value("total_price").toDouble();
+
+                qDebug() << "订单信息 - 航班ID:" << flightId
+                         << "，舱位ID:" << cabinId
+                         << "，退款金额:" << refundAmount;
+
+                // 3. 查询航班起飞时间
+                QSqlQuery flightQuery;
+                flightQuery.prepare("SELECT departure_time FROM flights WHERE id = ?");
+                flightQuery.addBindValue(flightId);
+
+                if (!flightQuery.exec() || !flightQuery.next()) {
+                    throw std::runtime_error("航班不存在");
+                }
+
+                QDateTime departureTime = flightQuery.value(0).toDateTime();
+                QDateTime currentTime = QDateTime::currentDateTime();
+                if (departureTime < currentTime.addSecs(2 * 3600)) {
+                    throw std::runtime_error("航班即将起飞，无法取消订单");
+                }
+
+                // 4. 检查钱包是否存在
+                QSqlQuery balanceQuery;
+                balanceQuery.prepare("SELECT balance FROM wallets WHERE user_id = ?");
+                balanceQuery.addBindValue(userId);
+
+                if (!balanceQuery.exec() || !balanceQuery.next()) {
+                    throw std::runtime_error("钱包不存在");
+                }
+
+                double oldBalance = balanceQuery.value(0).toDouble();
+                double newBalance = oldBalance + refundAmount;
+
+                // 5. 退款
+                QSqlQuery refundQuery;
+                refundQuery.prepare("UPDATE wallets SET balance = ? WHERE user_id = ?");
+                refundQuery.addBindValue(newBalance);
+                refundQuery.addBindValue(userId);
+
+                if (!refundQuery.exec()) {
+                    throw std::runtime_error("退款失败");
+                }
+
+                // 6. 恢复舱位座位
+                QSqlQuery updateCabinQuery;
+                updateCabinQuery.prepare("UPDATE cabins SET available_seats = available_seats + 1 WHERE id = ?");
+                updateCabinQuery.addBindValue(cabinId);
+
+                if (!updateCabinQuery.exec()) {
+                    qDebug() << "恢复舱位座位失败:" << updateCabinQuery.lastError().text();
+                    throw std::runtime_error("恢复舱位座位失败");
+                }
+
+                // 7. 恢复航班座位
+                QSqlQuery updateFlightQuery;
+                updateFlightQuery.prepare("UPDATE flights SET available_seats = available_seats + 1 WHERE id = ?");
+                updateFlightQuery.addBindValue(flightId);
+
+                if (!updateFlightQuery.exec()) {
+                    qDebug() << "恢复航班座位失败:" << updateFlightQuery.lastError().text();
+                    throw std::runtime_error("恢复航班座位失败");
+                }
+
+                // 8. 删除订单（替代更新状态）
+                QSqlQuery deleteOrderQuery;
+                deleteOrderQuery.prepare("DELETE FROM bookings WHERE id = ?");
+                deleteOrderQuery.addBindValue(orderId);
+
+                if (!deleteOrderQuery.exec()) {
+                    qDebug() << "删除订单失败:" << deleteOrderQuery.lastError().text();
+                    throw std::runtime_error("删除订单失败");
+                }
+
+                qDebug() << "删除订单成功，删除了" << deleteOrderQuery.numRowsAffected() << "行";
+
+                // 提交事务
+                QSqlDatabase::database().commit();
+
+                // 生成订单号用于显示
+                QString bookingNumber = QString("BK%1").arg(orderId, 8, 10, QChar('0'));
+
+                reply.data["success"] = true;
+                reply.data["message"] = "订单取消成功";
+                reply.data["refund_amount"] = refundAmount;
+                reply.data["new_balance"] = newBalance;
+                reply.data["booking_number"] = bookingNumber;
+
+                qDebug() << "订单取消成功，用户:" << username
+                         << "，订单ID:" << orderId
+                         << "，退款:" << refundAmount
+                         << "，新余额:" << newBalance;
+
+            } catch (const std::exception &e) {
+                // 回滚事务
+                QSqlDatabase::database().rollback();
+
+                reply.data["success"] = false;
+                reply.data["message"] = QString("取消失败: %1").arg(e.what());
+                qDebug() << "订单取消失败:" << e.what();
+            }
+
+            networkManager.sendMessage(reply, client);
+            break;
+        }
+
         case ORDER_LIST_REQUEST: {
             QString username = message.data["username"].toString();
             qDebug() << "查询用户订单，用户名:" << username;

@@ -6,6 +6,8 @@ INCLUDEPATH += ../Common
 
 SOURCES += \
     calendardialog.cpp \
+    changeUsernameDialog.cpp \
+    changepassworddialog.cpp \
     main.cpp \
     clientnetworkmanager.cpp \
     testclient.cpp \
@@ -22,6 +24,8 @@ SOURCES += \
 
 HEADERS += \
     calendardialog.h \
+    changeUsernameDialog.h \
+    changepassworddialog.h \
     clientnetworkmanager.h \
     testclient.h \
     registerdialog.h \

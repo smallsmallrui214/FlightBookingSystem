@@ -864,6 +864,150 @@ private slots:
             networkManager.sendMessage(reply, client);
             break;
         }
+        // =============== 新增：修改用户名处理 ===============
+        case CHANGE_USERNAME_REQUEST: {  // 104
+            QString oldUsername = message.data["old_username"].toString();
+            QString newUsername = message.data["new_username"].toString();
+
+            qDebug() << "=== 修改用户名请求 ===";
+            qDebug() << "原用户名:" << oldUsername;
+            qDebug() << "新用户名:" << newUsername;
+
+            NetworkMessage reply;
+            reply.type = CHANGE_USERNAME_RESPONSE;  // 105
+
+            // 开始事务
+            QSqlDatabase::database().transaction();
+
+            try {
+                // 1. 检查原用户名是否存在
+                QSqlQuery checkOldUser;
+                checkOldUser.prepare("SELECT id FROM users WHERE username = ?");
+                checkOldUser.addBindValue(oldUsername);
+
+                if (!checkOldUser.exec() || !checkOldUser.next()) {
+                    throw std::runtime_error("原用户名不存在");
+                }
+
+                int userId = checkOldUser.value(0).toInt();
+
+                // 2. 检查新用户名是否已存在
+                QSqlQuery checkNewUser;
+                checkNewUser.prepare("SELECT id FROM users WHERE username = ?");
+                checkNewUser.addBindValue(newUsername);
+
+                if (checkNewUser.exec() && checkNewUser.next()) {
+                    throw std::runtime_error("新用户名已存在，请选择其他用户名");
+                }
+
+                // 3. 更新用户名
+                QSqlQuery updateQuery;
+                updateQuery.prepare("UPDATE users SET username = ? WHERE id = ?");
+                updateQuery.addBindValue(newUsername);
+                updateQuery.addBindValue(userId);
+
+                if (!updateQuery.exec()) {
+                    throw std::runtime_error("更新用户名失败: " + updateQuery.lastError().text().toStdString());
+                }
+
+                // 4. 更新相关表中的用户名（如果有的话）
+                // 例如：更新订单表中的用户名引用等
+
+                // 提交事务
+                QSqlDatabase::database().commit();
+
+                reply.data["success"] = true;
+                reply.data["message"] = "用户名修改成功";
+                reply.data["new_username"] = newUsername;
+
+                qDebug() << "用户名修改成功:" << oldUsername << "->" << newUsername;
+
+            } catch (const std::exception &e) {
+                // 回滚事务
+                QSqlDatabase::database().rollback();
+
+                reply.data["success"] = false;
+                reply.data["message"] = QString("修改失败: %1").arg(e.what());
+                qDebug() << "修改用户名失败:" << e.what();
+            }
+
+            networkManager.sendMessage(reply, client);
+            break;
+        }
+
+        // =============== 新增：修改密码处理 ===============
+        case CHANGE_PASSWORD_REQUEST: {  // 106
+            QString username = message.data["username"].toString();
+            QString oldPassword = message.data["old_password"].toString();
+            QString newPassword = message.data["new_password"].toString();
+
+            qDebug() << "=== 修改密码请求 ===";
+            qDebug() << "用户名:" << username;
+
+            NetworkMessage reply;
+            reply.type = CHANGE_PASSWORD_RESPONSE;  // 107
+
+            // 开始事务
+            QSqlDatabase::database().transaction();
+
+            try {
+                // 1. 验证原密码
+                QSqlQuery checkUser;
+                checkUser.prepare("SELECT id, password FROM users WHERE username = ?");
+                checkUser.addBindValue(username);
+
+                if (!checkUser.exec() || !checkUser.next()) {
+                    throw std::runtime_error("用户不存在");
+                }
+
+                int userId = checkUser.value("id").toInt();
+                QString storedPassword = checkUser.value("password").toString();
+
+                // 这里应该使用加密验证，为了简单起见直接比较
+                if (storedPassword != oldPassword) {
+                    throw std::runtime_error("原密码错误");
+                }
+
+                // 2. 检查新密码是否与原密码相同
+                if (oldPassword == newPassword) {
+                    throw std::runtime_error("新密码不能与原密码相同");
+                }
+
+                // 3. 检查密码长度
+                if (newPassword.length() < 6 || newPassword.length() > 20) {
+                    throw std::runtime_error("密码长度应在6-20个字符之间");
+                }
+
+                // 4. 更新密码
+                QSqlQuery updateQuery;
+                updateQuery.prepare("UPDATE users SET password = ? WHERE id = ?");
+                updateQuery.addBindValue(newPassword);
+                updateQuery.addBindValue(userId);
+
+                if (!updateQuery.exec()) {
+                    throw std::runtime_error("更新密码失败: " + updateQuery.lastError().text().toStdString());
+                }
+
+                // 提交事务
+                QSqlDatabase::database().commit();
+
+                reply.data["success"] = true;
+                reply.data["message"] = "密码修改成功";
+
+                qDebug() << "密码修改成功，用户:" << username;
+
+            } catch (const std::exception &e) {
+                // 回滚事务
+                QSqlDatabase::database().rollback();
+
+                reply.data["success"] = false;
+                reply.data["message"] = QString("修改失败: %1").arg(e.what());
+                qDebug() << "修改密码失败:" << e.what();
+            }
+
+            networkManager.sendMessage(reply, client);
+            break;
+        }
         default:
             qDebug() << "未知消息类型:" << message.type;
         }

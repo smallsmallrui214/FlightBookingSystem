@@ -18,6 +18,12 @@ enum MessageType {
     CHECK_USERNAME_REQUEST = 0x1005,  // 检查用户名是否存在
     CHECK_USERNAME_RESPONSE = 0x1006, // 检查用户名响应
 
+    // 用户信息修改 (新增)
+    CHANGE_USERNAME_REQUEST = 104,    // 修改用户名请求
+    CHANGE_USERNAME_RESPONSE = 105,   // 修改用户名响应
+    CHANGE_PASSWORD_REQUEST = 106,    // 修改密码请求
+    CHANGE_PASSWORD_RESPONSE = 107,   // 修改密码响应
+
     // 航班查询相关
     FLIGHT_SEARCH_REQUEST = 200,
     FLIGHT_SEARCH_RESPONSE = 201,

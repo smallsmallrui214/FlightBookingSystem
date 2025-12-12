@@ -11,7 +11,6 @@
 #include <QPushButton>
 #include "clientnetworkmanager.h"
 #include "../Common/flight.h"
-#include "walletdialog.h"  // 新增
 
 namespace Ui {
 class MainWindow;
@@ -46,6 +45,10 @@ private slots:
     void onRechargeButtonClicked();
     void onViewAllOrdersButtonClicked();
     void onCancelOrderClicked(int orderId, const QString &bookingNumber);
+    // 添加修改功能的槽函数
+    void onModifyUsernameClicked();
+    void onModifyPasswordClicked();
+    void onUsernameChanged(const QString& newUsername);
 
 private:
     void setupConnections();

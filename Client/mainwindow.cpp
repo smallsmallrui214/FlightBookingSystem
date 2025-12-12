@@ -4,6 +4,8 @@
 #include "calendardialog.h"
 #include "flightdetaildialog.h"  // 新增头文件
 #include "walletdialog.h"  // 新增头文件
+#include "changeUsernameDialog.h"
+#include "changepassworddialog.h"
 #include <QListWidgetItem>
 #include <QLabel>
 #include <QPushButton>
@@ -433,7 +435,9 @@ void MainWindow::setupConnections()
     connect(ui->logoutButton, &QPushButton::clicked, this, &MainWindow::onLogoutButtonClicked);
     connect(ui->swapButton, &QPushButton::clicked, this, &MainWindow::onSwapButtonClicked);
     connect(ui->airlineComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onAirlineFilterChanged);
-
+    // 新增：连接修改用户名和密码按钮
+    connect(ui->modifyUsernameButton, &QPushButton::clicked, this, &MainWindow::onModifyUsernameClicked);
+    connect(ui->modifyPasswordButton, &QPushButton::clicked,this, &MainWindow::onModifyPasswordClicked);
     // 日期选择连接
     connect(ui->prevWeekButton, &QPushButton::clicked, this, &MainWindow::onPrevWeekClicked);
     connect(ui->nextWeekButton, &QPushButton::clicked, this, &MainWindow::onNextWeekClicked);
@@ -716,6 +720,35 @@ void MainWindow::onMessageReceived(const NetworkMessage &message)
 
         } else {
             QMessageBox::warning(this, "取消失败", resultMsg);
+        }
+        break;
+    }
+    case CHANGE_USERNAME_RESPONSE:
+    {
+        bool success = message.data["success"].toBool();
+        QString resultMsg = message.data["message"].toString();
+        QString newUsername = message.data["new_username"].toString();
+
+        if (success) {
+            // 这里不需要额外处理，因为ChangeUsernameDialog会发射usernameChanged信号
+            qDebug() << "服务器确认用户名修改成功:" << newUsername;
+        } else {
+            qDebug() << "服务器返回用户名修改失败:" << resultMsg;
+        }
+        break;
+    }
+
+    case CHANGE_PASSWORD_RESPONSE:
+    {
+        bool success = message.data["success"].toBool();
+        QString resultMsg = message.data["message"].toString();
+
+        if (success) {
+            qDebug() << "密码修改成功";
+            // ChangePasswordDialog会自己显示成功消息
+        } else {
+            qDebug() << "密码修改失败:" << resultMsg;
+            // ChangePasswordDialog会自己显示失败消息
         }
         break;
     }
@@ -1141,6 +1174,104 @@ void MainWindow::onDateButtonClicked()
 void MainWindow::onCalendarButtonClicked()
 {
     showCalendarDialog();
+}
+// 修改用户名按钮点击
+void MainWindow::onModifyUsernameClicked()
+{
+    qDebug() << "=== 修改用户名按钮被点击 ===";
+
+    if (!networkManager || !networkManager->isConnected()) {
+        QMessageBox::warning(this, "连接错误", "未连接到服务器");
+        return;
+    }
+
+    // 获取当前用户名（从界面标签获取）
+    QString displayedName = ui->userNameLabel->text();
+    QString currentUser = displayedName;
+
+    // 去掉"欢迎，"前缀
+    if (displayedName.startsWith("欢迎，")) {
+        currentUser = displayedName.mid(3); // 去掉"欢迎，"前缀
+    }
+
+    if (currentUser.isEmpty()) {
+        QMessageBox::warning(this, "错误", "无法获取当前用户名");
+        return;
+    }
+
+    qDebug() << "当前用户名:" << currentUser;
+
+    // 创建修改用户名对话框
+    ChangeUsernameDialog *dialog = new ChangeUsernameDialog(networkManager,
+                                                            currentUser,
+                                                            this);
+
+    // 连接用户名修改成功的信号
+    connect(dialog, &ChangeUsernameDialog::usernameChanged,
+            this, &MainWindow::onUsernameChanged);
+
+    // 设置对话框模态显示
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->exec();
+}
+
+// 修改密码按钮点击
+void MainWindow::onModifyPasswordClicked()
+{
+    qDebug() << "=== 修改密码按钮被点击 ===";
+
+    if (!networkManager || !networkManager->isConnected()) {
+        QMessageBox::warning(this, "连接错误", "未连接到服务器");
+        return;
+    }
+
+    // 获取当前用户名（从界面标签获取）
+    QString displayedName = ui->userNameLabel->text();
+    QString currentUser = displayedName;
+
+    // 去掉"欢迎，"前缀
+    if (displayedName.startsWith("欢迎，")) {
+        currentUser = displayedName.mid(3); // 去掉"欢迎，"前缀
+    }
+
+    if (currentUser.isEmpty()) {
+        QMessageBox::warning(this, "错误", "无法获取当前用户名");
+        return;
+    }
+
+    qDebug() << "当前用户名:" << currentUser;
+
+    // 创建修改密码对话框
+    ChangePasswordDialog *dialog = new ChangePasswordDialog(networkManager,
+                                                            currentUser,
+                                                            this);
+
+    // 设置对话框模态显示
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->exec();
+}
+
+// 用户名修改成功后的处理
+void MainWindow::onUsernameChanged(const QString& newUsername)
+{
+    qDebug() << "用户名修改成功，新用户名:" << newUsername;
+
+    // 更新当前用户名
+    currentUsername = newUsername;
+
+    // 更新界面显示的用户名
+    if (ui->userNameLabel) {
+        QString displayName = "欢迎，" + newUsername;
+        ui->userNameLabel->setText(displayName);
+
+        // 更新头像显示（用户名的第一个字母）
+        if (ui->userAvatarLabel) {
+            if (!newUsername.isEmpty()) {
+                QString firstLetter = newUsername.left(1).toUpper();
+                ui->userAvatarLabel->setText(firstLetter);
+            }
+        }
+    }
 }
 
 #include "mainwindow.moc"

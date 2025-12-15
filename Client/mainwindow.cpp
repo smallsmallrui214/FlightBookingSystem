@@ -2,8 +2,8 @@
 #include "ui_mainwindow.h"
 #include "../Common/protocol.h"
 #include "calendardialog.h"
-#include "flightdetaildialog.h"  // 新增头文件
-#include "walletdialog.h"  // 新增头文件
+#include "flightdetaildialog.h"
+#include "walletdialog.h"
 #include "changeUsernameDialog.h"
 #include "changepassworddialog.h"
 #include <QListWidgetItem>
@@ -19,6 +19,13 @@
 #include <QJsonDocument>
 #include <QButtonGroup>
 #include <QInputDialog>
+#include <QCloseEvent>
+#include <QAbstractButton>
+#include <QString>
+#include <QColor>
+#include <QBrush>
+#include <QWidget>
+#include <QMovie>
 
 // 自定义航班列表项Widget
 class FlightItemWidget : public QWidget
@@ -26,12 +33,7 @@ class FlightItemWidget : public QWidget
     Q_OBJECT
 
 public:
-    FlightItemWidget(const Flight &flight, QWidget *parent = nullptr)
-        : QWidget(parent), flight(flight)
-    {
-        setupUI();
-    }
-
+    explicit FlightItemWidget(const Flight &flight, QWidget *parent = nullptr);
     Flight getFlight() const { return flight; }
 
 signals:
@@ -44,13 +46,12 @@ private slots:
     }
 
 private:
-    void setupUI();
-
-private:
     Flight flight;
 };
 
-void FlightItemWidget::setupUI()
+// FlightItemWidget 的实现
+FlightItemWidget::FlightItemWidget(const Flight &flight, QWidget *parent)
+    : QWidget(parent), flight(flight)
 {
     QHBoxLayout *layout = new QHBoxLayout(this);
     layout->setContentsMargins(20, 15, 20, 15);
@@ -73,12 +74,12 @@ void FlightItemWidget::setupUI()
     QString aircraftDisplay = aircraftType;
 
     if (aircraftType == "A330" || aircraftType == "B787" || aircraftType == "B777") {
-        aircraftDisplay += "（宽）";  // 宽体机
+        aircraftDisplay += "（宽）";
     } else if (aircraftType == "A320" || aircraftType == "A319" ||
                aircraftType == "B737" || aircraftType == "ARJ21") {
-        aircraftDisplay += "（窄）";  // 窄体机
+        aircraftDisplay += "（窄）";
     } else {
-        aircraftDisplay += "（中）";  // 中型机或其他
+        aircraftDisplay += "（中）";
     }
 
     QLabel *aircraftLabel = new QLabel(aircraftDisplay);
@@ -94,7 +95,7 @@ void FlightItemWidget::setupUI()
 
     // 出发信息
     QVBoxLayout *departureLayout = new QVBoxLayout();
-    QLabel *departureTimeLabel = new QLabel(flight.getDepartureTimeString());
+    QLabel *departureTimeLabel = new QLabel(flight.getDepartureTime().toString("hh:mm"));
     departureTimeLabel->setStyleSheet("font-size: 20px; font-weight: bold; color: #333;");
     QLabel *departureCityLabel = new QLabel(flight.getDepartureCity());
     departureCityLabel->setStyleSheet("font-size: 14px; color: #666;");
@@ -113,7 +114,7 @@ void FlightItemWidget::setupUI()
 
     // 到达信息
     QVBoxLayout *arrivalLayout = new QVBoxLayout();
-    QLabel *arrivalTimeLabel = new QLabel(flight.getArrivalTimeString());
+    QLabel *arrivalTimeLabel = new QLabel(flight.getArrivalTime().toString("hh:mm"));
     arrivalTimeLabel->setStyleSheet("font-size: 20px; font-weight: bold; color: #333;");
     QLabel *arrivalCityLabel = new QLabel(flight.getArrivalCity());
     arrivalCityLabel->setStyleSheet("font-size: 14px; color: #666;");
@@ -133,9 +134,9 @@ void FlightItemWidget::setupUI()
     priceLayout->setAlignment(Qt::AlignRight | Qt::AlignTop);
     priceLayout->setSpacing(8);
 
-    // 价格 - 只保留整数，添加"起"字（主页面粗略显示）
+    // 价格 - 只保留整数，添加"起"字
     double price = flight.getPrice();
-    QString priceText = QString("¥%1起").arg(static_cast<int>(price));  // 转换为整数，加"起"
+    QString priceText = QString("¥%1起").arg(static_cast<int>(price));
     QLabel *priceLabel = new QLabel(priceText);
     priceLabel->setStyleSheet(
         "font-size: 24px; "
@@ -175,7 +176,7 @@ void FlightItemWidget::setupUI()
     if (availableSeats > 0) {
         bookButton->setStyleSheet(
             "QPushButton {"
-            "    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1e88e5, stop:1 #1565c0);"  // 蓝色渐变
+            "    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1e88e5, stop:1 #1565c0);"
             "    color: white;"
             "    border: none;"
             "    border-radius: 6px;"
@@ -196,7 +197,7 @@ void FlightItemWidget::setupUI()
     } else {
         bookButton->setStyleSheet(
             "QPushButton {"
-            "    background: #bdbdbd;"  // 灰色
+            "    background: #bdbdbd;"
             "    color: white;"
             "    border: none;"
             "    border-radius: 6px;"
@@ -236,34 +237,40 @@ void FlightItemWidget::setupUI()
         );
 }
 
+// MainWindow 的实现
 MainWindow::MainWindow(const QString &username, ClientNetworkManager* networkManager, QWidget *parent)
-    : QMainWindow(parent), ui(new Ui::MainWindow), currentUsername(username), networkManager(networkManager)
+    : QMainWindow(parent), ui(new Ui::MainWindow), currentUsername(username), networkManager(networkManager),
+    userWalletBalance(0.0), walletBalanceChecked(false),
+    dateButtonGroup(nullptr), navButtonGroup(nullptr)
 {
     ui->setupUi(this);
 
     // 设置订单列表样式
     ui->ordersListWidget->setStyleSheet(
         "QListWidget {"
-        "    background: #f8f9fa;"          // 浅灰色背景
-        "    border: 1px solid #dee2e6;"    // 边框
+        "    background: #f8f9fa;"
+        "    border: 1px solid #dee2e6;"
         "    border-radius: 5px;"
-        "    outline: 0;"                   // 去掉焦点边框
+        "    outline: 0;"
         "}"
         "QListWidget::item {"
-        "    border-bottom: 1px solid #e9ecef;"  // 项之间的分隔线
+        "    border-bottom: 1px solid #e9ecef;"
         "    padding: 2px;"
         "}"
         "QListWidget::item:selected {"
-        "    background: #e3f2fd;"          // 选中项背景色
+        "    background: #e3f2fd;"
         "    color: #1e88e5;"
         "}"
         "QListWidget::item:hover {"
-        "    background: #f1f8ff;"          // 悬停背景色
+        "    background: #f1f8ff;"
         "}"
         );
 
     // 设置用户信息
     ui->userNameLabel->setText(QString("欢迎，%1").arg(username));
+
+    // 设置钱包余额显示为查询中状态
+    ui->balanceLabel->setText("查询中...");
 
     // 设置默认城市
     ui->departureEdit->setText("广州");
@@ -273,7 +280,6 @@ MainWindow::MainWindow(const QString &username, ClientNetworkManager* networkMan
 
     // 初始化日期选择系统
     setupDateSelection();
-
 
     // 初始化导航系统
     setupNavigation();
@@ -414,18 +420,15 @@ void MainWindow::updateDateButtons()
     }
 }
 
-//在析构函数中添加对 navButtonGroup 的清理
 MainWindow::~MainWindow()
 {
-    if (navButtonGroup) {
-        delete navButtonGroup;
-    }
-    if (dateButtonGroup) {
-        delete dateButtonGroup;
-    }
-    if (ui) {
-        delete ui;
-    }
+    delete ui;
+}
+
+void MainWindow::closeEvent(QCloseEvent *event)
+{
+    Q_UNUSED(event);
+    emit logoutRequested();
 }
 
 void MainWindow::setupConnections()
@@ -435,38 +438,67 @@ void MainWindow::setupConnections()
     connect(ui->logoutButton, &QPushButton::clicked, this, &MainWindow::onLogoutButtonClicked);
     connect(ui->swapButton, &QPushButton::clicked, this, &MainWindow::onSwapButtonClicked);
     connect(ui->airlineComboBox, QOverload<int>::of(&QComboBox::currentIndexChanged), this, &MainWindow::onAirlineFilterChanged);
-    // 新增：连接修改用户名和密码按钮
     connect(ui->modifyUsernameButton, &QPushButton::clicked, this, &MainWindow::onModifyUsernameClicked);
-    connect(ui->modifyPasswordButton, &QPushButton::clicked,this, &MainWindow::onModifyPasswordClicked);
+    connect(ui->modifyPasswordButton, &QPushButton::clicked, this, &MainWindow::onModifyPasswordClicked);
+
     // 日期选择连接
     connect(ui->prevWeekButton, &QPushButton::clicked, this, &MainWindow::onPrevWeekClicked);
     connect(ui->nextWeekButton, &QPushButton::clicked, this, &MainWindow::onNextWeekClicked);
     connect(ui->calendarButton, &QPushButton::clicked, this, &MainWindow::onCalendarButtonClicked);
-    connect(dateButtonGroup, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),
-            this, [this](QAbstractButton *button) {
-                int buttonId = dateButtonGroup->id(button);
-                QDate selected = currentStartDate.addDays(buttonId);
+    if (dateButtonGroup) {
+        connect(dateButtonGroup, QOverload<QAbstractButton *>::of(&QButtonGroup::buttonClicked),
+                this, [this](QAbstractButton *button) {
+                    int buttonId = dateButtonGroup->id(button);
+                    QDate selected = currentStartDate.addDays(buttonId);
 
-                // 确保不选择过去日期
-                if (selected < QDate::currentDate()) {
-                    selected = QDate::currentDate();
-                }
+                    if (selected < QDate::currentDate()) {
+                        selected = QDate::currentDate();
+                    }
 
-                selectedDate = selected;
-                updateDateButtons();
-                searchFlightsByDate(selected);
-            });
+                    selectedDate = selected;
+                    updateDateButtons();
+                    searchFlightsByDate(selected);
+                });
+    }
 
-    // 新增：导航按钮连接
+    // 导航按钮连接
     connect(ui->bookingNavButton, &QPushButton::clicked, this, &MainWindow::onBookingNavButtonClicked);
     connect(ui->myNavButton, &QPushButton::clicked, this, &MainWindow::onMyNavButtonClicked);
 
-    // 新增："我的"页面按钮连接
+    // "我的"页面按钮连接
     connect(ui->rechargeButton, &QPushButton::clicked, this, &MainWindow::onRechargeButtonClicked);
 
     if (networkManager) {
         connect(networkManager, &ClientNetworkManager::messageReceived, this, &MainWindow::onMessageReceived);
     }
+}
+
+// 查询钱包余额
+void MainWindow::queryWalletBalance()
+{
+    if (!networkManager || !networkManager->isConnected()) {
+        ui->balanceLabel->setText("未连接");
+        qDebug() << "未连接到服务器，无法查询余额";
+        return;
+    }
+
+    // 显示查询状态
+    ui->balanceLabel->setText("查询中...");
+
+    NetworkMessage msg;
+    msg.type = WALLET_QUERY_REQUEST;
+    msg.data["username"] = currentUsername;
+
+    networkManager->sendMessage(msg);
+    qDebug() << "发送钱包余额查询请求，用户名:" << currentUsername;
+}
+
+// 更新钱包显示
+void MainWindow::updateWalletDisplay()
+{
+    QString balanceText = QString("¥%1").arg(userWalletBalance, 0, 'f', 2);
+    ui->balanceLabel->setText(balanceText);
+    qDebug() << "更新钱包显示:" << balanceText;
 }
 
 void MainWindow::onSearchButtonClicked()
@@ -476,7 +508,7 @@ void MainWindow::onSearchButtonClicked()
 
 void MainWindow::onAirlineFilterChanged(int index)
 {
-    qDebug() << "航空公司筛选改变，索引:" << index;
+    Q_UNUSED(index);
     searchFlightsByDate(selectedDate);
 }
 
@@ -517,7 +549,6 @@ void MainWindow::onNextWeekClicked()
 
 void MainWindow::onCancelOrderClicked(int orderId, const QString &bookingNumber)
 {
-    // 确认对话框
     QMessageBox::StandardButton reply;
     reply = QMessageBox::question(this, "确认取消",
                                   QString("确定要取消订单 %1 吗？\n取消后金额将退回钱包。").arg(bookingNumber),
@@ -529,19 +560,15 @@ void MainWindow::onCancelOrderClicked(int orderId, const QString &bookingNumber)
             return;
         }
 
-        // 发送取消订单请求到服务器
         NetworkMessage msg;
-        msg.type = ORDER_CANCEL_REQUEST;  // 使用已定义的协议类型
+        msg.type = ORDER_CANCEL_REQUEST;
         msg.data["order_id"] = orderId;
         msg.data["username"] = currentUsername;
 
         networkManager->sendMessage(msg);
 
-        // 显示处理中提示
         QMessageBox::information(this, "处理中",
                                  QString("正在处理订单 %1 的取消请求...").arg(bookingNumber));
-
-        // 注意：不要在这里刷新订单列表，等服务器响应后再刷新
     }
 }
 
@@ -606,7 +633,6 @@ void MainWindow::searchFlightsByDate(const QDate &date)
     }
     msg.data["airline"] = selectedAirline;
 
-
     networkManager->sendMessage(msg);
     ui->flightListWidget->clear();
     ui->flightListWidget->addItem("正在搜索" + date.toString("yyyy年MM月dd日") + "的航班...");
@@ -619,13 +645,10 @@ void MainWindow::searchFlights()
 
 void MainWindow::onFlightItemDoubleClicked(QListWidgetItem *item)
 {
-    auto *widget = qobject_cast<FlightItemWidget*>(ui->flightListWidget->itemWidget(item));
-    if (widget) {
-        showFlightDetail(widget->getFlight());
-    }
+    Q_UNUSED(item);
+    // 实现将在FlightItemWidget中处理
 }
 
-// 修改：显示航班详情对话框
 void MainWindow::showFlightDetail(const Flight &flight)
 {
     FlightDetailDialog *dialog = new FlightDetailDialog(flight, networkManager,
@@ -702,7 +725,6 @@ void MainWindow::onMessageReceived(const NetworkMessage &message)
             double newBalance = message.data["new_balance"].toDouble();
             QString bookingNumber = message.data["booking_number"].toString();
 
-            // 显示成功消息
             QString successMsg = QString(
                                      "✅ 订单取消成功！\n\n"
                                      "订单号：%1\n"
@@ -715,14 +737,43 @@ void MainWindow::onMessageReceived(const NetworkMessage &message)
 
             QMessageBox::information(this, "取消成功", successMsg);
 
-            // 刷新订单列表
             loadOrders();
+
+            // 新增：订单取消后更新钱包余额
+            userWalletBalance = newBalance;
+            updateWalletDisplay();
 
         } else {
             QMessageBox::warning(this, "取消失败", resultMsg);
         }
         break;
     }
+
+    case WALLET_QUERY_RESPONSE:
+    {
+        bool success = message.data["success"].toBool();
+        if (success) {
+            userWalletBalance = message.data["balance"].toDouble();
+            walletBalanceChecked = true;
+            updateWalletDisplay();
+            qDebug() << "主窗口收到钱包余额查询成功:" << userWalletBalance;
+
+            // 关键修复: 如果钱包对话框处于打开状态，也需要通知它
+            // 查找是否有打开的WalletDialog并更新其显示
+            QList<WalletDialog*> dialogs = this->findChildren<WalletDialog*>();
+            for (WalletDialog* dialog : dialogs) {
+                qDebug() << "找到打开的WalletDialog，转发消息";
+                // 调用对话框的消息处理方法
+                dialog->onMessageReceived(message);
+            }
+        } else {
+            QString errorMsg = message.data["message"].toString();
+            ui->balanceLabel->setText("查询失败");
+            qDebug() << "钱包余额查询失败:" << errorMsg;
+        }
+        break;
+    }
+
     case CHANGE_USERNAME_RESPONSE:
     {
         bool success = message.data["success"].toBool();
@@ -730,7 +781,6 @@ void MainWindow::onMessageReceived(const NetworkMessage &message)
         QString newUsername = message.data["new_username"].toString();
 
         if (success) {
-            // 这里不需要额外处理，因为ChangeUsernameDialog会发射usernameChanged信号
             qDebug() << "服务器确认用户名修改成功:" << newUsername;
         } else {
             qDebug() << "服务器返回用户名修改失败:" << resultMsg;
@@ -745,10 +795,8 @@ void MainWindow::onMessageReceived(const NetworkMessage &message)
 
         if (success) {
             qDebug() << "密码修改成功";
-            // ChangePasswordDialog会自己显示成功消息
         } else {
             qDebug() << "密码修改失败:" << resultMsg;
-            // ChangePasswordDialog会自己显示失败消息
         }
         break;
     }
@@ -763,11 +811,9 @@ void MainWindow::displayFlights(const QList<Flight> &flights)
     ui->flightListWidget->clear();
 
     if (flights.isEmpty()) {
-        // 获取搜索条件
         QString departure = ui->departureEdit->text().trimmed();
         QString arrival = ui->arrivalEdit->text().trimmed();
 
-        // 获取航空公司
         QString airline = "";
         int airlineIndex = ui->airlineComboBox->currentIndex();
         switch (airlineIndex) {
@@ -781,7 +827,6 @@ void MainWindow::displayFlights(const QList<Flight> &flights)
 
         QString dateStr = selectedDate.toString("yyyy年MM月dd日");
 
-        // 使用 HTML 富文本格式化，带有颜色标注
         QString message = QString(
                               "<div style='text-align: center; padding: 20px; font-family: Microsoft YaHei;'>"
                               "<p style='font-size: 16px; color: #333; margin-bottom: 10px;'>您搜索的 "
@@ -799,50 +844,50 @@ void MainWindow::displayFlights(const QList<Flight> &flights)
                               "</div>")
                               .arg(departure, arrival, airline, dateStr);
 
-        // 创建自定义小部件来显示 HTML
         QWidget *widget = new QWidget();
-        // 设置widget为不可交互
-        widget->setAttribute(Qt::WA_TransparentForMouseEvents);  // 鼠标事件穿透
-        widget->setEnabled(false);  // 禁用widget
+        widget->setAttribute(Qt::WA_TransparentForMouseEvents);
+        widget->setEnabled(false);
 
         QVBoxLayout *layout = new QVBoxLayout(widget);
-        layout->setContentsMargins(10, 20, 10, 20);  // 增加内边距
+        layout->setContentsMargins(10, 20, 10, 20);
 
         QLabel *label = new QLabel();
         label->setText(message);
         label->setAlignment(Qt::AlignCenter);
         label->setWordWrap(true);
-        // 修改样式表：去掉虚线边框，设置透明背景
         label->setStyleSheet(
             "QLabel {"
-            "    background: transparent;"  // 透明背景
-            "    border: none;"             // 去掉边框
+            "    background: transparent;"
+            "    border: none;"
             "}"
             );
 
         layout->addWidget(label);
 
         QListWidgetItem *item = new QListWidgetItem();
-        item->setSizeHint(QSize(ui->flightListWidget->width() - 20, 180));  // 增加高度
-        item->setFlags(item->flags() & ~Qt::ItemIsSelectable & ~Qt::ItemIsEnabled);  // 禁止选中和禁用
-        item->setBackground(QBrush(Qt::transparent));  // 透明背景
-
-        // 如果需要设置整个列表项的样式
-        item->setData(Qt::UserRole, "no_flights_item");  // 可以标记这个特殊项
+        item->setSizeHint(QSize(ui->flightListWidget->width() - 20, 180));
+        item->setFlags(item->flags() & ~Qt::ItemIsSelectable & ~Qt::ItemIsEnabled);
+        item->setBackground(QBrush(Qt::transparent));
+        item->setData(Qt::UserRole, "no_flights_item");
 
         ui->flightListWidget->addItem(item);
         ui->flightListWidget->setItemWidget(item, widget);
 
-        // 确保列表本身不会对这个项有特殊效果
         ui->flightListWidget->setSelectionMode(QAbstractItemView::NoSelection);
         return;
     }
 
-    // 如果有航班，恢复选择模式
     ui->flightListWidget->setSelectionMode(QAbstractItemView::SingleSelection);
 
     for (const Flight &flight : flights) {
-        addFlightItem(flight);
+        FlightItemWidget *widget = new FlightItemWidget(flight);
+        connect(widget, &FlightItemWidget::bookRequested, this, &MainWindow::showFlightDetail);
+
+        QListWidgetItem *item = new QListWidgetItem();
+        item->setSizeHint(widget->sizeHint());
+
+        ui->flightListWidget->addItem(item);
+        ui->flightListWidget->setItemWidget(item, widget);
     }
 }
 
@@ -857,23 +902,21 @@ void MainWindow::addFlightItem(const Flight &flight)
     ui->flightListWidget->addItem(item);
     ui->flightListWidget->setItemWidget(item, widget);
 }
-//新增导航按钮
+
 void MainWindow::setupNavigation()
 {
-    // 创建导航按钮组，确保只有一个按钮被选中
     navButtonGroup = new QButtonGroup(this);
     navButtonGroup->setExclusive(true);
 
     navButtonGroup->addButton(ui->bookingNavButton, 0);
     navButtonGroup->addButton(ui->myNavButton, 1);
 
-    // 设置初始状态："预订"页面被选中
     ui->bookingNavButton->setChecked(true);
     ui->stackedWidget->setCurrentWidget(ui->bookingPage);
 
-    // 更新导航按钮样式
     updateNavButtonStyles();
 }
+
 void MainWindow::updateNavButtonStyles()
 {
     if (ui->bookingNavButton->isChecked()) {
@@ -954,7 +997,7 @@ void MainWindow::updateNavButtonStyles()
             );
     }
 }
-//添加导航按钮的槽函数
+
 void MainWindow::onBookingNavButtonClicked()
 {
     ui->stackedWidget->setCurrentWidget(ui->bookingPage);
@@ -966,13 +1009,23 @@ void MainWindow::onMyNavButtonClicked()
     ui->stackedWidget->setCurrentWidget(ui->myPage);
     updateNavButtonStyles();
 
-    // 切换到"我的"页面时，加载用户信息和订单
     loadUserInfo();
     loadOrders();
+
+    // 修复: 确保每次切换时都查询余额
+    qDebug() << "切换到'我的'页面，查询余额...";
+
+    // 先更新界面显示状态
+    ui->balanceLabel->setText("查询中...");
+
+    // 延迟一小段时间确保UI更新完成
+    QTimer::singleShot(100, this, [this]() {
+        queryWalletBalance();
+    });
 }
+
 void MainWindow::loadUserInfo()
 {
-    // 设置用户头像的首字母（这里取用户名的第一个字符）
     if (!currentUsername.isEmpty()) {
         QString firstChar = currentUsername.left(1).toUpper();
         ui->userAvatarLabel->setText(firstChar);
@@ -981,10 +1034,7 @@ void MainWindow::loadUserInfo()
 
 void MainWindow::loadOrders()
 {
-    // 清空订单列表
     ui->ordersListWidget->clear();
-
-    // 添加加载提示
     ui->ordersListWidget->addItem("正在加载订单...");
 
     if (!networkManager || !networkManager->isConnected()) {
@@ -993,7 +1043,6 @@ void MainWindow::loadOrders()
         return;
     }
 
-    // 发送订单列表请求到服务器
     NetworkMessage msg;
     msg.type = ORDER_LIST_REQUEST;
     msg.data["username"] = currentUsername;
@@ -1002,12 +1051,20 @@ void MainWindow::loadOrders()
     qDebug() << "自动发送订单列表请求，用户名:" << currentUsername;
 }
 
-//添加"我的"页面的相关函数
 void MainWindow::onRechargeButtonClicked()
 {
-    // 打开钱包对话框
     WalletDialog *dialog = new WalletDialog(currentUsername, networkManager, this);
     dialog->setAttribute(Qt::WA_DeleteOnClose);
+
+    // 新增：连接余额更新信号
+    connect(dialog, &WalletDialog::balanceUpdated, this, [this]() {
+        qDebug() << "收到余额更新信号，重新查询余额";
+        // 延迟一小段时间，确保服务器已经处理完充值请求
+        QTimer::singleShot(500, this, [this]() {
+            queryWalletBalance();
+        });
+    });
+
     dialog->exec();
 }
 
@@ -1024,6 +1081,7 @@ void MainWindow::onViewAllOrdersButtonClicked()
 
     networkManager->sendMessage(msg);
 }
+
 void MainWindow::displayOrders(const QJsonArray &orders)
 {
     ui->ordersListWidget->clear();
@@ -1042,20 +1100,16 @@ void MainWindow::displayOrders(const QJsonArray &orders)
         double price = obj["price"].toDouble();
         int status = obj["status"].toInt();
 
-        // 创建自定义Widget
         QWidget *orderWidget = new QWidget();
         orderWidget->setObjectName(QString("orderWidget_%1").arg(orderId));
-
-        // 设置Widget样式
         orderWidget->setStyleSheet("background: white; border: none;");
         orderWidget->setMinimumHeight(40);
         orderWidget->setMaximumHeight(45);
 
         QHBoxLayout *layout = new QHBoxLayout(orderWidget);
-        layout->setContentsMargins(8, 4, 8, 4);  // 减少内边距
+        layout->setContentsMargins(8, 4, 8, 4);
         layout->setSpacing(8);
 
-        // 订单状态信息
         QString statusStr;
         QString statusIcon;
         QColor statusColor;
@@ -1077,7 +1131,6 @@ void MainWindow::displayOrders(const QJsonArray &orders)
             statusColor = Qt::darkGray;
         }
 
-        // 信息标签 - 紧凑显示
         QLabel *infoLabel = new QLabel();
         infoLabel->setText(QString("<span style='font-size: 10px;'>%1 %2</span> | "
                                    "<span style='color: #1e88e5; font-size: 10px;'>%3</span> | "
@@ -1091,27 +1144,22 @@ void MainWindow::displayOrders(const QJsonArray &orders)
         infoLabel->setStyleSheet("QLabel {"
                                  "    background: transparent;"
                                  "    color: #333;"
-                                 "    font-size: 10px;"  // 更小的字体
+                                 "    font-size: 10px;"
                                  "    padding: 1px;"
                                  "    margin: 0;"
                                  "}");
         infoLabel->setAlignment(Qt::AlignVCenter | Qt::AlignLeft);
 
-        // 信息标签占据大部分空间
         layout->addWidget(infoLabel, 1);
 
-        // 只有"已预订"状态显示取消按钮
         if (status == 1) {
             QPushButton *cancelButton = new QPushButton("取消订单");
             cancelButton->setObjectName(QString("cancelBtn_%1").arg(orderId));
-
-            // 固定按钮大小
             cancelButton->setFixedSize(75, 26);
 
-            // 简化按钮样式，确保文字显示
             cancelButton->setStyleSheet(
                 "QPushButton {"
-                "    background: #f44336;"      // 纯色背景
+                "    background: #f44336;"
                 "    color: white;"
                 "    border: none;"
                 "    border-radius: 3px;"
@@ -1128,7 +1176,6 @@ void MainWindow::displayOrders(const QJsonArray &orders)
                 "}"
                 );
 
-
             connect(cancelButton, &QPushButton::clicked, this, [this, orderId, bookingNumber]() {
                 onCancelOrderClicked(orderId, bookingNumber);
             });
@@ -1136,7 +1183,6 @@ void MainWindow::displayOrders(const QJsonArray &orders)
             layout->addWidget(cancelButton);
 
         } else {
-            // 其他状态显示状态标签
             QLabel *statusLabel = new QLabel(statusStr);
             statusLabel->setStyleSheet(QString(
                                            "QLabel {"
@@ -1153,7 +1199,6 @@ void MainWindow::displayOrders(const QJsonArray &orders)
             layout->addWidget(statusLabel);
         }
 
-        // 创建列表项
         QListWidgetItem *item = new QListWidgetItem();
         item->setSizeHint(QSize(ui->ordersListWidget->width() - 20, 42));
         item->setData(Qt::UserRole, orderId);
@@ -1165,7 +1210,6 @@ void MainWindow::displayOrders(const QJsonArray &orders)
     }
 }
 
-
 void MainWindow::onDateButtonClicked()
 {
     // 功能已经在lambda表达式中实现
@@ -1175,7 +1219,7 @@ void MainWindow::onCalendarButtonClicked()
 {
     showCalendarDialog();
 }
-// 修改用户名按钮点击
+
 void MainWindow::onModifyUsernameClicked()
 {
     qDebug() << "=== 修改用户名按钮被点击 ===";
@@ -1185,13 +1229,11 @@ void MainWindow::onModifyUsernameClicked()
         return;
     }
 
-    // 获取当前用户名（从界面标签获取）
     QString displayedName = ui->userNameLabel->text();
     QString currentUser = displayedName;
 
-    // 去掉"欢迎，"前缀
     if (displayedName.startsWith("欢迎，")) {
-        currentUser = displayedName.mid(3); // 去掉"欢迎，"前缀
+        currentUser = displayedName.mid(3);
     }
 
     if (currentUser.isEmpty()) {
@@ -1201,21 +1243,17 @@ void MainWindow::onModifyUsernameClicked()
 
     qDebug() << "当前用户名:" << currentUser;
 
-    // 创建修改用户名对话框
     ChangeUsernameDialog *dialog = new ChangeUsernameDialog(networkManager,
                                                             currentUser,
                                                             this);
 
-    // 连接用户名修改成功的信号
     connect(dialog, &ChangeUsernameDialog::usernameChanged,
             this, &MainWindow::onUsernameChanged);
 
-    // 设置对话框模态显示
     dialog->setAttribute(Qt::WA_DeleteOnClose);
     dialog->exec();
 }
 
-// 修改密码按钮点击
 void MainWindow::onModifyPasswordClicked()
 {
     qDebug() << "=== 修改密码按钮被点击 ===";
@@ -1225,13 +1263,11 @@ void MainWindow::onModifyPasswordClicked()
         return;
     }
 
-    // 获取当前用户名（从界面标签获取）
     QString displayedName = ui->userNameLabel->text();
     QString currentUser = displayedName;
 
-    // 去掉"欢迎，"前缀
     if (displayedName.startsWith("欢迎，")) {
-        currentUser = displayedName.mid(3); // 去掉"欢迎，"前缀
+        currentUser = displayedName.mid(3);
     }
 
     if (currentUser.isEmpty()) {
@@ -1241,30 +1277,24 @@ void MainWindow::onModifyPasswordClicked()
 
     qDebug() << "当前用户名:" << currentUser;
 
-    // 创建修改密码对话框
     ChangePasswordDialog *dialog = new ChangePasswordDialog(networkManager,
                                                             currentUser,
                                                             this);
 
-    // 设置对话框模态显示
     dialog->setAttribute(Qt::WA_DeleteOnClose);
     dialog->exec();
 }
 
-// 用户名修改成功后的处理
 void MainWindow::onUsernameChanged(const QString& newUsername)
 {
     qDebug() << "用户名修改成功，新用户名:" << newUsername;
 
-    // 更新当前用户名
     currentUsername = newUsername;
 
-    // 更新界面显示的用户名
     if (ui->userNameLabel) {
         QString displayName = "欢迎，" + newUsername;
         ui->userNameLabel->setText(displayName);
 
-        // 更新头像显示（用户名的第一个字母）
         if (ui->userAvatarLabel) {
             if (!newUsername.isEmpty()) {
                 QString firstLetter = newUsername.left(1).toUpper();
@@ -1272,7 +1302,10 @@ void MainWindow::onUsernameChanged(const QString& newUsername)
             }
         }
     }
+
+    // 新增：用户名修改后重新查询余额
+    queryWalletBalance();
 }
 
+// 最后包含moc文件
 #include "mainwindow.moc"
-

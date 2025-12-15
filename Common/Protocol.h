@@ -1,80 +1,87 @@
 #ifndef PROTOCOL_H
 #define PROTOCOL_H
 
-#include <QString>
 #include <QJsonObject>
 #include <QJsonDocument>
 #include <QByteArray>
 
-// 消息类型枚举
-enum MessageType {
-    TEST_MESSAGE = 0,          // 测试消息
-    LOGIN_REQUEST = 100,       // 登录请求
-    LOGIN_RESPONSE = 101,      // 登录响应
-    REGISTER_REQUEST = 102,    // 注册请求
-    REGISTER_RESPONSE = 103,   // 注册响应
+// 网络消息结构体
+struct NetworkMessage
+{
+    int type;           // 消息类型
+    QJsonObject data;   // 消息数据
 
-    // 用户验证
-    CHECK_USERNAME_REQUEST = 0x1005,  // 检查用户名是否存在
-    CHECK_USERNAME_RESPONSE = 0x1006, // 检查用户名响应
-
-    // 用户信息修改 (新增)
-    CHANGE_USERNAME_REQUEST = 104,    // 修改用户名请求
-    CHANGE_USERNAME_RESPONSE = 105,   // 修改用户名响应
-    CHANGE_PASSWORD_REQUEST = 106,    // 修改密码请求
-    CHANGE_PASSWORD_RESPONSE = 107,   // 修改密码响应
-
-    // 航班查询相关
-    FLIGHT_SEARCH_REQUEST = 200,
-    FLIGHT_SEARCH_RESPONSE = 201,
-    FLIGHT_DETAIL_REQUEST = 202,
-    FLIGHT_DETAIL_RESPONSE = 203,
-
-    // 舱位查询相关
-    CABIN_SEARCH_REQUEST = 204,
-    CABIN_SEARCH_RESPONSE = 205,
-
-    // 预订和订单相关 (300-399)
-    BOOKING_REQUEST = 300,         // 预订请求
-    BOOKING_RESPONSE = 301,        // 预订响应
-    ORDER_LIST_REQUEST = 302,      // 订单列表请求
-    ORDER_LIST_RESPONSE = 303,     // 订单列表响应
-    ORDER_CANCEL_REQUEST = 304,    // 取消订单请求
-    ORDER_CANCEL_RESPONSE = 305,   // 取消订单响应
-
-    // 钱包和支付相关 (400-499)
-    WALLET_QUERY_REQUEST = 400,    // 钱包查询请求
-    WALLET_QUERY_RESPONSE = 401,   // 钱包查询响应
-    RECHARGE_REQUEST = 402,        // 充值请求
-    RECHARGE_RESPONSE = 403,       // 充值响应
-    PAYMENT_REQUEST = 404,         // 支付请求（用于预订时扣款）
-    PAYMENT_RESPONSE = 405,        // 支付响应
-};
-
-// 基础消息结构
-struct NetworkMessage {
-    MessageType type;
-    QJsonObject data;
-
-    // 序列化为JSON字符串
     QByteArray toJson() const {
         QJsonObject obj;
-        obj["type"] = static_cast<int>(type);
+        obj["type"] = type;
         obj["data"] = data;
-        return QJsonDocument(obj).toJson();
+        QJsonDocument doc(obj);
+        return doc.toJson();
     }
 
-    // 从JSON字符串反序列化
     static NetworkMessage fromJson(const QByteArray &json) {
         NetworkMessage msg;
         QJsonDocument doc = QJsonDocument::fromJson(json);
-        if (doc.isObject()) {
+        if (!doc.isNull()) {
             QJsonObject obj = doc.object();
-            msg.type = static_cast<MessageType>(obj["type"].toInt());
+            msg.type = obj["type"].toInt();
             msg.data = obj["data"].toObject();
         }
         return msg;
     }
+};
+
+// 消息类型枚举
+enum MessageType {
+    // 连接测试
+    CONNECTION_TEST = 0,
+    CONNECTION_TEST_RESPONSE = 1,
+
+    // 用户认证相关
+    LOGIN_REQUEST = 2,
+    LOGIN_RESPONSE = 3,
+    REGISTER_REQUEST = 4,
+    REGISTER_RESPONSE = 5,
+    LOGOUT_REQUEST = 6,
+    LOGOUT_RESPONSE = 7,
+    CHECK_USERNAME_REQUEST = 8,
+    CHECK_USERNAME_RESPONSE = 9,
+
+    // 用户信息修改
+    CHANGE_USERNAME_REQUEST = 10,
+    CHANGE_USERNAME_RESPONSE = 11,
+    CHANGE_PASSWORD_REQUEST = 12,
+    CHANGE_PASSWORD_RESPONSE = 13,
+
+    // 航班查询相关
+    FLIGHT_SEARCH_REQUEST = 20,
+    FLIGHT_SEARCH_RESPONSE = 21,
+    FLIGHT_DETAIL_REQUEST = 22,
+    FLIGHT_DETAIL_RESPONSE = 23,
+    CABIN_SEARCH_REQUEST = 24,
+    CABIN_SEARCH_RESPONSE = 25,
+
+    // 预订相关
+    BOOKING_REQUEST = 30,
+    BOOKING_RESPONSE = 31,
+    ORDER_LIST_REQUEST = 32,
+    ORDER_LIST_RESPONSE = 33,
+    ORDER_DETAIL_REQUEST = 34,
+    ORDER_DETAIL_RESPONSE = 35,
+    ORDER_CANCEL_REQUEST = 36,
+    ORDER_CANCEL_RESPONSE = 37,
+
+    // 钱包相关
+    WALLET_QUERY_REQUEST = 40,
+    WALLET_QUERY_RESPONSE = 41,
+    RECHARGE_REQUEST = 42,
+    RECHARGE_RESPONSE = 43,
+    RECHARGE_RECORDS_REQUEST = 44,
+    RECHARGE_RECORDS_RESPONSE = 45,
+
+    // 系统管理相关
+    SYSTEM_STATUS_REQUEST = 90,
+    SYSTEM_STATUS_RESPONSE = 91
 };
 
 #endif // PROTOCOL_H

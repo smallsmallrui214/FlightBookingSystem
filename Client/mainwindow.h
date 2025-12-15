@@ -2,84 +2,122 @@
 #define MAINWINDOW_H
 
 #include <QMainWindow>
-#include <QListWidgetItem>
-#include <QTimer>
-#include <QJsonArray>
-#include <QDateTime>
-#include <QDate>
 #include <QButtonGroup>
-#include <QPushButton>
-#include "clientnetworkmanager.h"
-#include "../Common/flight.h"
+#include <QDate>
+#include <QListWidgetItem>  // 添加这行，修复 QListWidgetItem 未声明错误
+#include <QPushButton>      // 添加这行，修复 QPushButton 未声明错误
 
+#include "../Common/flight.h"
+#include "clientnetworkmanager.h"
+
+// 前向声明
 namespace Ui {
 class MainWindow;
 }
+
+// 航班列表项Widget声明
+class FlightItemWidget;
+
+// 网络消息结构体前向声明
+struct NetworkMessage;
 
 class MainWindow : public QMainWindow
 {
     Q_OBJECT
 
 public:
-    explicit MainWindow(const QString &username, ClientNetworkManager* networkManager = nullptr, QWidget *parent = nullptr);
+    explicit MainWindow(const QString &username, ClientNetworkManager* networkManager, QWidget *parent = nullptr);
     ~MainWindow();
 
 signals:
-    void logoutRequested();
+    void logoutRequested();  // 登出信号
+
+protected:
+    void closeEvent(QCloseEvent *event) override;
 
 private slots:
     void onSearchButtonClicked();
     void onFlightItemDoubleClicked(QListWidgetItem *item);
-    void onMessageReceived(const NetworkMessage &message);
     void onLogoutButtonClicked();
     void onSwapButtonClicked();
     void onAirlineFilterChanged(int index);
-    void onDateButtonClicked();
+
+    // 日期选择相关
     void onPrevWeekClicked();
     void onNextWeekClicked();
+    void onDateButtonClicked();
     void onCalendarButtonClicked();
-    // 新增的导航按钮槽函数
+
+    // 导航相关
     void onBookingNavButtonClicked();
     void onMyNavButtonClicked();
-    // 新增的其他槽函数
-    void onRechargeButtonClicked();
-    void onViewAllOrdersButtonClicked();
-    void onCancelOrderClicked(int orderId, const QString &bookingNumber);
-    // 添加修改功能的槽函数
+
+    // 用户管理相关
     void onModifyUsernameClicked();
     void onModifyPasswordClicked();
+    void onRechargeButtonClicked();
+    void onViewAllOrdersButtonClicked();
+
+    // 消息处理
+    void onMessageReceived(const NetworkMessage &message);
+
+    // 用户信息更新
     void onUsernameChanged(const QString& newUsername);
+
+    // 订单管理
+    void onCancelOrderClicked(int orderId, const QString &bookingNumber);
 
 private:
     void setupConnections();
+    void setupDateSelection();
+    void setupNavigation();
+
+    void updateDateButtons();
+    void updateNavButtonStyles();
+
     void searchFlights();
+    void searchFlightsByDate(const QDate &date);
     void displayFlights(const QList<Flight> &flights);
     void addFlightItem(const Flight &flight);
+
     void showFlightDetail(const Flight &flight);
-    void setupDateSelection();
-    void updateDateButtons();
-    void searchFlightsByDate(const QDate &date);
     void showCalendarDialog();
-    QString getSearchConditions() const;
-    // 新增的导航相关函数
-    void setupNavigation();
-    void updateNavButtonStyles();
-    // 新增的"我的"页面函数
+
+    // 用户信息管理
     void loadUserInfo();
+    void updateUserDisplay(const QString &username);
+
+    // 钱包管理
+    void queryWalletBalance();  // 查询钱包余额
+    void updateWalletDisplay(); // 更新钱包显示
+
+    // 订单管理
     void loadOrders();
     void displayOrders(const QJsonArray &orders);
 
+private:
     Ui::MainWindow *ui;
+
     QString currentUsername;
     ClientNetworkManager* networkManager;
+
+    // 钱包相关
+    double userWalletBalance;
+    bool walletBalanceChecked;
+
+    // 航班数据
     QList<Flight> currentFlights;
-    QDate currentCenterDate;
-    QDate selectedDate;
+
+    // 日期选择相关
     QButtonGroup *dateButtonGroup;
-    QList<QPushButton*> dateButtons;
+    QList<QPushButton*> dateButtons;  // 现在 QPushButton 已声明
+    QDate selectedDate;
     QDate currentStartDate;
-    // 新增的导航按钮组
+
+    // 导航相关
     QButtonGroup *navButtonGroup;
+
+    // UI控件指针（如需要）
 };
 
 #endif // MAINWINDOW_H

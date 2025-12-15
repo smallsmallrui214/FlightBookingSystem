@@ -1,10 +1,20 @@
 #include "walletdialog.h"
 #include "ui_walletdialog.h"
+#include "rechargedialog.h"
 #include "../Common/protocol.h"
 #include <QMessageBox>
 #include <QDebug>
 #include <QDoubleValidator>
 #include <QDateTime>
+#include <QTableWidgetItem>
+#include <QHeaderView>
+#include <QJsonArray>
+#include <QJsonDocument>
+#include <QFont>
+#include <QColor>
+#include <QTimer>
+#include <QHBoxLayout>
+#include <QPushButton>
 
 WalletDialog::WalletDialog(const QString &username,
                            ClientNetworkManager *networkManager,
@@ -17,21 +27,195 @@ WalletDialog::WalletDialog(const QString &username,
 
     // 设置窗口标题
     setWindowTitle(QString("我的钱包 - %1").arg(username));
+    setFixedSize(700, 600);  // 设置固定大小以显示所有内容
 
-    // 设置充值金额输入验证
-    ui->rechargeAmountEdit->setValidator(new QDoubleValidator(1.0, 10000.0, 2, this));
-    ui->rechargeAmountEdit->setPlaceholderText("请输入充值金额");
+    // 设置充值记录表格
+    ui->recordsTable->setColumnCount(4);
+    QStringList headers;
+    headers << "充值时间" << "充值金额" << "充值前余额" << "充值后余额";
+    ui->recordsTable->setHorizontalHeaderLabels(headers);
+
+    // 设置表格样式
+    ui->recordsTable->horizontalHeader()->setStretchLastSection(true);
+    ui->recordsTable->horizontalHeader()->setDefaultAlignment(Qt::AlignCenter);
+    ui->recordsTable->horizontalHeader()->setStyleSheet(
+        "QHeaderView::section {"
+        "    background-color: #f8f9fa;"
+        "    padding: 10px;"
+        "    border: 1px solid #dee2e6;"
+        "    font-weight: bold;"
+        "    font-size: 12px;"
+        "    color: #495057;"
+        "    font-family: 'Microsoft YaHei';"
+        "}"
+        );
+
+    ui->recordsTable->setStyleSheet(
+        "QTableWidget {"
+        "    gridline-color: #dee2e6;"
+        "    background-color: white;"
+        "    alternate-background-color: #f8f9fa;"
+        "    border: 1px solid #dee2e6;"
+        "    border-radius: 5px;"
+        "}"
+        "QTableWidget::item {"
+        "    padding: 8px;"
+        "    border-bottom: 1px solid #f1f3f4;"
+        "    font-family: 'Microsoft YaHei';"
+        "}"
+        "QTableWidget::item:selected {"
+        "    background-color: #e3f2fd;"
+        "    color: #1e88e5;"
+        "}"
+        );
+
+    ui->recordsTable->setAlternatingRowColors(true);
+    ui->recordsTable->verticalHeader()->setVisible(false);
+    ui->recordsTable->setEditTriggers(QAbstractItemView::NoEditTriggers);
+    ui->recordsTable->setSelectionBehavior(QAbstractItemView::SelectRows);
+    ui->recordsTable->setSelectionMode(QAbstractItemView::SingleSelection);
+
+    // 设置按钮样式
+    QString buttonStyle =
+        "QPushButton {"
+        "    border: none;"
+        "    border-radius: 6px;"
+        "    padding: 10px 20px;"
+        "    font-size: 14px;"
+        "    font-weight: bold;"
+        "    font-family: 'Microsoft YaHei';"
+        "    min-width: 120px;"
+        "    min-height: 40px;"
+        "}"
+        "QPushButton:hover {"
+        "    opacity: 0.9;"
+        "}"
+        "QPushButton:pressed {"
+        "    opacity: 0.8;"
+        "}"
+        "QPushButton:disabled {"
+        "    background: #bdc3c7;"
+        "    color: #7f8c8d;"
+        "}";
+
+    // 设置具体按钮颜色
+    ui->rechargeButton->setStyleSheet(buttonStyle +
+                                      "QPushButton {"
+                                      "    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #28a745, stop:1 #20c997);"
+                                      "    color: white;"
+                                      "}");
+
+    ui->viewRecordsButton->setStyleSheet(buttonStyle +
+                                         "QPushButton {"
+                                         "    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #1E90FF, stop:1 #4169E1);"
+                                         "    color: white;"
+                                         "}");
+
+    // 设置关闭按钮样式
+    ui->closeButton->setStyleSheet(buttonStyle +
+                                   "QPushButton {"
+                                   "    background: qlineargradient(x1:0, y1:0, x2:1, y2:0, stop:0 #dc3545, stop:1 #c82333);"
+                                   "    color: white;"
+                                   "}");
+
+    // 设置标签样式
+    ui->welcomeLabel->setStyleSheet(
+        "QLabel {"
+        "    font-family: 'Microsoft YaHei';"
+        "    color: #333;"
+        "    font-size: 16px;"
+        "    font-weight: bold;"
+        "}");
+
+    ui->lastUpdateLabel->setStyleSheet(
+        "QLabel {"
+        "    font-family: 'Microsoft YaHei';"
+        "    color: #666;"
+        "    font-size: 12px;"
+        "}");
+
+    ui->currentBalanceTitle->setStyleSheet(
+        "QLabel {"
+        "    font-family: 'Microsoft YaHei';"
+        "    color: #333;"
+        "    font-size: 16px;"
+        "    font-weight: bold;"
+        "}");
+
+    ui->balanceLabel->setStyleSheet(
+        "QLabel {"
+        "    font-family: 'Microsoft YaHei';"
+        "    color: #ff5722;"
+        "    font-size: 20px;"
+        "    font-weight: bold;"
+        "}");
+
+    // 设置GroupBox样式
+    QString groupBoxStyle =
+        "QGroupBox {"
+        "    font-family: 'Microsoft YaHei';"
+        "    border: 2px solid #e0e0e0;"
+        "    border-radius: 10px;"
+        "    margin-top: 10px;"
+        "    padding-top: 10px;"
+        "    background-color: white;"
+        "}"
+        "QGroupBox::title {"
+        "    subcontrol-origin: margin;"
+        "    subcontrol-position: top center;"
+        "    padding: 0 10px;"
+        "    background-color: white;"
+        "    font-size: 14px;"
+        "    font-weight: bold;"
+        "    color: #666;"
+        "}";
+
+    ui->welcomeGroupBox->setStyleSheet(groupBoxStyle);
+    ui->recordsGroupBox->setStyleSheet(groupBoxStyle);
+
+    // 关键修改：不再隐藏充值记录GroupBox，让它默认可见
+    // ui->recordsGroupBox->setVisible(false); // 注释掉这行
 
     // 连接信号
-    connect(ui->rechargeButton, &QPushButton::clicked, this, &WalletDialog::onRechargeButtonClicked);
-    connect(ui->closeButton, &QPushButton::clicked, this, &WalletDialog::onCloseButtonClicked);
-    connect(ui->rechargeAmountEdit, &QLineEdit::textChanged,
-            this, &WalletDialog::onRechargeAmountChanged);
-    connect(networkManager, &ClientNetworkManager::messageReceived,
-            this, &WalletDialog::onMessageReceived);
+    connect(ui->rechargeButton, &QPushButton::clicked, this, &WalletDialog::showRechargeDialog);
+    connect(ui->viewRecordsButton, &QPushButton::clicked, this, &WalletDialog::loadRechargeRecords);
+    connect(ui->closeButton, &QPushButton::clicked, this, &WalletDialog::accept);  // 使用accept关闭对话框
 
-    // 加载钱包信息
-    loadWalletInfo();
+    // 关键修复1: 确保在UI完全初始化后再建立连接
+    if (networkManager) {
+        // 先连接信号，确保能接收到响应
+        connect(networkManager, &ClientNetworkManager::messageReceived,
+                this, &WalletDialog::onMessageReceived, Qt::UniqueConnection);
+    }
+
+    // 更新欢迎信息
+    ui->welcomeLabel->setText(QString("欢迎您，%1！").arg(currentUsername));
+    ui->balanceLabel->setText("正在查询...");
+    ui->lastUpdateLabel->setText("最近更新: -");
+
+    // 关键修复2: 立即查询余额，不延迟
+    qDebug() << "钱包对话框创建，立即查询余额，用户:" << currentUsername;
+
+    if (!networkManager || !networkManager->isConnected()) {
+        ui->balanceLabel->setText("未连接服务器");
+        ui->balanceLabel->setStyleSheet(
+            "QLabel {"
+            "    font-family: 'Microsoft YaHei';"
+            "    color: #dc3545;"
+            "    font-size: 24px;"
+            "    font-weight: bold;"
+            "    padding: 5px;"
+            "    border: 2px solid #dc3545;"
+            "    border-radius: 8px;"
+            "    background-color: #fff5f5;"
+            "}");
+        qDebug() << "网络未连接，无法查询余额";
+    } else {
+        // 直接查询余额
+        loadWalletInfo();
+        // 同时加载充值记录
+        loadRechargeRecords();
+    }
 }
 
 WalletDialog::~WalletDialog()
@@ -41,18 +225,103 @@ WalletDialog::~WalletDialog()
 
 void WalletDialog::loadWalletInfo()
 {
-    if (!networkManager || !networkManager->isConnected()) {
-        QMessageBox::warning(this, "错误", "未连接到服务器");
+    qDebug() << "=== 开始加载钱包信息 ===";
+    qDebug() << "用户名:" << currentUsername;
+    qDebug() << "网络管理器:" << networkManager;
+
+    if (!networkManager) {
+        qDebug() << "错误: networkManager 为nullptr";
+        ui->balanceLabel->setText("网络错误");
         return;
     }
+
+    if (!networkManager->isConnected()) {
+        qDebug() << "错误: 网络未连接";
+        ui->balanceLabel->setText("未连接");
+        return;
+    }
+
+    // 显示查询状态
+    ui->balanceLabel->setText("查询中...");
+    ui->balanceLabel->setStyleSheet(
+        "QLabel {"
+        "    font-family: 'Microsoft YaHei';"
+        "    color: #1976d2;"
+        "    font-size: 24px;"
+        "    font-weight: bold;"
+        "    padding: 5px;"
+        "    border: 2px solid #1976d2;"
+        "    border-radius: 8px;"
+        "    background-color: #f0f8ff;"
+        "}");
 
     // 发送钱包查询请求
     NetworkMessage msg;
     msg.type = WALLET_QUERY_REQUEST;
     msg.data["username"] = currentUsername;
 
+    qDebug() << "发送钱包查询请求，消息类型:" << msg.type;
+    qDebug() << "请求数据:" << QJsonDocument(msg.data).toJson();
+
     networkManager->sendMessage(msg);
-    qDebug() << "发送钱包查询请求，用户名:" << currentUsername;
+}
+
+void WalletDialog::refreshWalletInfo()
+{
+    qDebug() << "刷新钱包信息，用户:" << currentUsername;
+
+    // 检查网络连接
+    if (!networkManager || !networkManager->isConnected()) {
+        ui->balanceLabel->setText("未连接");
+        ui->balanceLabel->setStyleSheet(
+            "QLabel {"
+            "    font-family: 'Microsoft YaHei';"
+            "    color: #dc3545;"
+            "    font-size: 24px;"
+            "    font-weight: bold;"
+            "    padding: 5px;"
+            "    border: 2px solid #dc3545;"
+            "    border-radius: 8px;"
+            "    background-color: #fff5f5;"
+            "}");
+        QMessageBox::warning(this, "网络错误", "请检查网络连接后重试");
+        return;
+    }
+
+    // 显示查询状态
+    ui->balanceLabel->setText("正在查询...");
+    ui->balanceLabel->setStyleSheet(
+        "QLabel {"
+        "    font-family: 'Microsoft YaHei';"
+        "    color: #1976d2;"
+        "    font-size: 24px;"
+        "    font-weight: bold;"
+        "    padding: 5px;"
+        "    border: 2px solid #1976d2;"
+        "    border-radius: 8px;"
+        "    background-color: #f0f8ff;"
+        "}");
+
+    // 重新加载数据
+    loadWalletInfo();
+    loadRechargeRecords();
+
+    qDebug() << "钱包信息刷新请求已发送";
+}
+
+void WalletDialog::loadRechargeRecords()
+{
+    if (!networkManager || !networkManager->isConnected()) {
+        return;
+    }
+
+    // 发送充值记录查询请求
+    NetworkMessage msg;
+    msg.type = RECHARGE_RECORDS_REQUEST;
+    msg.data["username"] = currentUsername;
+
+    networkManager->sendMessage(msg);
+    qDebug() << "发送充值记录查询请求，用户名:" << currentUsername;
 }
 
 void WalletDialog::updateBalanceDisplay(double balance)
@@ -68,46 +337,107 @@ void WalletDialog::updateBalanceDisplay(double balance)
     ui->lastUpdateLabel->setText(QString("最近更新: %1").arg(timeText));
 }
 
-bool WalletDialog::validateRechargeInput()
+void WalletDialog::updateRechargeRecordsDisplay(const QJsonArray &records)
 {
-    QString amountStr = ui->rechargeAmountEdit->text().trimmed();
+    ui->recordsTable->setRowCount(0);
 
-    if (amountStr.isEmpty()) {
-        QMessageBox::warning(this, "输入错误", "请输入充值金额");
-        ui->rechargeAmountEdit->setFocus();
-        return false;
+    if (records.isEmpty()) {
+        ui->recordsTable->setRowCount(1);
+        QTableWidgetItem *noDataItem = new QTableWidgetItem("暂无充值记录");
+        noDataItem->setTextAlignment(Qt::AlignCenter);
+        noDataItem->setForeground(QColor(108, 117, 125));
+        noDataItem->setFont(QFont("Microsoft YaHei", 12));
+        ui->recordsTable->setSpan(0, 0, 1, 4);
+        ui->recordsTable->setItem(0, 0, noDataItem);
+        return;
     }
 
-    bool ok;
-    double amount = amountStr.toDouble(&ok);
+    // 按时间倒序显示（最近的在前）
+    for (int i = 0; i < records.size(); i++) {
+        QJsonObject record = records[i].toObject();
 
-    if (!ok) {
-        QMessageBox::warning(this, "输入错误", "请输入有效的金额");
-        ui->rechargeAmountEdit->setFocus();
-        ui->rechargeAmountEdit->selectAll();
-        return false;
+        QString timeStr = record["recharge_time"].toString();
+        QDateTime rechargeTime = QDateTime::fromString(timeStr, Qt::ISODate);
+        double amount = record["amount"].toDouble();
+        double beforeBalance = record["before_balance"].toDouble();
+        double afterBalance = record["after_balance"].toDouble();
+
+        int row = ui->recordsTable->rowCount();
+        ui->recordsTable->insertRow(row);
+
+        // 设置行高
+        ui->recordsTable->setRowHeight(row, 40);
+
+        // 充值时间
+        QString timeDisplay = rechargeTime.toString("yyyy-MM-dd\nhh:mm:ss");
+        QTableWidgetItem *timeItem = new QTableWidgetItem(timeDisplay);
+        timeItem->setTextAlignment(Qt::AlignCenter);
+        timeItem->setFont(QFont("Microsoft YaHei", 10));
+        ui->recordsTable->setItem(row, 0, timeItem);
+
+        // 充值金额
+        QTableWidgetItem *amountItem = new QTableWidgetItem(QString("¥%1").arg(amount, 0, 'f', 2));
+        amountItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+        amountItem->setForeground(QColor(40, 167, 69));  // 绿色
+        amountItem->setFont(QFont("Microsoft YaHei", 11, QFont::Bold));
+        ui->recordsTable->setItem(row, 1, amountItem);
+
+        // 充值前余额
+        QTableWidgetItem *beforeItem = new QTableWidgetItem(QString("¥%1").arg(beforeBalance, 0, 'f', 2));
+        beforeItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+        beforeItem->setFont(QFont("Microsoft YaHei", 10));
+        ui->recordsTable->setItem(row, 2, beforeItem);
+
+        // 充值后余额
+        QTableWidgetItem *afterItem = new QTableWidgetItem(QString("¥%1").arg(afterBalance, 0, 'f', 2));
+        afterItem->setTextAlignment(Qt::AlignRight | Qt::AlignVCenter);
+        afterItem->setForeground(QColor(0, 123, 255));  // 蓝色
+        afterItem->setFont(QFont("Microsoft YaHei", 11, QFont::Bold));
+        ui->recordsTable->setItem(row, 3, afterItem);
     }
 
+    // 调整列宽
+    ui->recordsTable->horizontalHeader()->setSectionResizeMode(0, QHeaderView::Stretch);
+    ui->recordsTable->horizontalHeader()->setSectionResizeMode(1, QHeaderView::ResizeToContents);
+    ui->recordsTable->horizontalHeader()->setSectionResizeMode(2, QHeaderView::ResizeToContents);
+    ui->recordsTable->horizontalHeader()->setSectionResizeMode(3, QHeaderView::ResizeToContents);
+}
+
+bool WalletDialog::validateRechargeInput(double amount)
+{
     if (amount <= 0) {
         QMessageBox::warning(this, "输入错误", "充值金额必须大于0");
-        ui->rechargeAmountEdit->setFocus();
-        ui->rechargeAmountEdit->selectAll();
         return false;
     }
 
     if (amount > 10000) {
         QMessageBox::warning(this, "输入错误", "单次充值金额不能超过10000元");
-        ui->rechargeAmountEdit->setFocus();
-        ui->rechargeAmountEdit->selectAll();
         return false;
     }
 
     return true;
 }
 
-void WalletDialog::onRechargeButtonClicked()
+void WalletDialog::showRechargeDialog()
 {
-    if (!validateRechargeInput()) {
+    qDebug() << "显示充值对话框，当前余额:" << currentBalance;
+
+    // 创建充值对话框（只显示黄色方框内容）
+    RechargeDialog *dialog = new RechargeDialog(currentBalance, this);
+
+    // 连接确认充值信号
+    connect(dialog, &RechargeDialog::rechargeConfirmed, this, &WalletDialog::processRechargeRequest);
+
+    dialog->setAttribute(Qt::WA_DeleteOnClose);
+    dialog->exec();
+}
+
+void WalletDialog::processRechargeRequest(double amount)
+{
+    qDebug() << "收到充值请求，金额:" << amount;
+
+    // 验证输入
+    if (!validateRechargeInput(amount)) {
         return;
     }
 
@@ -115,8 +445,6 @@ void WalletDialog::onRechargeButtonClicked()
         QMessageBox::warning(this, "错误", "未连接到服务器");
         return;
     }
-
-    double amount = ui->rechargeAmountEdit->text().toDouble();
 
     // 发送充值请求
     NetworkMessage msg;
@@ -126,40 +454,48 @@ void WalletDialog::onRechargeButtonClicked()
 
     networkManager->sendMessage(msg);
 
-    // 禁用充值按钮，防止重复点击
-    ui->rechargeButton->setEnabled(false);
-    ui->rechargeButton->setText("处理中...");
+    // 显示处理中提示
+    QMessageBox::information(this, "充值处理中",
+                             QString("正在处理 ¥%1 的充值请求...").arg(amount, 0, 'f', 2));
 
     qDebug() << "发送充值请求，用户:" << currentUsername << "金额:" << amount;
 }
 
-void WalletDialog::onCloseButtonClicked()
-{
-    this->accept();
-}
-
 void WalletDialog::onMessageReceived(const NetworkMessage &message)
 {
+    qDebug() << "=== WalletDialog收到消息 ===";
+    qDebug() << "消息类型:" << message.type;
+    qDebug() << "WALLET_QUERY_RESPONSE值:" << WALLET_QUERY_RESPONSE;
+    qDebug() << "消息数据:" << QJsonDocument(message.data).toJson();
+
     if (message.type == WALLET_QUERY_RESPONSE) {
+        qDebug() << "处理钱包查询响应...";
         bool success = message.data["success"].toBool();
 
         if (success) {
             double balance = message.data["balance"].toDouble();
+            qDebug() << "查询成功，余额:" << balance;
             updateBalanceDisplay(balance);
-
-            // 显示欢迎消息
-            QString welcomeMsg = QString("欢迎您，%1！").arg(currentUsername);
-            ui->welcomeLabel->setText(welcomeMsg);
         } else {
             QString errorMsg = message.data["message"].toString();
+            qDebug() << "查询失败:" << errorMsg;
             QMessageBox::warning(this, "查询失败", errorMsg);
         }
     }
-    else if (message.type == RECHARGE_RESPONSE) {
-        // 恢复充值按钮状态
-        ui->rechargeButton->setEnabled(true);
-        ui->rechargeButton->setText("确认充值");
+    else if (message.type == RECHARGE_RECORDS_RESPONSE) {
+        bool success = message.data["success"].toBool();
 
+        if (success) {
+            QJsonArray records = message.data["records"].toArray();
+            updateRechargeRecordsDisplay(records);
+            qDebug() << "充值记录查询成功，记录数:" << records.size();
+        } else {
+            QString errorMsg = message.data["message"].toString();
+            QMessageBox::warning(this, "查询失败", "无法获取充值记录：" + errorMsg);
+            qDebug() << "充值记录查询失败:" << errorMsg;
+        }
+    }
+    else if (message.type == RECHARGE_RESPONSE) {
         bool success = message.data["success"].toBool();
         QString resultMsg = message.data["message"].toString();
 
@@ -170,8 +506,8 @@ void WalletDialog::onMessageReceived(const NetworkMessage &message)
             // 更新余额显示
             updateBalanceDisplay(newBalance);
 
-            // 清空输入框
-            ui->rechargeAmountEdit->clear();
+            // 刷新充值记录
+            loadRechargeRecords();
 
             // 发射余额更新信号
             emit balanceUpdated();
@@ -186,32 +522,10 @@ void WalletDialog::onMessageReceived(const NetworkMessage &message)
                                      .arg(newBalance, 0, 'f', 2);
 
             QMessageBox::information(this, "充值成功", successMsg);
+            qDebug() << "充值成功，新余额:" << newBalance << "充值金额:" << rechargedAmount;
         } else {
             QMessageBox::warning(this, "充值失败", resultMsg);
+            qDebug() << "充值失败:" << resultMsg;
         }
-    }
-}
-
-void WalletDialog::onRechargeAmountChanged(const QString &text)
-{
-    // 实时计算充值后的余额
-    if (!text.isEmpty()) {
-        bool ok;
-        double amount = text.toDouble(&ok);
-
-        if (ok && amount > 0) {
-            double newBalance = currentBalance + amount;
-            QString newBalanceText = QString("¥%1").arg(newBalance, 0, 'f', 2);
-            ui->newBalanceLabel->setText(QString("充值后余额: %1").arg(newBalanceText));
-
-            // 设置字体颜色
-            QPalette palette = ui->newBalanceLabel->palette();
-            palette.setColor(QPalette::WindowText, QColor(46, 125, 50)); // 绿色
-            ui->newBalanceLabel->setPalette(palette);
-        } else {
-            ui->newBalanceLabel->setText("充值后余额: --");
-        }
-    } else {
-        ui->newBalanceLabel->setText("充值后余额: --");
     }
 }

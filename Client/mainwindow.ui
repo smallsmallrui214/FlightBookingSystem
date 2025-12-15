@@ -16,7 +16,7 @@
   <property name="styleSheet">
    <string notr="true">QMainWindow {
     background: qlineargradient(x1:0, y1:0, x2:1, y2:1, stop:0 #f8f9fa, stop:1 #e9ecef);
-    font-family: &quot;Microsoft YaHei&quot;, &quot;PingFang SC&quot;, sans-serif;
+    font-family: "Microsoft YaHei", "PingFang SC", sans-serif;
 }</string>
   </property>
   <widget class="QWidget" name="centralwidget">
@@ -30,7 +30,7 @@
     <property name="topMargin">
      <number>0</number>
     </property>
-    <property name="rightMargin">
+<property name="rightMargin">
      <number>0</number>
     </property>
     <property name="bottomMargin">
@@ -1274,6 +1274,12 @@ QPushButton:pressed {
             <spacer name="verticalSpacer_11">
              <property name="orientation">
               <enum>Qt::Orientation::Vertical</enum>
+             </property>
+             <property name="sizeHint" stdset="0">
+              <size>
+               <width>0</width>
+               <height>0</height>
+              </size>
              </property>
             </spacer>
            </item>

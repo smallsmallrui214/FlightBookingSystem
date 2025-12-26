@@ -6,11 +6,6 @@
 #include <QSqlQuery>
 #include <QSqlError>
 #include <QDebug>
-#include <QMutex>
-#include <QDateTime>
-#include <QThread>
-#include <QCoreApplication>
-#include <functional>
 
 class DatabaseManager : public QObject
 {
@@ -42,23 +37,9 @@ public:
     bool getFlightAvailableSeats(int flightId, int &availableSeats);
     bool getCabinAvailableSeats(int cabinId, int &availableSeats);
 
-    // 新增方法
-    QJsonArray getRechargeRecords(const QString &username);
-
 private:
     DatabaseManager(QObject *parent = nullptr);
-    ~DatabaseManager();
-
-    QSqlDatabase getNewConnection();
-    void safeCloseConnection(QSqlDatabase &db);
-    bool executeWithTransaction(QSqlDatabase &db, std::function<bool(QSqlDatabase&)> operation);
-
-    // 删除复制构造函数和赋值运算符
-    DatabaseManager(const DatabaseManager&) = delete;
-    DatabaseManager& operator=(const DatabaseManager&) = delete;
-
-    QMutex connectionMutex;
-    static int connectionCounter;
+    bool openDatabase();
 };
 
 #endif // DATABASEMANAGER_H

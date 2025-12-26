@@ -175,7 +175,7 @@ bool BookingDialog::validateInput()
 void BookingDialog::onRechargeButtonClicked()
 {
     // 创建充值对话框
-    WalletDialog *dialog = new WalletDialog(username, networkManager, this);
+    WalletDialog *dialog = new WalletDialog(username, networkManager, userBalance, this);
     dialog->setAttribute(Qt::WA_DeleteOnClose);
 
     // 连接余额更新信号
@@ -343,7 +343,7 @@ void BookingDialog::onMessageReceived(const NetworkMessage &message)
             msgBox.setIcon(QMessageBox::Information);
 
             // 连接按钮点击信号
-            connect(&msgBox, &QMessageBox::finished, this, [this](int result) {
+            connect(&msgBox, &QMessageBox::finished, this, [this]() {
                 // 无论如何都关闭对话框
                 this->accept();
             });

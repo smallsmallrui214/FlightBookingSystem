@@ -10,7 +10,7 @@
 #include <QDebug>
 #include <QEvent>
 #include <QTimer>
-#include <QCloseEvent>  // 新增头文件
+#include <QCloseEvent>
 
 
 class PlaceholderFilter : public QObject

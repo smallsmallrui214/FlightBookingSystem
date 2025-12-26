@@ -491,7 +491,6 @@ void FlightDetailDialog::displayFilteredCabins()
 
     ui->cabinTable->setAlternatingRowColors(true);
 
-    // ======================= 添加的关键代码 =======================
     // 强制表格刷新显示
     ui->cabinTable->viewport()->update();
 

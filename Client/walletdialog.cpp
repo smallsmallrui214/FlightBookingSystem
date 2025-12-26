@@ -18,10 +18,11 @@
 
 WalletDialog::WalletDialog(const QString &username,
                            ClientNetworkManager *networkManager,
+                           double initialBalance,  // 添加初始余额参数
                            QWidget *parent)
     : QDialog(parent), ui(new Ui::WalletDialog),
     currentUsername(username), networkManager(networkManager),
-    currentBalance(0.0)
+    currentBalance(initialBalance)  // 使用传入的余额
 {
     ui->setupUi(this);
 
@@ -181,39 +182,23 @@ WalletDialog::WalletDialog(const QString &username,
     connect(ui->viewRecordsButton, &QPushButton::clicked, this, &WalletDialog::loadRechargeRecords);
     connect(ui->closeButton, &QPushButton::clicked, this, &WalletDialog::accept);  // 使用accept关闭对话框
 
-    // 关键修复1: 确保在UI完全初始化后再建立连接
+    // 关键修改：只连接充值相关的消息，不连接余额查询消息
     if (networkManager) {
-        // 先连接信号，确保能接收到响应
+        // 只连接充值记录和充值响应消息
         connect(networkManager, &ClientNetworkManager::messageReceived,
                 this, &WalletDialog::onMessageReceived, Qt::UniqueConnection);
     }
 
     // 更新欢迎信息
     ui->welcomeLabel->setText(QString("欢迎您，%1！").arg(currentUsername));
-    ui->balanceLabel->setText("正在查询...");
-    ui->lastUpdateLabel->setText("最近更新: -");
 
-    // 关键修复2: 立即查询余额，不延迟
-    qDebug() << "钱包对话框创建，立即查询余额，用户:" << currentUsername;
+    // 关键修改：直接显示传入的余额，不自己查询
+    updateBalanceDisplay(initialBalance);
 
-    if (!networkManager || !networkManager->isConnected()) {
-        ui->balanceLabel->setText("未连接服务器");
-        ui->balanceLabel->setStyleSheet(
-            "QLabel {"
-            "    font-family: 'Microsoft YaHei';"
-            "    color: #dc3545;"
-            "    font-size: 24px;"
-            "    font-weight: bold;"
-            "    padding: 5px;"
-            "    border: 2px solid #dc3545;"
-            "    border-radius: 8px;"
-            "    background-color: #fff5f5;"
-            "}");
-        qDebug() << "网络未连接，无法查询余额";
-    } else {
-        // 直接查询余额
-        loadWalletInfo();
-        // 同时加载充值记录
+    qDebug() << "钱包对话框创建，使用初始余额:" << initialBalance << "，用户:" << currentUsername;
+
+    // 只查询充值记录（余额已经有了）
+    if (networkManager && networkManager->isConnected()) {
         loadRechargeRecords();
     }
 }
@@ -223,48 +208,8 @@ WalletDialog::~WalletDialog()
     delete ui;
 }
 
-void WalletDialog::loadWalletInfo()
-{
-    qDebug() << "=== 开始加载钱包信息 ===";
-    qDebug() << "用户名:" << currentUsername;
-    qDebug() << "网络管理器:" << networkManager;
-
-    if (!networkManager) {
-        qDebug() << "错误: networkManager 为nullptr";
-        ui->balanceLabel->setText("网络错误");
-        return;
-    }
-
-    if (!networkManager->isConnected()) {
-        qDebug() << "错误: 网络未连接";
-        ui->balanceLabel->setText("未连接");
-        return;
-    }
-
-    // 显示查询状态
-    ui->balanceLabel->setText("查询中...");
-    ui->balanceLabel->setStyleSheet(
-        "QLabel {"
-        "    font-family: 'Microsoft YaHei';"
-        "    color: #1976d2;"
-        "    font-size: 24px;"
-        "    font-weight: bold;"
-        "    padding: 5px;"
-        "    border: 2px solid #1976d2;"
-        "    border-radius: 8px;"
-        "    background-color: #f0f8ff;"
-        "}");
-
-    // 发送钱包查询请求
-    NetworkMessage msg;
-    msg.type = WALLET_QUERY_REQUEST;
-    msg.data["username"] = currentUsername;
-
-    qDebug() << "发送钱包查询请求，消息类型:" << msg.type;
-    qDebug() << "请求数据:" << QJsonDocument(msg.data).toJson();
-
-    networkManager->sendMessage(msg);
-}
+// 关键修改：删除 loadWalletInfo() 方法，因为我们不再自己查询余额
+// 这个方法完全移除
 
 void WalletDialog::refreshWalletInfo()
 {
@@ -302,11 +247,15 @@ void WalletDialog::refreshWalletInfo()
         "    background-color: #f0f8ff;"
         "}");
 
-    // 重新加载数据
-    loadWalletInfo();
-    loadRechargeRecords();
+    // 发送钱包查询请求
+    NetworkMessage msg;
+    msg.type = WALLET_QUERY_REQUEST;
+    msg.data["username"] = currentUsername;
 
-    qDebug() << "钱包信息刷新请求已发送";
+    qDebug() << "发送刷新余额请求，消息类型:" << msg.type;
+    qDebug() << "请求数据:" << QJsonDocument(msg.data).toJson();
+
+    networkManager->sendMessage(msg);
 }
 
 void WalletDialog::loadRechargeRecords()
@@ -335,6 +284,8 @@ void WalletDialog::updateBalanceDisplay(double balance)
     // 更新时间显示
     QString timeText = QDateTime::currentDateTime().toString("yyyy-MM-dd hh:mm:ss");
     ui->lastUpdateLabel->setText(QString("最近更新: %1").arg(timeText));
+
+    qDebug() << "更新余额显示:" << balanceText;
 }
 
 void WalletDialog::updateRechargeRecordsDisplay(const QJsonArray &records)
@@ -468,21 +419,10 @@ void WalletDialog::onMessageReceived(const NetworkMessage &message)
     qDebug() << "WALLET_QUERY_RESPONSE值:" << WALLET_QUERY_RESPONSE;
     qDebug() << "消息数据:" << QJsonDocument(message.data).toJson();
 
-    if (message.type == WALLET_QUERY_RESPONSE) {
-        qDebug() << "处理钱包查询响应...";
-        bool success = message.data["success"].toBool();
+    // 不再处理钱包查询响应，只处理充值相关消息
+    // 钱包余额由MainWindow负责更新
 
-        if (success) {
-            double balance = message.data["balance"].toDouble();
-            qDebug() << "查询成功，余额:" << balance;
-            updateBalanceDisplay(balance);
-        } else {
-            QString errorMsg = message.data["message"].toString();
-            qDebug() << "查询失败:" << errorMsg;
-            QMessageBox::warning(this, "查询失败", errorMsg);
-        }
-    }
-    else if (message.type == RECHARGE_RECORDS_RESPONSE) {
+    if (message.type == RECHARGE_RECORDS_RESPONSE) {
         bool success = message.data["success"].toBool();
 
         if (success) {
@@ -509,7 +449,7 @@ void WalletDialog::onMessageReceived(const NetworkMessage &message)
             // 刷新充值记录
             loadRechargeRecords();
 
-            // 发射余额更新信号
+            // 发射余额更新信号，通知MainWindow刷新
             emit balanceUpdated();
 
             // 显示成功消息

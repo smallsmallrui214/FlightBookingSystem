@@ -273,8 +273,8 @@ MainWindow::MainWindow(const QString &username, ClientNetworkManager* networkMan
     ui->balanceLabel->setText("查询中...");
 
     // 设置默认城市
-    ui->departureEdit->setText("广州");
-    ui->arrivalEdit->setText("宜宾");
+    ui->departureEdit->setText("北京");
+    ui->arrivalEdit->setText("上海");
 
     qDebug() << "主窗口初始化完成";
 
@@ -757,15 +757,6 @@ void MainWindow::onMessageReceived(const NetworkMessage &message)
             walletBalanceChecked = true;
             updateWalletDisplay();
             qDebug() << "主窗口收到钱包余额查询成功:" << userWalletBalance;
-
-            // 关键修复: 如果钱包对话框处于打开状态，也需要通知它
-            // 查找是否有打开的WalletDialog并更新其显示
-            QList<WalletDialog*> dialogs = this->findChildren<WalletDialog*>();
-            for (WalletDialog* dialog : dialogs) {
-                qDebug() << "找到打开的WalletDialog，转发消息";
-                // 调用对话框的消息处理方法
-                dialog->onMessageReceived(message);
-            }
         } else {
             QString errorMsg = message.data["message"].toString();
             ui->balanceLabel->setText("查询失败");
@@ -1053,13 +1044,12 @@ void MainWindow::loadOrders()
 
 void MainWindow::onRechargeButtonClicked()
 {
-    WalletDialog *dialog = new WalletDialog(currentUsername, networkManager, this);
+    WalletDialog *dialog = new WalletDialog(currentUsername, networkManager,
+                                            userWalletBalance, this);  // 传入当前余额
     dialog->setAttribute(Qt::WA_DeleteOnClose);
 
-    // 新增：连接余额更新信号
     connect(dialog, &WalletDialog::balanceUpdated, this, [this]() {
         qDebug() << "收到余额更新信号，重新查询余额";
-        // 延迟一小段时间，确保服务器已经处理完充值请求
         QTimer::singleShot(500, this, [this]() {
             queryWalletBalance();
         });
@@ -1303,7 +1293,7 @@ void MainWindow::onUsernameChanged(const QString& newUsername)
         }
     }
 
-    // 新增：用户名修改后重新查询余额
+    // 用户名修改后重新查询余额
     queryWalletBalance();
 }
 

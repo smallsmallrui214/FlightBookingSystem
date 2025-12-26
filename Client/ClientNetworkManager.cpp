@@ -55,6 +55,15 @@ void ClientNetworkManager::sendMessage(const NetworkMessage &message)
 {
     if (isConnected()) {
         QByteArray data = message.toJson();
+
+        // 添加详细调试
+        qDebug() << "=== 发送消息调试 ===";
+        qDebug() << "消息类型:" << message.type;
+        qDebug() << "消息数据键:" << message.data.keys();
+        qDebug() << "JSON内容:" << data;
+        qDebug() << "JSON是否为空:" << data.isEmpty();
+        qDebug() << "JSON长度:" << data.length();
+
         tcpSocket->write(data);
         qDebug() << "向服务器发送消息，类型:" << message.type;
     } else {

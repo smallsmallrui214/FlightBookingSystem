@@ -10,7 +10,7 @@ SOURCES += \
     changepassworddialog.cpp \
     main.cpp \
     clientnetworkmanager.cpp \
-    rechargedialog.cpp \  # 新增
+    rechargedialog.cpp \
     testclient.cpp \
     registerdialog.cpp \
     mainwindow.cpp \
@@ -28,7 +28,7 @@ HEADERS += \
     changeUsernameDialog.h \
     changepassworddialog.h \
     clientnetworkmanager.h \
-    rechargedialog.h \  # 新增
+    rechargedialog.h \
     testclient.h \
     registerdialog.h \
     mainwindow.h \
